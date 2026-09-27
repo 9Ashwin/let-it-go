@@ -296,32 +296,44 @@ def test_notes_are_kept_verbatim():
         check("记录齐全时 shipped 不告警", "没有记录 decisions" not in err, err)
 
 
-def test_shipping_without_evidence_warns_but_proceeds():
-    """观测的落点已经改成 scope README 的验收表——检查点里没有 evidence 只告警，不阻塞。"""
+def test_shipping_gate_is_layered():
+    """零证据拒绝（恢复）；只到 L1/L2 能 shipped 但告警；有 L3 则干净通过。"""
     with tempfile.TemporaryDirectory() as tmp:
         state_path = os.path.join(tmp, ".loop-state.json")
         issues = write_issues(tmp, [(1, "Only", "no deps")])
         run("scan", "--issues", issues, "--state", state_path, "--repo", "o/r")
 
-        code, out, err = run("set", "--issue", 1, "--status", "shipped", "--state", state_path)
-        check("没有 evidence 也能 shipped", code == 0, err)
-        check("但要打一条告警", "evidence" in err, err)
-        check("状态确实落盘了",
-              read_state(state_path)["issues"]["1"]["status"] == "shipped",
-              str(read_state(state_path)["issues"]["1"]))
+        code, _, err = run("set", "--issue", 1, "--status", "shipped", "--state", state_path)
+        check("零证据的 shipped 被拒绝", code != 0, err)
+        check("拒绝时说清怎么补", "evidence add" in err and "--layer" in err, err)
 
-        code, out, err = run("set", "--issue", 1, "--status", "shipped", "--state", state_path,
-                             "--waive", "只有线上环境能验，本地拿不到观察")
-        check("写明原因后照样 shipped", code == 0, err)
-        entry = read_state(state_path)["issues"]["1"]
-        check("声明的原因记进了检查点",
-              entry["status"] == "shipped"
-              and entry["evidence_waiver"]["reason"] == "只有线上环境能验，本地拿不到观察"
-              and entry["evidence_waiver"]["at"], str(entry))
-        check("声明时给一行信息而非告警", "已声明拿不到观察" in err, err)
+        code, _, err = run("evidence", "add", "--issue", 1, "--state", state_path,
+                           "--layer", "L1", "--kind", "test", "--command", "go test ./...",
+                           "--result", "pass")
+        check("记 L1 证据成功", code == 0, err)
+        code, _, err = run("set", "--issue", 1, "--status", "shipped", "--state", state_path)
+        check("只到 L1 也能 shipped", code == 0, err)
+        check("但要告警说真实链路没验", "L1" in err and "L3" in err, err)
 
-        code, out, err = run("summary", "--state", state_path)
-        check("summary 标出这条声明", "#1(已声明拿不到观察)" in out, out)
+        # 换一条 L3 证据：不再告警
+        with tempfile.TemporaryDirectory() as tmp2:
+            sp2 = os.path.join(tmp2, ".loop-state.json")
+            i2 = write_issues(tmp2, [(1, "Only", "no deps")])
+            run("scan", "--issues", i2, "--state", sp2, "--repo", "o/r")
+            batch = "\n".join(json.dumps(r) for r in [
+                {"layer": "L3", "kind": "runtime", "command": "curl -si localhost:8080/users",
+                 "result": "pass"},
+            ])
+            run("evidence", "add", "--issue", 1, "--state", sp2, "--batch", "-", stdin=batch)
+            code, _, err = run("set", "--issue", 1, "--status", "shipped", "--state", sp2)
+            check("有 L3 证据时干净通过", code == 0, err)
+            check("不再告警", "L3" not in err, err)
+            check("summary 标出最高层次", "[L3]" in run("summary", "--state", sp2)[1])
+
+        # 非法 layer 要拦
+        code, _, err = run("evidence", "add", "--issue", 1, "--state", state_path,
+                           "--batch", "-", stdin='{"layer":"L9","kind":"test","command":"x","result":"pass"}')
+        check("非法 layer 被拒", code != 0, err)
 
 
 def test_shipping_without_notes_warns():
@@ -455,7 +467,7 @@ def main() -> int:
         test_blocked_and_next_computation,
         test_untracked_dependency_waits,
         test_notes_are_kept_verbatim,
-        test_shipping_without_evidence_warns_but_proceeds,
+        test_shipping_gate_is_layered,
         test_shipping_without_notes_warns,
         test_evidence_is_recorded_structured,
         test_evidence_batch_appends_in_one_write,

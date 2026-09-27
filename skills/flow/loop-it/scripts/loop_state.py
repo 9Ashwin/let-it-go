@@ -16,8 +16,9 @@
   set --issue N --status <pending|in_progress|shipped|failed|skipped|blocked>
       [--error-class X] [--error TEXT] [--branch B] [--phase P] [--waive TEXT]
       记录一次状态转移，打上时间戳，在一次尝试开始时递增 `attempts`，写入检查点，并打印
-      下一步该做什么。把 issue 标成 `shipped` 时，若没有结构化的 `evidence`，会打一条告警——
-      观测的落点已经改成 scope README 的验收表，检查点里那份结构化记录是可选的。
+      下一步该做什么。把 issue 标成 `shipped` 时，若一条 `evidence` 都没有，这次转移会被拒绝——
+      背后没有观察的 shipped 记录只说明有事发生过。证据要标层次（`--layer L1..L4`）：只到 L1/L2
+      时照样能 shipped，但会打一条告警，因为真实链路（L3）还没验过。
       拿不到观察时可以用 `--waive "原因"` 把原因写进检查点——那是自愿声明，不是豁免
       （已经没有闸门可豁免了），`summary` 里会标出来。
       仍缺 `decisions` / `verification` / `open` 时只告警，不拦——那是判断，不是可核验的事实。
@@ -105,6 +106,13 @@ REQUIRED_NOTES = ("decisions", "verification", "open")
 # 验证的结构化那一半：实际观察到了什么，以及产生它的命令。`kind` 是观察的性质，不是它
 # 的强度——哪类观察给哪个状态设门禁是工作区自己的决定，不是本脚本的。`result` 刻意是三值
 # 的：对一项被跳过的检查，`deferred` 是诚实的答案，它绝不能被伪装成 `pass`。
+# 证据层次：证明的**深度**，与 kind（观测的**种类**）正交。层次不自动升级、不互相替代——
+# 一条 L1 证据再多也证明不了 L3 的事。典型对应：L1 单测/静态，L2 存储与组件协作，
+# L3 本地真实链路（起服务、调真实接口并读回），L4 真实外部系统往返。
+LAYERS = ("L1", "L2", "L3", "L4")
+# 只到这一层及以下，说明"真实链路"还没验过——shipped 可以，但要留一句话。
+SHALLOW_LAYERS = ("L1", "L2")
+
 EVIDENCE_KINDS = ("test", "runtime", "database", "external", "human")
 EVIDENCE_RESULTS = ("pass", "fail", "deferred")
 
@@ -421,6 +429,12 @@ def render_next(state: dict) -> str:
     return "\n".join(lines)
 
 
+def labelled(issues: dict, number: int) -> str:
+    """`#N[L3]`——把最高证据层次挂在 issue 上，summary 一眼看得出深度。"""
+    layer = highest_layer(issues[str(number)])
+    return ref(number) + (f"[{layer}]" if layer else "")
+
+
 def render_summary(state: dict) -> str:
     issues = state["issues"]
     order = order_of(state)
@@ -437,7 +451,7 @@ def render_summary(state: dict) -> str:
         f"tracked={state.get('total_issues', total)}",
         "━" * 52,
         f"  ✅ shipped:    {len(buckets.get('shipped', []))}  "
-        + ", ".join(ref(n) for n in buckets.get("shipped", [])),
+        + ", ".join(labelled(issues, n) for n in buckets.get("shipped", [])),
         f"  ⏭️  skipped:    {len(buckets.get('skipped', []))}  "
         + ", ".join(ref(n) for n in buckets.get("skipped", [])),
     ]
@@ -463,7 +477,7 @@ def render_summary(state: dict) -> str:
     no_evidence = [n for n in buckets.get("shipped", []) if missing_evidence(issues[str(n)])]
     if no_evidence:
         labels = [
-            ref(n) + ("(已声明拿不到观察)" if evidence_waiver(issues[str(n)]) else "")
+            ref(n) + ("(已声明拿不到观察)" if evidence_waiver(issues[str(n)]) else "") + (f"[{highest_layer(issues[str(n)])}]" if highest_layer(issues[str(n)]) else "")
             for n in no_evidence
         ]
         lines.append(f"  ⚠️  无 evidence 的 shipped: {len(no_evidence)}  " + ", ".join(labels))
@@ -564,13 +578,19 @@ def cmd_set(args: argparse.Namespace) -> int:
     previous = entry.get("status", "pending")
     stamp = now()
 
-    if args.status == "shipped" and missing_evidence(entry):
-        # 告警而不是拒绝：观测的**落点**已经改成 scope README 的验收表，检查点里的
-        # 结构化 evidence 是可选的。拒绝会把那条轻路径堵死——要求留在技能正文里，
-        # 脚本只负责把"没有证据"这件事说出来，不替人做判断。
+    if args.status == "shipped" and missing_evidence(entry) and not args.waive:
+        die(
+            f"{ref(args.issue)} 没有记录 evidence —— 背后没有观察的 shipped 记录只说明有事发生过，"
+            f"说明不了是什么证明了它。\n"
+            f"  先记一条观察：`evidence add --issue {args.issue} --layer <L1|L2|L3|L4> "
+            f"--kind <test|runtime|database|external|human> --command '…' --result <pass|fail|deferred>`\n"
+            f"  确实拿不到观察时写明原因：`set --issue {args.issue} --status shipped --waive \"…\"`"
+        )
+    if args.status == "shipped" and highest_layer(entry) in SHALLOW_LAYERS:
+        # 「状态与最高层次是否矛盾」——脚本判这个，不判"这条证据是否真的证明了该条验收"（那是人判的）。
         warn(
-            f"{ref(args.issue)} 的 shipped 没有结构化 evidence —— 确认 scope README 的验收表里"
-            f"记了它的观测；要跨会话追踪某条观测时用 `evidence add`。"
+            f"{ref(args.issue)} 的最高证据只到 {highest_layer(entry)} —— 真实链路（L3）还没验过。"
+            f" 跑一遍再 shipped，或者把原因写清楚。"
         )
     if args.status == "shipped" and args.waive:
         entry["evidence_waiver"] = {"reason": args.waive, "at": stamp}
@@ -640,6 +660,12 @@ def missing_evidence(entry: dict) -> bool:
     return not entry.get("evidence")
 
 
+def highest_layer(entry: dict) -> str:
+    """这条 issue 上最高的一层证据；一条都没有时返回空串。"""
+    seen = [r.get("layer") for r in (entry.get("evidence") or []) if r.get("layer") in LAYERS]
+    return max(seen, key=LAYERS.index) if seen else ""
+
+
 def evidence_waiver(entry: dict) -> dict:
     """这条 issue 上自愿声明「拿不到观察」的记录；没有声明时为空 dict。"""
     return entry.get("evidence_waiver") or {}
@@ -696,6 +722,8 @@ def read_evidence_batch(source: str) -> list[dict]:
             raise SystemExit(f"evidence batch 第 {lineno} 行 result 非法: {item.get('result')!r}")
         if not item.get("command"):
             raise SystemExit(f"evidence batch 第 {lineno} 行缺 command")
+        if item.get("layer") is not None and item["layer"] not in LAYERS:
+            raise SystemExit(f"evidence batch 第 {lineno} 行 layer 非法: {item['layer']!r}")
         records.append(item)
     if not records:
         raise SystemExit("evidence batch 是空的")
@@ -743,6 +771,8 @@ def cmd_evidence(args: argparse.Namespace) -> int:
         "result": args.result,
         "observed_at": args.observed_at or now(),
     }
+    if args.layer:
+        record["layer"] = args.layer
     if args.artifact:
         record["artifact"] = args.artifact
     # 只追加，永不改写。事后发现是错的观察本身也是痕迹的一部分；覆盖它正是这条记录
@@ -918,6 +948,8 @@ def main(argv: list[str] | None = None) -> int:
     evidence_add.add_argument("--result", choices=EVIDENCE_RESULTS)
     evidence_add.add_argument("--batch", metavar="FILE",
                               help="从 JSON 行批量追加（`-` 读 stdin）——一条 issue 的证据一次写完")
+    evidence_add.add_argument("--layer", choices=LAYERS,
+                              help="这条证据证明到哪一层（L1 单测/静态、L2 组件、L3 真实链路、L4 外部系统）")
     evidence_add.add_argument("--artifact", help="值得留存的输出路径")
     evidence_add.add_argument("--observed-at", help="观察到的时间（默认：当前时间）")
     evidence_add.add_argument("--state", default=DEFAULT_STATE)
