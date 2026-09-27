@@ -154,7 +154,18 @@ func cmdRun(args []string) int {
 		fmt.Fprintln(os.Stderr, "run:", err)
 		return 1
 	}
+	// 污染检查：臂不该碰到评测仓库的 evals/。隔离已经把工作树挪到仓库外，所以正常
+	// 情况下这里永远是空的——但隔离一旦被改坏，这一轮必须自己喊出来，而不是静默变成
+	// 一条「成绩很好」的假数据。实测过一次：4/8 条臂爬出去读了用例定义与别的臂的结果，
+	// 其中一条靠抄别人的检查点拿到了满分。
+	contaminated := contaminationIn(rawEvents)
 	notes := runNotes(caseID, arm, dsh, finalText, events, elapsed, runErr)
+	if len(contaminated) > 0 {
+		notes += "\n- ⚠️ **这一轮污染了**：臂碰到了 " + strings.Join(contaminated, "、") +
+			"——分数不可信，别用它下结论。\n"
+		os.WriteFile(filepath.Join(out, "contaminated.json"), mustJSON(contaminated), 0o644)
+		fmt.Fprintf(os.Stderr, "  ⚠️ 污染：臂碰到了 %s——这一轮的分数不可信\n", strings.Join(contaminated, "、"))
+	}
 	if err := os.WriteFile(filepath.Join(out, "notes.md"), []byte(notes), 0o644); err != nil {
 		fmt.Fprintln(os.Stderr, "run:", err)
 		return 1
@@ -501,4 +512,18 @@ func parkWorkTree(work, out string) error {
 		}
 	}
 	return nil
+}
+
+// contaminationMarkers 是臂**不该碰**的东西。工作树现在建在仓库外的私有临时根里，
+// 所以它够不着这些；这条检查是保险，让隔离失效时能被看见。
+var contaminationMarkers = []string{"evals/cases", "evals/results", "evals/harness", "arms.json"}
+
+func contaminationIn(rawEvents string) []string {
+	var found []string
+	for _, marker := range contaminationMarkers {
+		if strings.Contains(rawEvents, marker) {
+			found = append(found, marker)
+		}
+	}
+	return found
 }
