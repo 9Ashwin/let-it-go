@@ -208,13 +208,12 @@ func caseDirs() []string {
 // ---------------------------------------------------------------------------
 
 type Seed struct {
-	CaseID             string            `json:"case_id"`
-	CaseName           string            `json:"case_name"`
-	Workdir            string            `json:"workdir"`
-	SeedCommit         string            `json:"seed_commit"`
-	Protected          map[string]string `json:"protected"`
-	ProtectedMissing   []string          `json:"protected_missing_at_seed"`
-	LetitgoDirtyAtSeed []string          `json:"letitgo_dirty_at_seed"`
+	CaseID           string            `json:"case_id"`
+	CaseName         string            `json:"case_name"`
+	Workdir          string            `json:"workdir"`
+	SeedCommit       string            `json:"seed_commit"`
+	Protected        map[string]string `json:"protected"`
+	ProtectedMissing []string          `json:"protected_missing_at_seed"`
 }
 
 func seedPath(workdir string) string {
@@ -797,16 +796,11 @@ func cmdMaterialize(args []string) int {
 
 	commit, _ := git(dest, "rev-parse", "HEAD")
 	seed := Seed{
-		CaseID:             caseID,
-		CaseName:           c.Name,
-		SeedCommit:         strings.TrimSpace(commit),
-		Protected:          map[string]string{},
-		ProtectedMissing:   []string{},
-		LetitgoDirtyAtSeed: dirtyLines(repoDir),
-	}
-	if seed.LetitgoDirtyAtSeed == nil {
-		// nil 切片会 marshal 成 null；schema 里它是数组，统一成 []
-		seed.LetitgoDirtyAtSeed = []string{}
+		CaseID:           caseID,
+		CaseName:         c.Name,
+		SeedCommit:       strings.TrimSpace(commit),
+		Protected:        map[string]string{},
+		ProtectedMissing: []string{},
 	}
 	abs, _ := filepath.Abs(dest)
 	seed.Workdir = abs
