@@ -16,7 +16,7 @@ help:  ## List every target
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
 
-check:  ## Validate the skill set: layout, frontmatter, cross-references, bundle patch
+check:  ## Validate the skill set: layout, frontmatter, cross-references, patch, installer manifest
 	$(PY) scripts/check_skills.py
 
 test: check  ## Run the bundled scripts' self-tests, then validate

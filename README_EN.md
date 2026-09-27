@@ -117,7 +117,7 @@ cordis.patch.yml   # the DSH bundle patch: each of the three buckets is its own 
 
 The test is the role a skill plays: `flow` is the pipeline itself; `bonus` is what you reach for mid-flight because something broke, because quality is at stake, or because you need a non-code artifact (a testing method, diagnosis, conflicts, incoming triage, refactoring, design docs, a review page); `vendor` adds no new skills — it collects upstream third-party skills verbatim, each directory carrying a `NOTICE.md` (source / commit / license / sync date).
 
-A DSH skill root is scanned **exactly one level deep** (`<root>/<name>/SKILL.md`), so `cordis.patch.yml` lists each of the three buckets as its own root rather than pointing at `skills/`. `npx skills add` scans recursively and flattens on install; either install route yields exactly the same set. `scripts/check_skills.py` guards the two silent failures: **a skill left at the top level** (no root covers it) and **a bucket missing from the patch** (that whole bucket disappears without an error).
+A DSH skill root is scanned **exactly one level deep** (`<root>/<name>/SKILL.md`), so `cordis.patch.yml` lists each of the three buckets as its own root rather than pointing at `skills/`. `npx skills add` scans recursively and flattens on install; either install route yields exactly the same set. `scripts/check_skills.py` guards the three silent failures: **a skill left at the top level** (no root covers it), **a bucket missing from the patch** (that whole bucket disappears without an error), and **a root `.claude-plugin/marketplace.json` out of step with the buckets** (the install picker falls back to one flat list of 27, also without an error).
 
 ## Maintenance
 

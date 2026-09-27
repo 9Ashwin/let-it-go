@@ -1,0 +1,58 @@
+{
+  "name": "let-it-go",
+  "owner": {
+    "name": "9Ashwin",
+    "url": "https://github.com/9Ashwin"
+  },
+  "description": "An evidence-driven development workflow for the DeepSeek Harness.",
+  "plugins": [
+    {
+      "name": "let-it-go-flow",
+      "source": "./skills/flow",
+      "description": "The workflow itself: PRD to shipped code, plus the batch and graph runners.",
+      "skills": [
+        "./ask-flow",
+        "./graph",
+        "./implement",
+        "./loop-it",
+        "./prd",
+        "./review-it",
+        "./ship-it",
+        "./to-design",
+        "./to-issues",
+        "./walkthrough"
+      ]
+    },
+    {
+      "name": "let-it-go-bonus",
+      "source": "./skills/bonus",
+      "description": "Reached for mid-flow because something broke, or because the artifact is not code.",
+      "skills": [
+        "./conflict",
+        "./diagnose",
+        "./modern-go",
+        "./refactor",
+        "./test-first",
+        "./triage",
+        "./understand"
+      ]
+    },
+    {
+      "name": "let-it-go-vendor",
+      "source": "./skills/vendor",
+      "description": "Third-party skills vendored verbatim and pinned to an upstream commit.",
+      "skills": [
+        "./find-skills",
+        "./frontend-design",
+        "./humanizer-zh",
+        "./pptx",
+        "./resume-optimizer",
+        "./skill-creator",
+        "./svg-diagram",
+        "./teach",
+        "./ui-ux-pro-max",
+        "./web-design-guidelines"
+      ]
+    }
+  ]
+}

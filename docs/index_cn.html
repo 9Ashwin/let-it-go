@@ -909,7 +909,7 @@
       <ul class="step-list">
         <li>skills 落到 <code class="inline-code">~/.agents/skills</code>，这条装法不必动任何 profile 依赖。</li>
         <li><code class="inline-code">npx skills</code> 递归扫描，安装时把 <code class="inline-code">skills/&lt;桶&gt;/&lt;技能&gt;</code> <strong>拍平</strong>成 <code class="inline-code">~/.agents/skills/&lt;技能&gt;</code>——技能根只扫一层，所以必须拍平。</li>
-        <li>选择技能时看到的是<strong>拍平后的 27 项</strong>，仓库里没有插件清单，所有技能平铺在同一层：<code class="inline-code">skills/&lt;桶&gt;/&lt;技能&gt;</code> 只用来组织仓库，安装后不再有桶这一层。</li>
+        <li>选择技能时，picker 按根目录 <code class="inline-code">.claude-plugin/marketplace.json</code> 分成 <strong>Let It Go Flow / Bonus / Vendor 三组</strong>（共 27 项）；安装后仍是拍平的 <code class="inline-code">~/.agents/skills/&lt;技能&gt;</code>，桶这一层只存在于仓库里。</li>
         <li>这是最省事的一条路：不必动 profile 的依赖，对所有 profile 都生效。</li>
       </ul>
       <p>手动拷贝时要自己完成<strong>拍平</strong>这一步——不要连桶一起拷：</p>

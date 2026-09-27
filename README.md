@@ -117,7 +117,7 @@ cordis.patch.yml   # DSH bundle patch：三个桶各列为一个 customSkillDirs
 
 判据是「它在这条链上扮演什么角色」：`flow` 是流水线本身；`bonus` 是你在中途因为「出事了 / 要保证质量 / 需要一个非代码产物」伸手拿的（测试方法、排障、冲突、外部分诊、重构、设计文档、审阅页）；`vendor` 不产生新技能，只是把上游第三方技能逐字收进来，每个目录带一份 `NOTICE.md`（来源 / commit / 许可 / 同步日期）。
 
-DSH 的技能根**只扫一层**（`<root>/<name>/SKILL.md`），所以 `cordis.patch.yml` 把三个桶各列为一个 root，而不是指向 `skills/`。`npx skills add` 是递归扫描、安装时拍平，无论走哪条安装路径，得到的技能集完全相同。`scripts/check_skills.py` 守着两个静默失败面：**技能被放回顶层**（三个 root 都覆盖不到它），以及**某个桶漏进 patch**（那一桶会整体消失，且不报错）。
+DSH 的技能根**只扫一层**（`<root>/<name>/SKILL.md`），所以 `cordis.patch.yml` 把三个桶各列为一个 root，而不是指向 `skills/`。`npx skills add` 是递归扫描、安装时拍平，无论走哪条安装路径，得到的技能集完全相同。`scripts/check_skills.py` 守着三个静默失败面：**技能被放回顶层**（三个 root 都覆盖不到它）、**某个桶漏进 patch**（那一桶会整体消失，且不报错），以及**根目录 `.claude-plugin/marketplace.json` 与桶内容不一致**（安装 picker 退回成一列平铺的 27 项，同样不报错）。
 
 ## 维护
 

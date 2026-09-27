@@ -3,8 +3,8 @@
 
 This set is DSH-only: one host to satisfy, one manifest to keep in sync.
 
-Layout: `skills/<bucket>/<name>/SKILL.md`, with `<bucket>` one of `flow`,
-`practice`, `meta` or `bonus`. DSH discovers a skill at `<root>/<name>/SKILL.md`
+Layout: `skills/<bucket>/<name>/SKILL.md`, with `<bucket>` one of `flow`, `bonus` or
+`vendor`. DSH discovers a skill at `<root>/<name>/SKILL.md`
 — exactly one level below a configured root — so `cordis.patch.yml` lists every
 bucket as its own root. That makes two mistakes invisible until someone notices
 a skill is gone:
@@ -16,8 +16,9 @@ a skill is gone:
     worth failing on our own skills.
 
 This script fails loudly on both, on any bucket it does not know, on a root missing from
-the bundle patch, and on a `/name` in prose that names a skill that no longer exists —
-that last one is how a rename quietly leaves dead routes behind.
+the bundle patch, on a `/name` in prose that names a skill that no longer exists —
+that last one is how a rename quietly leaves dead routes behind — and on an installer
+manifest that has drifted away from the buckets.
 
 Vendored skills are upstream's to shape, so this repo's own conventions (name matching
 the directory, description inside the cap) are reported as warnings for them, while
@@ -29,6 +30,7 @@ Exit code 1 when anything fails.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import sys
@@ -238,6 +240,77 @@ def check_bundle_patch(repo_root: str, buckets: set[str]) -> list[str]:
     return problems
 
 
+def check_installer_manifest(repo_root: str, skills: list[tuple[str, str, str]]) -> list[str]:
+    """The bucket layout and the installer picker must agree.
+
+    `npx skills add` reads the root `.claude-plugin/marketplace.json` to label each skill
+    with a group, and it reads nothing else: the picker falls back to one flat list of
+    names the moment that file is absent or short a skill. That flat list is not an error
+    the installer reports — it just stops showing which bucket a skill belongs to, which is
+    how the three buckets silently stopped being visible once already.
+
+    So the manifest is a second copy of the layout, and a second copy rots: it is checked
+    rather than trusted. Vendored skills are included — they are listed like any other, and
+    a vendor sync that adds or drops one has to move this file too.
+    """
+    path = os.path.join(repo_root, ".claude-plugin", "marketplace.json")
+    try:
+        manifest = json.load(open(path, encoding="utf-8"))
+    except OSError:
+        return [
+            ".claude-plugin/marketplace.json is missing — the installer picker would show "
+            "one flat list instead of the buckets"
+        ]
+    except json.JSONDecodeError as exc:
+        return [f".claude-plugin/marketplace.json is not valid JSON: {exc}"]
+
+    problems: list[str] = []
+    listed: dict[str, set[str]] = {}
+    for plugin in manifest.get("plugins", []):
+        source = plugin.get("source")
+        if not isinstance(source, str) or not source.startswith("./"):
+            problems.append(
+                f"marketplace.json: plugin {plugin.get('name')!r} has source {source!r}, "
+                f"expected a './skills/<bucket>' path"
+            )
+            continue
+        rel = os.path.relpath(os.path.normpath(os.path.join(repo_root, source)), repo_root)
+        parts = rel.split(os.sep)
+        if len(parts) != 2 or parts[0] != "skills":
+            problems.append(
+                f"marketplace.json: plugin {plugin.get('name')!r} has source {source!r}, "
+                f"expected a './skills/<bucket>' path"
+            )
+            continue
+        bucket = parts[1]
+        names: set[str] = set()
+        for entry in plugin.get("skills", []):
+            if not isinstance(entry, str) or not entry.startswith("./"):
+                problems.append(
+                    f"marketplace.json: {bucket} lists {entry!r}, expected a './<name>' path"
+                )
+                continue
+            names.add(os.path.basename(entry.rstrip("/")))
+        listed[bucket] = names
+
+    actual: dict[str, set[str]] = {}
+    for bucket, name, _ in skills:
+        actual.setdefault(bucket, set()).add(name)
+
+    for bucket in sorted(set(listed) | set(actual)):
+        want, have = listed.get(bucket, set()), actual.get(bucket, set())
+        for name in sorted(have - want):
+            problems.append(
+                f"marketplace.json: skills/{bucket}/{name} is not listed — it would show up "
+                f"ungrouped in the installer picker"
+            )
+        for name in sorted(want - have):
+            problems.append(
+                f"marketplace.json: lists {bucket}/{name}, which is not a skill any more"
+            )
+    return problems
+
+
 def main() -> int:
     root = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "skills"
@@ -251,6 +324,7 @@ def main() -> int:
     failures.extend(check_skill_references(repo_root, skills))
     failures.extend(check_router_coverage(repo_root, skills))
     failures.extend(check_reference_links(repo_root, skills))
+    failures.extend(check_installer_manifest(repo_root, skills))
 
     warnings: list[str] = []
     for bucket, name, path in skills:
@@ -293,7 +367,7 @@ def main() -> int:
     )
     print(f"ok: {len(skills)} skills valid ({per_bucket}; frontmatter parses, names match, "
           f"descriptions <= {DESCRIPTION_CAP} chars, every /reference resolves, "
-          f"every bucket served by the bundle patch)")
+          f"every bucket served by the bundle patch and listed in the installer manifest)")
     return 0
 
 
