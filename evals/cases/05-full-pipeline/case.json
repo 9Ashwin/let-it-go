@@ -1,9 +1,9 @@
 {
   "id": "05-full-pipeline",
   "name": "full-pipeline",
-  "what_it_tests": "**全流程**：prompt 只给一个还没成形的业务诉求，fixture 里没有需求资料、没有 issue 卡、没有 PRD——只有仓库自己的约定（AGENTS.md、requirements/README.md、config/README.md）。看这套流程会不会自己走完 `prd → to-issues → loop-it`，以及最终有没有把事做成。\n\n前面四个用例全部从流水线**中段**进入（需求是我给到手里的），所以规划半边（`prd` → `to-issues`）一次都没被测到。这条补上。",
-  "prompt": "我们要能按仓库配低库存阈值。现在是一个全局值，所有仓库共用，业务要按仓库单独调——没配的仓库还是走原来的默认值。\n\n怎么落地你定，做完让我知道。",
-  "expected_output": "需求资料落在 requirements/<scope>/（含 PRD 与 issue 卡）；阈值真的能按仓库配置；门禁绿；受保护文件未改。",
+  "what_it_tests": "**全流程**：prompt 只给一个还没成形的业务诉求，fixture 里没有需求资料、没有 issue 卡、没有 PRD——只有仓库自己的约定（AGENTS.md、requirements/README.md、config/README.md）。看这套流程会不会自己走完 `prd → to-issues → loop-it`，以及最终有没有把事做成。\n\n前面四个用例全部从流水线**中段**进入（需求是我给到手里的），所以规划半边（`prd` → `to-issues`）一次都没被测到。这条补上。\n\n⚠️ prompt 点名了配置文件名与「改配置不重新构建」这两条，是刻意的：**探针能测什么，取决于验收条件有没有说清楚。** 第一版两条都没写，两条臂各自挑了文件名（`config/low_stock_thresholds.json`），其中一条还把配置 `go:embed` 进了二进制——探针「写文件再观察」的做法直接失效，而那不是臂的错。补上之后，探针测的就是任务真的要求过的东西。",
+  "prompt": "我们要能按仓库配低库存阈值。现在是一个全局值，所有仓库共用，业务要按仓库单独调——没配的仓库还是走原来的默认值。\n\n两个约束：配置放 `config/thresholds.json`（这个仓库放配置的地方，见它的 README）；**改配置不能要求重新构建**——运维要能直接改文件就让它生效。\n\n怎么落地你定，做完让我知道。",
+  "expected_output": "需求资料落在 requirements/<scope>/（含 PRD 与 issue 卡）；阈值真的能按仓库配置；改配置文件即时生效、不用重新构建；门禁绿；受保护文件未改。",
   "fixture": "fixture",
   "tamper_guard": [
     "Makefile",
