@@ -46,7 +46,7 @@
     },
     {
       "kind": "workspace_clean",
-      "text": "没有写到 fixture 之外（子代理没有自己的 cwd，越界是这条路的典型失败）"
+      "text": "没有写到 fixture 之外（臂的 cwd 就是 fixture，越界是这条路的典型失败）"
     }
   ]
 }

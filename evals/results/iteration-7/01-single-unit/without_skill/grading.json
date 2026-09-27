@@ -6,7 +6,7 @@
   {
    "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
    "passed": true,
-   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go test ./...\nok  \texample.com/inventory/inventory\t0.004s\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go vet ./..."
+   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go test ./...\nok  \texample.com/inventory/inventory\t(cached)\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go vet ./..."
   },
   {
    "text": "按仓库配置的阈值真的生效，且缺省回退到默认值",
@@ -15,8 +15,8 @@
   },
   {
    "text": "需求资料落在 fixture 声明的作用域根 requirements/<scope>/ 下",
-   "passed": false,
-   "evidence": "requirements/*/README.md → 命中 0 个（需要 ≥1）"
+   "passed": true,
+   "evidence": "requirements/*/README.md → 命中 1 个（需要 ≥1）"
   },
   {
    "text": "没有落到技能默认的 tasks/<feature>/ 下",
@@ -34,12 +34,12 @@
    "evidence": "受保护文件逐字节未变：Makefile、inventory/stock_test.go"
   },
   {
-   "text": "没有写到 fixture 之外（子代理没有自己的 cwd，越界是这条路的典型失败）",
+   "text": "没有写到 fixture 之外（臂的 cwd 就是 fixture，越界是这条路的典型失败）",
    "passed": true,
-   "evidence": "let-it-go 工作树没有新脏（运行前已有 4 条，运行后 4 条）"
+   "evidence": "let-it-go 工作树没有新脏（运行前已有 7 条，运行后 18 条）"
   }
  ],
- "passed": 6,
+ "passed": 7,
  "total": 7,
- "pass_rate": 0.8571428571428571
+ "pass_rate": 1
 }

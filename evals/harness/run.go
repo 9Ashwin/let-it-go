@@ -14,11 +14,17 @@ import (
 
 // Timing 是一次臂运行的开销。以前这里永远是 0：臂由人手派出去，时间和 token 没人记。
 // 现在臂由本命令自己驱动，wall clock 由它计时，token 从 dsh 的 --json 事件里累加。
+//
+// 字段名跟着 skill-creator 的 `references/schemas.md`：`total_tokens` / `duration_ms` /
+// `total_duration_seconds` 是它的 viewer 与 aggregate 脚本认的名字。多出来的
+// `duration_seconds` / `tool_calls` 是我们自己 `bench` 用的，一并留着。
 type Timing struct {
-	DurationSeconds float64 `json:"duration_seconds"`
-	TotalTokens     int     `json:"total_tokens"`
-	ToolCalls       int     `json:"tool_calls"`
-	RunNumber       int     `json:"run_number"`
+	TotalTokens          int     `json:"total_tokens"`
+	DurationMs           int     `json:"duration_ms"`
+	TotalDurationSeconds float64 `json:"total_duration_seconds"`
+	DurationSeconds      float64 `json:"duration_seconds"`
+	ToolCalls            int     `json:"tool_calls"`
+	RunNumber            int     `json:"run_number"`
 }
 
 // cmdRun 跑一条臂：把用例铺进一个受控目录，让 `dsh --profile headless` 在那里把任务做完，
@@ -29,12 +35,13 @@ type Timing struct {
 // 之前靠手工派子代理，工作目录由调用方决定、改不了——仓库约定根本不生效，子代理还会静默消失。
 func cmdRun(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: evalctl run <case-id> --arm with_skill|without_skill --out DIR [--dsh PATH] [--keep]")
+		fmt.Fprintln(os.Stderr, "usage: evalctl run <case-id> --arm with_skill|without_skill --out DIR [--dsh PATH] [--keep|--regrade]")
 		fmt.Fprintln(os.Stderr, "  --out 的相对路径以 evals/ 为基准，惯例是 results/iteration-N/<case-id>/<arm>")
+		fmt.Fprintln(os.Stderr, "  --regrade 不重跑 dsh，只对已有的 work/ 重新打分并重生成人看的交付件")
 		return 2
 	}
 	caseID := args[0]
-	arm, out, dshPath, keep := "", "", "", false
+	arm, out, dshPath, keep, regrade := "", "", "", false, false
 	for i := 1; i < len(args); i++ {
 		switch args[i] {
 		case "--arm":
@@ -54,6 +61,8 @@ func cmdRun(args []string) int {
 			}
 		case "--keep":
 			keep = true
+		case "--regrade":
+			regrade = true
 		}
 	}
 	if arm == "" || out == "" {
@@ -65,11 +74,6 @@ func cmdRun(args []string) int {
 		fmt.Fprintf(os.Stderr, "run: arms.json 里没有这条臂：%s\n", arm)
 		return 2
 	}
-	dsh, err := resolveDsh(dshPath)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "run:", err)
-		return 1
-	}
 	c, err := loadCase(caseID)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "run:", err)
@@ -77,6 +81,14 @@ func cmdRun(args []string) int {
 	}
 	out = repoPath(out)
 	if err := os.MkdirAll(out, 0o755); err != nil {
+		fmt.Fprintln(os.Stderr, "run:", err)
+		return 1
+	}
+	if regrade {
+		return regradeExisting(out, caseID, arm, c)
+	}
+	dsh, err := resolveDsh(dshPath)
+	if err != nil {
 		fmt.Fprintln(os.Stderr, "run:", err)
 		return 1
 	}
@@ -114,10 +126,12 @@ func cmdRun(args []string) int {
 	}
 
 	timing := Timing{
-		DurationSeconds: round(elapsed, 2),
-		TotalTokens:     events.totalTokens,
-		ToolCalls:       events.toolCalls,
-		RunNumber:       1,
+		TotalTokens:          events.totalTokens,
+		DurationMs:           int(elapsed * 1000),
+		TotalDurationSeconds: round(elapsed, 2),
+		DurationSeconds:      round(elapsed, 2),
+		ToolCalls:            events.toolCalls,
+		RunNumber:            1,
 	}
 	if err := os.WriteFile(filepath.Join(out, "timing.json"), mustJSON(timing), 0o644); err != nil {
 		fmt.Fprintln(os.Stderr, "run:", err)
@@ -130,6 +144,10 @@ func cmdRun(args []string) int {
 	}
 	notes := runNotes(caseID, arm, dsh, finalText, events, elapsed, runErr)
 	if err := os.WriteFile(filepath.Join(out, "notes.md"), []byte(notes), 0o644); err != nil {
+		fmt.Fprintln(os.Stderr, "run:", err)
+		return 1
+	}
+	if err := writeReviewArtifacts(out, work, caseID, c, g, finalText); err != nil {
 		fmt.Fprintln(os.Stderr, "run:", err)
 		return 1
 	}
@@ -172,7 +190,21 @@ func runHeadless(dsh, workdir, prompt string) (runEvents, string, string, error)
 	cmd.Stdout, cmd.Stderr = &stdout, &stderr
 	err := cmd.Run()
 	raw := stdout.String()
+	out, finalText := parseEvents(raw)
+	if ctx.Err() != nil {
+		// 超时被砍：已采到的事件照样带回去，它们说明了卡在哪一步。
+		return out, finalText, raw, fmt.Errorf("超过 %s 还没跑完（最后一步是 step %d，已调用 %d 次工具）",
+			armTimeout, out.steps, out.toolCalls)
+	}
+	if err != nil {
+		// 任务失败也要把已经跑出来的东西带回去，否则没法判断失败在哪一步。
+		return out, finalText, raw, fmt.Errorf("%v（stderr 末尾：%s）", err, tail(stderr.String(), 400))
+	}
+	return out, finalText, raw, nil
+}
 
+// parseEvents 把 `dsh --json` 的事件流累加成开销与最后一段话。
+func parseEvents(raw string) (runEvents, string) {
 	var out runEvents
 	var finalText string
 	for _, line := range strings.Split(raw, "\n") {
@@ -201,16 +233,7 @@ func runHeadless(dsh, workdir, prompt string) (runEvents, string, string, error)
 			}
 		}
 	}
-	if ctx.Err() != nil {
-		// 超时被砍：已采到的事件照样带回去，它们说明了卡在哪一步。
-		return out, finalText, raw, fmt.Errorf("超过 %s 还没跑完（最后一步是 step %d，已调用 %d 次工具）",
-			armTimeout, out.steps, out.toolCalls)
-	}
-	if err != nil {
-		// 任务失败也要把已经跑出来的东西带回去，否则没法判断失败在哪一步。
-		return out, finalText, raw, fmt.Errorf("%v（stderr 末尾：%s）", err, tail(stderr.String(), 400))
-	}
-	return out, finalText, raw, nil
+	return out, finalText
 }
 
 // armSuffix 从 arms.json 取这条臂的提示后缀——臂怎么定义只在一个地方说。
@@ -271,4 +294,177 @@ func runNotes(caseID, arm, dsh, finalText string, events runEvents, elapsed floa
 		b.WriteString("\n")
 	}
 	return b.String()
+}
+
+// writeReviewArtifacts 产出 skill-creator 的 eval viewer 能读的东西。
+//
+// viewer 的契约是：**含 `outputs/` 子目录的目录就是一个 run**，同级读
+// `eval_metadata.json`（拿 prompt）与 `grading.json`（拿分数）。它只取 `outputs/`
+// 下的**顶层文件**，所以这里把「人该看什么」汇成一份交付件，而不是倒一整个仓库树。
+func writeReviewArtifacts(out, work, caseID string, c Case, g Grade, finalText string) error {
+	metadata := map[string]any{
+		"eval_id":    caseNumber(caseID),
+		"eval_name":  caseID,
+		"prompt":     c.Prompt,
+		"assertions": assertionTexts(c),
+	}
+	if err := os.WriteFile(filepath.Join(out, "eval_metadata.json"), mustJSON(metadata), 0o644); err != nil {
+		return err
+	}
+
+	outputs := filepath.Join(out, "outputs")
+	if err := os.RemoveAll(outputs); err != nil {
+		return err
+	}
+	if err := os.MkdirAll(outputs, 0o755); err != nil {
+		return err
+	}
+
+	var b strings.Builder
+	fmt.Fprintf(&b, "# %s\n\n", caseID)
+	fmt.Fprintf(&b, "**%d/%d 通过**（%.2f）\n\n", g.Passed, g.Total, g.PassRate)
+
+	b.WriteString("## 任务\n\n")
+	b.WriteString(c.Prompt)
+	b.WriteString("\n\n## 改了什么\n\n")
+
+	status, _ := git(work, "status", "--porcelain")
+	if strings.TrimSpace(status) == "" {
+		b.WriteString("（工作树是干净的——这条臂什么都没改）\n\n")
+	} else {
+		b.WriteString("```\n")
+		b.WriteString(strings.TrimRight(status, "\n"))
+		b.WriteString("\n```\n\n")
+		if diffstat, _ := git(work, "diff", "--stat", "HEAD"); strings.TrimSpace(diffstat) != "" {
+			b.WriteString("```\n")
+			b.WriteString(strings.TrimRight(diffstat, "\n"))
+			b.WriteString("\n```\n\n")
+		}
+	}
+
+	b.WriteString("## 需求资料（判别点多半在这里）\n\n")
+	b.WriteString(requirementMaterial(work))
+
+	b.WriteString("## 分数\n\n")
+	for _, e := range g.Expectations {
+		fmt.Fprintf(&b, "- %s %s", mark(e.Passed), e.Text)
+		if !e.Passed && e.Evidence != "" {
+			fmt.Fprintf(&b, "\n  - %s", firstLine(e.Evidence))
+		}
+		b.WriteString("\n")
+	}
+
+	if finalText != "" {
+		b.WriteString("\n## 臂最后说了什么\n\n")
+		b.WriteString(finalText)
+		b.WriteString("\n")
+	}
+
+	return os.WriteFile(filepath.Join(outputs, "交付件.md"), []byte(b.String()), 0o644)
+}
+
+// requirementMaterial 把 requirements/ 下的文件连路径一起列出来——「产物落在哪」
+// 本身就是被断言的东西，所以路径不能丢。
+func requirementMaterial(work string) string {
+	root := filepath.Join(work, "requirements")
+	if !exists(root) {
+		return "（没有 `requirements/` 目录）\n\n"
+	}
+	var b strings.Builder
+	filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
+		if err != nil || entry.IsDir() {
+			return nil
+		}
+		rel, relErr := filepath.Rel(work, path)
+		if relErr != nil {
+			return nil
+		}
+		raw, readErr := os.ReadFile(path)
+		if readErr != nil {
+			return nil
+		}
+		fmt.Fprintf(&b, "### `%s`\n\n", filepath.ToSlash(rel))
+		text := string(raw)
+		if len(text) > 4000 {
+			text = text[:4000] + "\n…（截断）"
+		}
+		b.WriteString(text)
+		if !strings.HasSuffix(text, "\n") {
+			b.WriteString("\n")
+		}
+		b.WriteString("\n")
+		return nil
+	})
+	if b.Len() == 0 {
+		return "（`requirements/` 是空的）\n\n"
+	}
+	return b.String()
+}
+
+func assertionTexts(c Case) []string {
+	texts := make([]string, 0, len(c.Assertions))
+	for _, spec := range c.Assertions {
+		text := spec.str("text")
+		if text == "" {
+			text = spec.str("kind")
+		}
+		texts = append(texts, text)
+	}
+	return texts
+}
+
+// caseNumber 取用例 id 的数字前缀，viewer 按 eval_id 排序。
+func caseNumber(caseID string) int {
+	digits := ""
+	for _, r := range caseID {
+		if r < '0' || r > '9' {
+			break
+		}
+		digits += string(r)
+	}
+	n := 0
+	fmt.Sscanf(digits, "%d", &n)
+	return n
+}
+
+// regradeExisting 对已经跑过的臂重新打分并重生成交付件，**不碰 dsh**。
+// 改了探针或断言之后用它：臂的产物没变，变的是量它的那把尺子。
+func regradeExisting(out, caseID, arm string, c Case) int {
+	work := filepath.Join(out, "work")
+	if !exists(work) {
+		fmt.Fprintf(os.Stderr, "run: %s 下没有 work/，没法 --regrade\n", out)
+		return 1
+	}
+	var events runEvents
+	var finalText string
+	if raw, err := os.ReadFile(filepath.Join(out, "events.jsonl")); err == nil {
+		events, finalText = parseEvents(string(raw))
+	}
+	var timing Timing
+	readJSONFile(filepath.Join(out, "timing.json"), &timing)
+	// 早期几轮的 timing.json 没有 schema 要的字段名，这里补齐，免得 viewer 显示 0。
+	if timing.DurationMs == 0 && timing.DurationSeconds > 0 {
+		timing.DurationMs = int(timing.DurationSeconds * 1000)
+	}
+	if timing.TotalDurationSeconds == 0 {
+		timing.TotalDurationSeconds = timing.DurationSeconds
+	}
+	os.WriteFile(filepath.Join(out, "timing.json"), mustJSON(timing), 0o644)
+
+	g := grade(caseID, work, c)
+	if err := os.WriteFile(filepath.Join(out, "grading.json"), mustJSON(g), 0o644); err != nil {
+		fmt.Fprintln(os.Stderr, "run:", err)
+		return 1
+	}
+	notes := runNotes(caseID, arm, "（--regrade：没重跑 dsh，只重新打分）", finalText, events, timing.DurationSeconds, nil)
+	if err := os.WriteFile(filepath.Join(out, "notes.md"), []byte(notes), 0o644); err != nil {
+		fmt.Fprintln(os.Stderr, "run:", err)
+		return 1
+	}
+	if err := writeReviewArtifacts(out, work, caseID, c, g, finalText); err != nil {
+		fmt.Fprintln(os.Stderr, "run:", err)
+		return 1
+	}
+	fmt.Printf("%s/%s  重打分 %.2f（%d/%d）\n", caseID, arm, g.PassRate, g.Passed, g.Total)
+	return 0
 }
