@@ -109,6 +109,11 @@ func cmdRun(args []string) int {
 		fmt.Fprintln(os.Stderr, "run:", err)
 		return 1
 	}
+	// 清理必须挂 defer：早退路径（preflight 不合格、dsh 解析失败、写文件失败）原先
+	// 直接 `return 1`，把临时根连同 `work.seed.json` 一起留在 $TMPDIR 里。实测有臂
+	// `ls $TMPDIR` 翻到了上一次运行留下的 seed，读出 case_id，再顺着找到用例定义——
+	// 隔离只挡住了「工作树周围」，挡不住「上一次没扫干净的地」。
+	defer os.RemoveAll(root)
 	work := filepath.Join(root, "work")
 	_ = keep // 工作树现在每次都是全新的；留着这个旗标只为不改调用方
 	if code := cmdMaterialize([]string{caseID, "--dest", work}); code != 0 {
@@ -205,7 +210,6 @@ func cmdRun(args []string) int {
 	if err := parkWorkTree(work, out); err != nil {
 		fmt.Fprintf(os.Stderr, "run: 搬工作树失败（不影响分数）：%v\n", err)
 	}
-	os.RemoveAll(root)
 
 	fmt.Printf("%s/%s  %.2f（%d/%d）  %.1fs  %d tokens  %d 次工具调用\n",
 		caseID, arm, g.PassRate, g.Passed, g.Total, elapsed, events.totalTokens, events.toolCalls)
