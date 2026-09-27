@@ -699,7 +699,7 @@
           </div>
           <p>Automated batch issue implementation</p>
           <ul>
-            <li>Fetch issues → dependency sort → implement inline → supervisor check → commit; one review + one walkthrough + one ship at batch end</li>
+            <li>Fetch issues → dependency sort → implement inline → record evidence → supervisor check → commit; one review + one walkthrough + one ship at batch end</li>
             <li>Checkpoint/resume with .loop-state.json</li>
             <li>Structured error recovery (10 error classes)</li>
           </ul>
@@ -1289,7 +1289,7 @@
       <p>
         <code class="inline-code">/loop-it</code> fetches the open GitHub issues and resolves their order with a <strong>dependency-aware topological sort</strong>. It implements <strong>one Issue at a time, inline</strong> (read the requirement → write the code → prove it with the project's gates → <strong>supervisor check</strong>, judged on evidence rather than how the diff looks) and <strong>commits on that Issue's own branch</strong> — without pushing or opening a PR. At the end of the batch it merges the surviving branches into a single batch branch (<strong>failed branches are never merged in</strong>) and runs <code class="inline-code">/review-it</code> once and <code class="inline-code">/ship-it</code> once. It checkpoints progress to <code class="inline-code">.loop-state.json</code> after every status change, so a crash or interruption can resume from the last checkpoint instead of restarting the whole batch.
       </p>
-      <pre><code><span class="comment"># Sequential: per Issue — implement → prove → supervisor check → commit; one review + one walkthrough + one ship at batch end</span>
+      <pre><code><span class="comment"># Sequential: per Issue — implement → prove → record evidence → supervisor check → commit; one review + one walkthrough + one ship at batch end</span>
 <span class="cmd">/loop-it</span></code></pre>
 
       <h3>/graph — Parallel Implementation</h3>
@@ -1710,7 +1710,7 @@
         <h3>13. Bonus: /loop-it — Automated Issue Implementation Loop</h3>
       </div>
       <p>
-        <code class="inline-code">/loop-it</code> fetches all open GitHub issues and resolves dependency order. It implements <strong>one Issue at a time, inline</strong> (read the requirement → write the code → prove it with the project's gates) and <strong>commits on that Issue's own branch</strong> (no push, no PR). At the end of the batch it merges the surviving branches into a single batch branch (<strong>failed branches are never merged in</strong>) and runs <code class="inline-code">/review-it</code> once and <code class="inline-code">/ship-it</code> once. It persists progress to <code class="inline-code">.loop-state.json</code> so you can resume from where you left off after a crash or interruption.
+        <code class="inline-code">/loop-it</code> fetches all open GitHub issues and resolves dependency order. It implements <strong>one Issue at a time, inline</strong> (read the requirement → write the code → prove it with the project's gates → record evidence) and <strong>commits on that Issue's own branch</strong> (no push, no PR). At the end of the batch it merges the surviving branches into a single batch branch (<strong>failed branches are never merged in</strong>) and runs <code class="inline-code">/review-it</code> once and <code class="inline-code">/ship-it</code> once. It persists progress to <code class="inline-code">.loop-state.json</code> so you can resume from where you left off after a crash or interruption. The observation behind each acceptance criterion is recorded as structured <code class="inline-code">evidence</code> in that same checkpoint, and anything new found while running goes into a <code class="inline-code">followup</code> queue — so the batch can grow new issues while it runs instead of being frozen at the list written during decomposition.
       </p>
 
       <h3>How to Invoke</h3>
@@ -1727,6 +1727,8 @@
         <li><strong>Pre-flight Checks</strong> — Validates gh auth, git status, remote access, and branch cleanliness before starting</li>
         <li><strong>Dependency-Aware Topological Sort</strong> — Parses issue bodies for dependency patterns and sorts accordingly</li>
         <li><strong>Per-issue supervisor check</strong> — after each issue is implemented, a reviewer with a fresh context reads the evidence (commands and their real output); the criterion is evidence, not diff aesthetics, while <code class="inline-code">/ship-it</code> still runs once at batch end</li>
+        <li><strong>Structured evidence</strong> — each acceptance criterion maps to an actual observation (<code class="inline-code">test</code> / <code class="inline-code">runtime</code> / <code class="inline-code">database</code> / <code class="inline-code">external</code> / <code class="inline-code">human</code>) carrying the command that produced it, its result and an artifact path; <code class="inline-code">deferred</code> stays distinguishable from <code class="inline-code">pass</code>, so a check that was never run cannot be written up as one that passed</li>
+        <li><strong>Follow-up ledger</strong> — a supervisor verdict of <code class="inline-code">follow-up</code> writes the new task into the checkpoint, versioned with the requirement's own material; at batch end each one is closed out, either promoted into a new issue for another round or dropped with a written reason</li>
         <li><strong>Checkpoint/Resume</strong> — Persists state to <code class="inline-code">.loop-state.json</code> after every status transition; resume from checkpoint on crash</li>
         <li><strong>Structured Error Recovery</strong> — 10 error classes (build, test, lint, merge conflict, CI, auth, rate limit, etc.) with per-class recovery strategies and retry limits</li>
         <li><strong>Branch Hygiene</strong> — Isolated <code class="inline-code">feat/issue-N-desc</code> branch per issue; commits stay on that branch (no push); at batch end the surviving branches merge into one batch branch, while failed branches are never merged in and are preserved</li>
@@ -1738,8 +1740,8 @@
       <pre><code><span class="comment"># Full pipeline from PRD to shipped code</span>
 <span class="cmd">/prd</span> → <span class="cmd">/to-issues</span> → <span class="cmd">/loop-it</span>
                               │
-                              └→ per issue: implement inline → prove → supervisor check → commit (× N)
-                                 batch end ×1: batch branch → <span class="cmd">/review-it</span> → <span class="cmd">/walkthrough</span> → <span class="cmd">/ship-it</span></code></pre>
+                              └→ per issue: implement inline → prove → record evidence → supervisor check → commit (× N)
+                                 batch end ×1: close out follow-ups → batch branch → <span class="cmd">/review-it</span> → <span class="cmd">/walkthrough</span> → <span class="cmd">/ship-it</span></code></pre>
 
       <div class="tip">
         <strong>Tip:</strong> Add <code class="inline-code">.loop-state.json</code> to your <code class="inline-code">.gitignore</code>. If the loop crashes, just run <code class="inline-code">/loop-it</code> again — it will detect the state file and offer to resume.

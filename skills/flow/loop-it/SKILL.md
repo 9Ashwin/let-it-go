@@ -103,11 +103,23 @@ git checkout -b feat/issue-N-slug
 
 然后**内联实现**：读 issue 标题与正文，提取全部验收条件；正文引用的 PRD/SPEC（如 `tasks/prd-*.md`）一并读；按目标仓库既有风格改代码；跑该项目的门禁自证；长时间构建/测试作为**后台任务**运行。持续到验收条件全部满足、门禁通过，然后在该 issue 的分支上 commit。
 
+**验收条件满足一条就记一条证据**，当场写进检查点——哪次实际观测证明了哪条，附上产生它的命令，而不是事后回忆：
+
+```bash
+python3 <SKILL_DIR>/scripts/loop_state.py evidence add --issue N \
+  --kind <test|runtime|database|external|human> --result <pass|fail|deferred> \
+  --command "<真正跑的那条命令>" [--artifact <留下来的输出路径>]
+```
+
+`kind` 是观测的**种类**不是强度：`test` 单元/静态、`runtime` 本地真实链路、`database` 存储读回、`external` 外部系统往返、`human` 人工验收。`deferred` 是"没跑"的诚实答案——它必须能和 `pass` 分开，把没跑的写成 `pass` 就是伪造证据。
+
+它与 `note --verification` 分工不同，别互相顶替：`evidence` 记**哪条验收条件被哪次观测证明**（可重跑），`note --verification` 记**这一轮整体证明了什么、覆盖到哪一层、哪里没覆盖**（叙述）。
+
 **commit 之后、记结果之前，过一次 supervisor 检查。** 这一步不是自审：刚写完这段代码的就是你，你的判断是这一环里最弱的一环。把证据交给一个**全新上下文**的评审者（怎么交、交给谁由宿主决定，见 `references/*-runtime.md`），它看不到本次实现过程，只看得到证据。
 
 四条判据：
 
-1. **判据是证据，不是 diff 观感。** 这次实现声明的每条验收条件，各自对应哪一条实际证据（测试输出 / 运行态 / 数据库 / 外部边界 / 人工验证）。拿不出证据的验收条件就是没做完——"代码看起来对"不算证据。
+1. **判据是证据，不是 diff 观感。** 这次实现声明的每条验收条件，各自对应哪一条实际证据（测试输出 / 运行态 / 数据库 / 外部边界 / 人工验证）——就是上面 `evidence add` 记下来的那些。拿不出证据的验收条件就是没做完，"代码看起来对"不算证据。
 2. **能跑起来看就跑起来看。** 起服务、点界面、查库、打接口，优先于读 diff。静态审查最容易漏的是"接线断了"：每个部分单独看都对，合起来不通。
 3. **发现必须具体到不用再查就能动手**：`file:line` + 根因 + 该改成什么。宽泛意见（"建议补测试"、"可以考虑重构"）不算发现，不进打回清单。
 4. **深度随任务条件化。** 任务落在当前模型能独立做稳的范围内，检查就该便宜——核一遍证据即可；越接近能力边界越要往下钻。不要为了走流程把简单任务拖成长检查。
@@ -119,7 +131,16 @@ git checkout -b feat/issue-N-slug
 | `accept` | 证据齐、验收条件逐条对上，进下一个 issue |
 | `revise` | 打回本 issue 修改，改完**重跑检查**（不是重跑一遍自证就算过） |
 | `retry` | 实现方向错了，重做而不是补丁 |
-| `follow-up` | 本 issue 可放行，但新发现要记成后续任务，别丢 |
+| `follow-up` | 本 issue 可放行，但新发现要记成后续任务——用下面的 `followup add` 落进检查点，别只留在会话里 |
+
+`follow-up` 的落点：
+
+```bash
+python3 <SKILL_DIR>/scripts/loop_state.py followup add --from-issue N \
+  --title "<要做什么>" --why "<观察到什么，为什么不是本 issue 的活>" [--evidence "<哪条证据让它可见>"]
+```
+
+它写进检查点、随需求资料版本化、由 `summary` 列出来。批末若还有 open 的，`set` 会提醒你收口：要么 `followup resolve --id fN --status promoted --issue M` 变成新 issue 再跑一轮（之后重跑 `scan` 把 M 拉进本批），要么 `--status dropped --why "<为什么不做>"` 明确丢掉。**不允许"记在脑子里"**——这就是"任务树允许在执行中增长"的落点，没有它，RFC 里的 follow-up 只是一个结论词。
 
 **打回或重做的 issue 不进批次分支**：`set --status failed` 记下原因并保留分支，继续下一个。**ship 仍然只在批末做一次**——每个 issue 一次 PR 是这条流水线明确排除的。
 
@@ -132,7 +153,7 @@ python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status blocked
 python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status failed --error-class build_failure --error "<message>"
 ```
 
-**`shipped` 之前先把检查点填成一条记录，而不是一个状态。** 检查点要原样保留四类内容，不压成摘要——进度、关键决策以及为什么这么决策、验证记录、未决事项。`set --status shipped` 在缺 `decisions` / `verification` / `open` 时会告警，那条告警说的是「这一行只说明发生了事，没说明什么证明了它」：
+**`shipped` 之前先把检查点填成一条记录，而不是一个状态。** 检查点要原样保留四类内容，不压成摘要——进度、关键决策以及为什么这么决策、验证记录、未决事项。`set --status shipped` 在缺 `decisions` / `verification` / `open` 时会告警，在**一条 evidence 都没有**时也会告警；那两条说的是同一件事：「这一行只说明发生了事，没说明什么证明了它」。补齐四类：
 
 ```bash
 python3 <SKILL_DIR>/scripts/loop_state.py note --issue N \
@@ -151,6 +172,8 @@ python3 <SKILL_DIR>/scripts/loop_state.py note --issue N \
 ### 3. 批末收尾（只做一次）
 
 ```bash
+# 0) 先收口 follow-up：promote 成新 issue 再跑一轮，或写清理由 drop
+python3 <SKILL_DIR>/scripts/loop_state.py followup list
 # 1) 把各 issue 分支汇总成批次分支后，审整批合并 diff
 /review-it
 # 2) 一份走查件：改了什么、跑了什么、证明了什么，并给出 PR body 与合并清单
@@ -160,9 +183,11 @@ python3 <SKILL_DIR>/scripts/loop_state.py note --issue N \
 python3 <SKILL_DIR>/scripts/loop_state.py summary
 ```
 
+留着 open 直接 ship，等于把那些发现交给运气：`promoted` 的会变成新 issue，重跑 `scan` 就进下一轮；`dropped` 的必须写清为什么不做的。
+
 批末评审同样**逐 issue 分节**过一遍合并 diff，重点看 issue 之间的结合部（共享接口、装配文件、配置与状态），而不是每个 issue 的内部实现。
 
-`walkthrough` 也只在批末做一次，理由与评审相同：它证明的是集成后的整体，而逐 issue 走查会为每个可能活不过集成的 diff 各付一轮截图。PR body 由 `/ship-it` 产出——它是唯一产出者，`/walkthrough` 只提供证据。批级的**设计决策/偏离/权衡/待确认**四类由 `/ship-it` 的实现总结评论承载一次；**逐 issue 的四类**（进度/关键决策/验证记录/未决事项）落在检查点里（上面的 `note`），不另出笔记文件——只有仓库约定要求时才另写一份，并把路径写进 `--verification`。批末 PR 按 `/ship-it` 的「多个 issue 共用一个 PR」逐项列出每个 issue 的 commit、关闭编号、验收证据与人工验收状态。`failed` 的 issue 不进批次分支，也不进这张表。
+`walkthrough` 也只在批末做一次，理由与评审相同：它证明的是集成后的整体，而逐 issue 走查会为每个可能活不过集成的 diff 各付一轮截图。PR body 由 `/ship-it` 产出——它是唯一产出者，`/walkthrough` 只提供证据。批级的**设计决策/偏离/权衡/待确认**四类由 `/ship-it` 的实现总结评论承载一次；**逐 issue 的四类**（进度/关键决策/验证记录/未决事项）落在检查点里（上面的 `note`），每条验收条件的结构化观测落在 `evidence`，新发现的任务落在 `followup`，都不另出笔记文件——只有仓库约定要求时才另写一份，并把路径写进 `--verification`。批末 PR 按 `/ship-it` 的「多个 issue 共用一个 PR」逐项列出每个 issue 的 commit、关闭编号、验收证据与人工验收状态。`failed` 的 issue 不进批次分支，也不进这张表。
 
 `/ship-it` 之后保留 `.loop-state.json` 作为记录，由用户决定何时删除。
 
@@ -185,7 +210,7 @@ python3 <SKILL_DIR>/scripts/loop_state.py summary
 - [`references/error-recovery.md`](references/error-recovery.md) — 错误分类表与恢复协议。
 - [`references/edge-cases.md`](references/edge-cases.md) — 边界情况处理表。
 - [`references/dsh-runtime.md`](references/dsh-runtime.md) — DSH 侧的发现/调用方式与委派工具映射。
-- `scripts/loop_state.py` — `scan` / `set` / `note` / `next` / `summary`，顺序与检查点的唯一实现。
+- `scripts/loop_state.py` — `scan` / `set` / `note` / `evidence` / `followup` / `next` / `summary`，顺序与检查点的唯一实现。
 - `scripts/test_loop_state.py` — 自测：`python3 <SKILL_DIR>/scripts/test_loop_state.py`。
 
 ## 与其他 skill 的关系
@@ -194,8 +219,8 @@ python3 <SKILL_DIR>/scripts/loop_state.py summary
 /prd（可选）→ /to-issues ─┬─→ /loop-it  (串行，一次一个 issue)
                                    └─→ /graph    (并行，波次 fan-out)
 
-每个 issue:  内联实现 → 门禁自证 → supervisor 检查 → commit 到自己的分支
+每个 issue:  内联实现 → 门禁自证 → 记 evidence → supervisor 检查 → commit 到自己的分支
 每个节点:    内联实现 → 门禁自证 → commit 到自己的分支（节点不自审，评审留波末）
-批末 / 波末（各一次）:  /review-it → /walkthrough → /ship-it
+批末 / 波末（各一次）:  follow-up 收口 → /review-it → /walkthrough → /ship-it
                         （决策/偏离/权衡由 /ship-it 的 issue 评论承载一次）
 ```

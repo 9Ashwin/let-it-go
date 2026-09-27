@@ -21,8 +21,8 @@ Subcommands (all accept `--state <path>`, default `.loop-state.json`):
       Record one transition, stamp times, increment `attempts` when an attempt
       starts, write the checkpoint, and print what to do next. Marking an issue
       `shipped` warns when it still has no `decisions` / `verification` / `open`
-      recorded — a shipped row without them says a thing happened, not what
-      proved it.
+      recorded, and when it has no structured `evidence` — a shipped row without
+      them says a thing happened, not what proved it.
 
   note --issue N [--progress TEXT] [--decisions TEXT] [--verification TEXT]
        [--open TEXT]
@@ -30,6 +30,25 @@ Subcommands (all accept `--state <path>`, default `.loop-state.json`):
       rather than summarized: what happened, what was decided and why, what was
       run and what it proved, and what is still open. These are what make a
       finished batch auditable months later.
+
+  evidence add --issue N --kind <test|runtime|database|external|human>
+               --command TEXT --result <pass|fail|deferred>
+               [--artifact PATH] [--observed-at TIME]
+  evidence list --issue N
+      The structured half of verification: one observation per acceptance
+      criterion, appended and never rewritten. `note --verification` says what a
+      run proved as a whole; this says which observation backs which claim, with
+      the command that produced it, so a reader can re-run it. `--observed-at`
+      defaults to now.
+
+  followup add --from-issue N --title TEXT [--why TEXT] [--evidence TEXT]
+  followup list [--all]
+  followup resolve --id ID --status <promoted|dropped> [--issue N] [--why TEXT]
+      The campaign's own task queue. A supervisor verdict of `follow-up` means
+      the issue passes but something new must not be lost: it is recorded here,
+      versioned with the checkpoint and printed by `summary`, never left in the
+      conversation. `promoted` records the issue number it became, and the next
+      `scan` picks that issue up — which is how a batch extends itself.
 
   next
       Print the next actionable issue (all deps shipped) and why the others
@@ -44,18 +63,25 @@ resumes:
   {
     "version": 1, "started_at": ..., "updated_at": ..., "repo": "owner/repo",
     "total_issues": N,
+    "followups": [{"id": "f1", "from_issue": 7, "title": ..., "why": ...,
+                   "evidence": ..., "created_at": ..., "status": "open"}],
     "issues": {"3": {"status": ..., "branch": ..., "phase": ...,
                      "error_class": ..., "attempts": 0, "started_at": ...,
                      "updated_at": ..., "completed_at": ..., "last_error": ...
                      "title": ..., "deps": [1, 5],
-                     "notes": {"decisions": [{"at": ..., "text": ...}], ...}}}
+                     "notes": {"decisions": [{"at": ..., "text": ...}], ...},
+                     "evidence": [{"kind": "test", "command": ...,
+                                   "result": "pass", "artifact": ...,
+                                   "observed_at": ...}]}}
   }
 
 `title` and `deps` are additive per-issue fields written by `scan` so `next`
-and `summary` can explain what is waiting without re-reading GitHub. `notes` is
-additive too — written by the `note` subcommand, absent until something is
-recorded. An old file that lacks any of them still resumes; it only loses
-titles, waiting reasons and notes until the next write.
+and `summary` can explain what is waiting without re-reading GitHub. `notes`,
+`evidence` and `followups` are additive too — written by the `note`, `evidence`
+and `followup` subcommands, absent until something is recorded, and preserved
+verbatim by a re-`scan`. An old file that lacks any of them still resumes; it
+only loses titles, waiting reasons, notes, evidence and follow-ups until the
+next write.
 
 Ordering: repeatedly take the lowest-numbered issue whose in-batch deps are all
 placed (lexicographically smallest topological order). When that stalls, the
@@ -89,6 +115,20 @@ DEFAULT_STATE = ".loop-state.json"
 # without them is an assertion with no trail.
 NOTE_CATEGORIES = ("progress", "decisions", "verification", "open")
 REQUIRED_NOTES = ("decisions", "verification", "open")
+
+# The structured half of verification: what was actually observed, with the command that
+# produced it. `kind` is the nature of the observation, not its strength — which kinds gate
+# which status is the workspace's call, not this script's. `result` is deliberately
+# three-valued: `deferred` is the honest answer for a check that was skipped, and it must
+# never be able to masquerade as `pass`.
+EVIDENCE_KINDS = ("test", "runtime", "database", "external", "human")
+EVIDENCE_RESULTS = ("pass", "fail", "deferred")
+
+# A follow-up is a task, not a note: it has a lifecycle and can be promoted into a real
+# issue, which is how a batch grows while it runs instead of being frozen at plan time.
+# `open` is the only non-terminal state, so only the two resolutions are ever passed in.
+FOLLOWUP_OPEN = "open"
+FOLLOWUP_RESOLUTIONS = ("promoted", "dropped")
 
 DEP_TRIGGER = re.compile(r"(?:dependencies|depends\s+on|requires)\s*:?", re.IGNORECASE)
 REF = re.compile(r"#(\d+)")
@@ -430,6 +470,13 @@ def render_summary(state: dict) -> str:
     remaining = [n for n in buckets.get("pending", []) if not waiting_on(state, n)]
     lines.append(f"  📋 remaining:  {len(remaining)}  "
                  + ", ".join(ref(n) for n in remaining))
+    pending = open_followups(state)
+    lines.append(f"  🔀 follow-ups: {len(pending)} open  "
+                 + ", ".join(f"{item['id']}({clip(item.get('title'))})" for item in pending))
+    no_evidence = [n for n in buckets.get("shipped", []) if missing_evidence(issues[str(n)])]
+    if no_evidence:
+        lines.append(f"  ⚠️  shipped w/o evidence: {len(no_evidence)}  "
+                     + ", ".join(ref(n) for n in no_evidence))
     lines.append("━" * 52)
     return "\n".join(lines)
 
@@ -522,11 +569,8 @@ def cmd_scan(args: argparse.Namespace) -> int:
 
 def cmd_set(args: argparse.Namespace) -> int:
     state = load_state(args.state, required=True)
-    key = str(args.issue)
     issues = state["issues"]
-    if key not in issues:
-        die(f"{ref(args.issue)} is not tracked in {args.state} — run the `scan` subcommand first")
-    entry = issues[key]
+    entry = require_issue(state, args.issue, args.state)
     previous = entry.get("status", "pending")
     stamp = now()
 
@@ -564,9 +608,23 @@ def cmd_set(args: argparse.Namespace) -> int:
                 f"`note --issue {args.issue} …`.",
                 file=sys.stderr,
             )
+        if missing_evidence(entry):
+            print(
+                f"  ! no evidence recorded for {ref(args.issue)} — a shipped row with no "
+                f"observation behind it cannot be audited later. Record one with "
+                f"`evidence add --issue {args.issue} --kind <test|runtime|database|external|"
+                f"human> --command '…' --result <pass|fail|deferred>`.",
+                file=sys.stderr,
+            )
     print(render_next(state))
     if not any(issues[str(n)].get("status") not in DONE for n in order_of(state)):
         print("\n🎉 全部 issue 处理完毕 — 现在做批末收尾：/review-it 审整批 diff，然后 /ship-it 一次 PR。")
+        pending = open_followups(state)
+        if pending:
+            print(
+                f"   还有 {len(pending)} 条 follow-up 没处理（`followup list`）：promote 成新 issue "
+                f"再跑一轮，或明确 drop——别让它们只留在会话里。"
+            )
     return 0
 
 
@@ -582,13 +640,144 @@ def missing_notes(entry: dict) -> list[str]:
     return [category for category in REQUIRED_NOTES if not notes.get(category)]
 
 
+def missing_evidence(entry: dict) -> bool:
+    """True when a shipped issue has no structured observation behind it."""
+    return not entry.get("evidence")
+
+
+def require_issue(state: dict, number: int, path: str) -> dict:
+    """The tracked entry for `number`, or a hard stop explaining how to get one."""
+    key = str(number)
+    if key not in state["issues"]:
+        die(f"{ref(number)} is not tracked in {path} — run the `scan` subcommand first")
+    return state["issues"][key]
+
+
+def open_followups(state: dict) -> list[dict]:
+    return [item for item in state.get("followups") or [] if item.get("status") == "open"]
+
+
+def next_followup_id(state: dict) -> str:
+    """Monotonic `f<n>` ids, so a resolved one is never reused by a later follow-up."""
+    highest = 0
+    for item in state.get("followups") or []:
+        match = re.fullmatch(r"f(\d+)", str(item.get("id", "")))
+        if match:
+            highest = max(highest, int(match.group(1)))
+    return f"f{highest + 1}"
+
+
+def clip(text: str, width: int = 48) -> str:
+    text = " ".join(str(text).split())
+    return text if len(text) <= width else text[: width - 1] + "…"
+
+
+def cmd_evidence(args: argparse.Namespace) -> int:
+    state = load_state(args.state, required=True)
+    entry = require_issue(state, args.issue, args.state)
+
+    if args.action == "list":
+        records = entry.get("evidence") or []
+        if not records:
+            print(f"{ref(args.issue)}: no evidence recorded")
+            return 0
+        print(f"{ref(args.issue)}: {len(records)} evidence record(s)")
+        for record in records:
+            artifact = f"   artifact={record['artifact']}" if record.get("artifact") else ""
+            print(f"  [{record.get('kind')}] {record.get('result')}  {record.get('observed_at')}{artifact}")
+            print(f"    $ {record.get('command')}")
+        return 0
+
+    record = {
+        "kind": args.kind,
+        "command": args.command,
+        "result": args.result,
+        "observed_at": args.observed_at or now(),
+    }
+    if args.artifact:
+        record["artifact"] = args.artifact
+    # Append, never rewrite. An observation that later turns out to be wrong is itself part
+    # of the trail; overwriting it is exactly the loss this record exists to prevent.
+    entry.setdefault("evidence", []).append(record)
+    entry["updated_at"] = now()
+    save_state(state, args.state)
+    print(
+        f"{ref(args.issue)}: recorded {args.kind}/{args.result} evidence "
+        f"({len(entry['evidence'])} total)"
+    )
+    return 0
+
+
+def cmd_followup(args: argparse.Namespace) -> int:
+    state = load_state(args.state, required=True)
+    followups = state.setdefault("followups", [])
+
+    if args.action == "add":
+        require_issue(state, args.from_issue, args.state)
+        item = {
+            "id": next_followup_id(state),
+            "from_issue": args.from_issue,
+            "title": args.title,
+            "created_at": now(),
+            "status": "open",
+        }
+        if args.why:
+            item["why"] = args.why
+        if args.evidence:
+            item["evidence"] = args.evidence
+        followups.append(item)
+        save_state(state, args.state)
+        print(f"🔀 {item['id']}: follow-up from {ref(args.from_issue)} — {args.title}")
+        print(
+            f"  {len(open_followups(state))} open; `summary` lists them, "
+            f"`followup resolve --id {item['id']} --status promoted --issue N` closes one."
+        )
+        return 0
+
+    if args.action == "list":
+        if not followups:
+            print("🔀 no follow-ups recorded")
+            return 0
+        pending = open_followups(state)
+        print(f"🔀 follow-ups: {len(pending)} open, {len(followups) - len(pending)} resolved")
+        for item in pending:
+            print(f"  {item['id']}  (from {ref(item.get('from_issue', 0))})  {item.get('title')}")
+            if item.get("why"):
+                print(f"      why: {item['why']}")
+            if item.get("evidence"):
+                print(f"      evidence: {item['evidence']}")
+        if args.all:
+            for item in followups:
+                if item.get("status") == "open":
+                    continue
+                target = f" → {ref(item['promoted_to'])}" if item.get("promoted_to") else ""
+                print(f"  {item['id']}  [{item.get('status')}{target}]  {item.get('title')}")
+        return 0
+
+    item = next((candidate for candidate in followups if candidate.get("id") == args.id), None)
+    if item is None:
+        die(f"no follow-up {args.id!r} in {args.state} — see `followup list`")
+    if item.get("status") != "open":
+        die(f"{args.id} is already {item.get('status')}; a resolved follow-up is not reopened")
+    if args.status == "promoted" and not args.issue:
+        die("--status promoted needs --issue N — the issue this follow-up became")
+    item["status"] = args.status
+    item["resolved_at"] = now()
+    if args.issue:
+        item["promoted_to"] = args.issue
+    if args.why:
+        item["resolution"] = args.why
+    save_state(state, args.state)
+    target = f" → {ref(args.issue)}" if args.issue else ""
+    print(f"🔀 {args.id}: open → {args.status}{target}  {item.get('title')}")
+    if args.status == "promoted":
+        print("  re-run `scan` to pull the new issue into the batch.")
+    return 0
+
+
 def cmd_note(args: argparse.Namespace) -> int:
     state = load_state(args.state, required=True)
-    key = str(args.issue)
-    issues = state["issues"]
-    if key not in issues:
-        die(f"{ref(args.issue)} is not tracked in {args.state} — run the `scan` subcommand first")
-    entry = issues[key]
+    entry = require_issue(state, args.issue, args.state)
     notes = entry.setdefault("notes", {})
     stamp = now()
 
@@ -651,6 +840,43 @@ def main(argv: list[str] | None = None) -> int:
     note.add_argument("--open", help="what is still open")
     note.add_argument("--state", default=DEFAULT_STATE)
     note.set_defaults(func=cmd_note)
+
+    evidence = sub.add_parser("evidence", help="record or list structured verification evidence")
+    evidence_sub = evidence.add_subparsers(dest="action", required=True)
+    evidence_add = evidence_sub.add_parser("add", help="append one observation")
+    evidence_add.add_argument("--issue", type=int, required=True)
+    evidence_add.add_argument("--kind", required=True, choices=EVIDENCE_KINDS)
+    evidence_add.add_argument("--command", required=True, help="the command that produced it")
+    evidence_add.add_argument("--result", required=True, choices=EVIDENCE_RESULTS)
+    evidence_add.add_argument("--artifact", help="path to the output worth keeping")
+    evidence_add.add_argument("--observed-at", help="when it was observed (default: now)")
+    evidence_add.add_argument("--state", default=DEFAULT_STATE)
+    evidence_add.set_defaults(func=cmd_evidence)
+    evidence_list = evidence_sub.add_parser("list", help="print one issue's observations")
+    evidence_list.add_argument("--issue", type=int, required=True)
+    evidence_list.add_argument("--state", default=DEFAULT_STATE)
+    evidence_list.set_defaults(func=cmd_evidence)
+
+    followup = sub.add_parser("followup", help="record, list or resolve follow-up tasks")
+    followup_sub = followup.add_subparsers(dest="action", required=True)
+    followup_add = followup_sub.add_parser("add", help="record what the supervisor found")
+    followup_add.add_argument("--from-issue", type=int, required=True)
+    followup_add.add_argument("--title", required=True)
+    followup_add.add_argument("--why", help="what was observed, and why it is not this issue's job")
+    followup_add.add_argument("--evidence", help="the evidence that made it visible")
+    followup_add.add_argument("--state", default=DEFAULT_STATE)
+    followup_add.set_defaults(func=cmd_followup)
+    followup_list = followup_sub.add_parser("list", help="print open follow-ups")
+    followup_list.add_argument("--all", action="store_true", help="also show resolved ones")
+    followup_list.add_argument("--state", default=DEFAULT_STATE)
+    followup_list.set_defaults(func=cmd_followup)
+    followup_resolve = followup_sub.add_parser("resolve", help="close one follow-up")
+    followup_resolve.add_argument("--id", required=True)
+    followup_resolve.add_argument("--status", required=True, choices=FOLLOWUP_RESOLUTIONS)
+    followup_resolve.add_argument("--issue", type=int, help="the issue it became (required for promoted)")
+    followup_resolve.add_argument("--why", help="why it was dropped, or what changed")
+    followup_resolve.add_argument("--state", default=DEFAULT_STATE)
+    followup_resolve.set_defaults(func=cmd_followup)
 
     summary = sub.add_parser("summary", help="print the progress table")
     summary.add_argument("--state", default=DEFAULT_STATE)

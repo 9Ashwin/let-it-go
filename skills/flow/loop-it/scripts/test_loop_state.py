@@ -255,7 +255,7 @@ def test_notes_are_kept_verbatim():
         check("shipping with the record in place does not warn", "no decisions" not in err, err)
 
 
-def test_shipping_without_evidence_warns():
+def test_shipping_without_notes_warns():
     """A `shipped` row with no decisions, verification or open items is a claim, not a record."""
     with tempfile.TemporaryDirectory() as tmp:
         state_path = os.path.join(tmp, ".loop-state.json")
@@ -266,11 +266,101 @@ def test_shipping_without_evidence_warns():
         check("the transition itself still succeeds", code == 0, err)
         check("all three missing categories are named",
               "no decisions, verification, open recorded" in err, err)
+        check("and the missing observation is named too", "no evidence recorded" in err, err)
 
         run("note", "--issue", 1, "--decisions", "d", "--state", state_path)
         code, out, err = run("set", "--issue", 1, "--status", "shipped", "--state", state_path)
         check("a partial record still warns about the rest",
               "no verification, open recorded" in err, err)
+
+
+def test_evidence_is_recorded_structured():
+    """A shipped row needs an observation behind it, not only prose about one.
+
+    `note --verification` says what a run proved; this says which observation backs which
+    claim and what command produced it, which is the difference between a record a reader
+    can re-run and a sentence they have to trust.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        state_path = os.path.join(tmp, ".loop-state.json")
+        issues = write_issues(tmp, [(1, "Only", "no deps")])
+        run("scan", "--issues", issues, "--state", state_path, "--repo", "o/r")
+
+        code, out, err = run("evidence", "add", "--issue", 1, "--kind", "runtime",
+                             "--command", "curl -s localhost:8080/health", "--result", "pass",
+                             "--artifact", "tmp/health.txt", "--state", state_path)
+        check("evidence add exits 0", code == 0, err)
+        record = read_state(state_path)["issues"]["1"]["evidence"][0]
+        check("the record carries kind, command, result, artifact and time",
+              record["kind"] == "runtime" and record["result"] == "pass"
+              and record["command"] == "curl -s localhost:8080/health"
+              and record["artifact"] == "tmp/health.txt" and record["observed_at"], str(record))
+
+        run("evidence", "add", "--issue", 1, "--kind", "test",
+            "--command", "go test ./...", "--result", "deferred", "--state", state_path)
+        check("a second observation appends rather than replacing",
+              len(read_state(state_path)["issues"]["1"]["evidence"]) == 2)
+
+        code, out, err = run("evidence", "list", "--issue", 1, "--state", state_path)
+        check("list prints the command that produced each record",
+              "go test ./..." in out and "[test] deferred" in out, out)
+
+        code, out, err = run("evidence", "add", "--issue", 1, "--kind", "vibes",
+                             "--command", "x", "--result", "pass", "--state", state_path)
+        check("an unknown kind is refused", code != 0, out)
+
+        run("scan", "--issues", issues, "--state", state_path, "--repo", "o/r")
+        check("a re-scan keeps the records",
+              len(read_state(state_path)["issues"]["1"]["evidence"]) == 2)
+
+        code, out, err = run("set", "--issue", 1, "--status", "shipped", "--state", state_path)
+        check("shipping with evidence does not warn about evidence",
+              "no evidence recorded" not in err, err)
+
+
+def test_followups_are_a_queue_not_a_note():
+    """A supervisor verdict of `follow-up` has to land somewhere durable or it is lost.
+
+    The point is that a batch can grow while it runs: the follow-up is recorded, survives a
+    re-scan, is visible in `summary`, and can be promoted into a real issue for the next
+    round instead of living only in the conversation that found it.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        state_path = os.path.join(tmp, ".loop-state.json")
+        issues = write_issues(tmp, [(1, "Only", "no deps")])
+        run("scan", "--issues", issues, "--state", state_path, "--repo", "o/r")
+
+        code, out, err = run("followup", "add", "--from-issue", 1, "--title", "extract the seam",
+                             "--why", "two copies of the same rule", "--state", state_path)
+        check("followup add exits 0", code == 0, err)
+        item = read_state(state_path)["followups"][0]
+        check("it starts open and anchored to the issue that found it",
+              item["status"] == "open" and item["from_issue"] == 1, str(item))
+
+        code, out, err = run("followup", "add", "--from-issue", 99, "--title", "x",
+                             "--state", state_path)
+        check("a follow-up from an untracked issue is refused", code == 1, out)
+
+        code, out, err = run("summary", "--state", state_path)
+        check("summary surfaces the open queue", "follow-ups: 1 open" in out, out)
+
+        run("scan", "--issues", issues, "--state", state_path, "--repo", "o/r")
+        check("a re-scan keeps the queue", len(read_state(state_path)["followups"]) == 1)
+
+        code, out, err = run("followup", "resolve", "--id", "f1", "--status", "promoted",
+                             "--issue", 7, "--state", state_path)
+        check("resolving exits 0", code == 0, err)
+        item = read_state(state_path)["followups"][0]
+        check("promotion records the issue it became",
+              item["status"] == "promoted" and item["promoted_to"] == 7, str(item))
+
+        code, out, err = run("followup", "resolve", "--id", "f1", "--status", "dropped",
+                             "--state", state_path)
+        check("a resolved follow-up is not reopened", code == 1, out)
+
+        run("followup", "add", "--from-issue", 1, "--title", "second", "--state", state_path)
+        check("ids are not reused after a resolution",
+              read_state(state_path)["followups"][-1]["id"] == "f2")
 
 
 def main() -> int:
@@ -284,7 +374,9 @@ def main() -> int:
         test_blocked_and_next_computation,
         test_untracked_dependency_waits,
         test_notes_are_kept_verbatim,
-        test_shipping_without_evidence_warns,
+        test_shipping_without_notes_warns,
+        test_evidence_is_recorded_structured,
+        test_followups_are_a_queue_not_a_note,
     ):
         print(f"- {test.__name__}")
         test()

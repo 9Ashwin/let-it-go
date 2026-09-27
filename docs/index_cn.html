@@ -699,8 +699,8 @@
           </div>
           <p>自动化 Issue 批量实现循环</p>
           <ul>
-            <li>获取 Issue → 依赖拓扑排序 → 内联实现 → supervisor 检查 → commit；批末统一评审、走查 + 交付</li>
-            <li>检查点恢复（<code class="inline-code">.loop-state.json</code>），crash 不丢进度</li>
+            <li>获取 Issue → 依赖拓扑排序 → 内联实现 → 记 evidence → supervisor 检查 → commit；批末统一评审、走查 + 交付</li>
+            <li>检查点恢复（<code class="inline-code">.loop-state.json</code>），crash 不丢进度；结构化证据与 follow-up 台账写在同一检查点里</li>
             <li>10 类错误分类，结构化恢复策略</li>
           </ul>
         </div>
@@ -1677,7 +1677,7 @@
         <h3>13. Bonus: /loop-it — 自动化 Issue 批量实现循环</h3>
       </div>
       <p>
-        <code class="inline-code">/loop-it</code> 获取所有打开的 GitHub Issue，解析依赖顺序，一次一个 Issue 内联实现（读需求 → 写代码 → 跑门禁自证 → supervisor 检查，判据是证据不是 diff 观感），只在该 Issue 自己的分支上 commit（不 push、不开 PR）。批末把各分支汇总成一条批次分支（<strong>failed 的分支不并入</strong>），只做一次 <code class="inline-code">/review-it</code>、一次 <code class="inline-code">/walkthrough</code> 与一次 <code class="inline-code">/ship-it</code>。进度持久化到 <code class="inline-code">.loop-state.json</code>，崩溃或中断后可从断点恢复。
+        <code class="inline-code">/loop-it</code> 获取所有打开的 GitHub Issue，解析依赖顺序，一次一个 Issue 内联实现（读需求 → 写代码 → 跑门禁自证 → 记 evidence → supervisor 检查，判据是证据不是 diff 观感），只在该 Issue 自己的分支上 commit（不 push、不开 PR）。批末把各分支汇总成一条批次分支（<strong>failed 的分支不并入</strong>），只做一次 <code class="inline-code">/review-it</code>、一次 <code class="inline-code">/walkthrough</code> 与一次 <code class="inline-code">/ship-it</code>。进度持久化到 <code class="inline-code">.loop-state.json</code>，崩溃或中断后可从断点恢复。每条验收条件对应的观测以结构化 <code class="inline-code">evidence</code> 写进同一检查点，执行中发现的新任务以 <code class="inline-code">followup</code> 进队列——批次可以在跑的过程中长出新 issue，而不是被冻结在拆解那一刻的清单里。
       </p>
 
       <h3>如何调用</h3>
@@ -1694,6 +1694,8 @@
         <li><strong>前置检查</strong> — 验证 gh 认证、git 状态、远程可达性、工作树清洁度</li>
         <li><strong>依赖拓扑排序</strong> — 解析 Issue 正文中的依赖关系，按拓扑顺序处理</li>
         <li><strong>逐 issue supervisor 检查</strong> — 每个 issue 实现后交给一个全新上下文的评审者看证据（命令与真实输出），判据是证据不是 diff 观感；<code class="inline-code">/ship-it</code> 仍只在批末一次</li>
+        <li><strong>结构化证据</strong> — 每条验收条件对应一次实际观测（<code class="inline-code">test</code> / <code class="inline-code">runtime</code> / <code class="inline-code">database</code> / <code class="inline-code">external</code> / <code class="inline-code">human</code>），带产生它的命令、结果与产物路径；<code class="inline-code">deferred</code> 与 <code class="inline-code">pass</code> 分得开，没跑的不会被写成通过</li>
+        <li><strong>follow-up 台账</strong> — supervisor 判 <code class="inline-code">follow-up</code> 时把新任务写进检查点并随需求资料版本化；批末逐条收口，promote 成新 issue 再跑一轮，或写清理由 drop</li>
         <li><strong>检查点恢复</strong> — 每次状态变更写入 <code class="inline-code">.loop-state.json</code>，崩溃后可断点续传</li>
         <li><strong>结构化错误恢复</strong> — 10 类错误（构建、测试、lint、合并冲突、CI、认证、限流等），每类有独立恢复策略和重试上限</li>
         <li><strong>分支卫生</strong> — 每个 Issue 独立分支 <code class="inline-code">feat/issue-N-desc</code>，只在自己的分支 commit（不 push）；批末汇总成批次分支，failed 的分支不并入且保留</li>
@@ -1705,8 +1707,8 @@
       <pre><code><span class="comment"># 从 PRD 到代码交付的完整流水线</span>
 <span class="cmd">/prd</span> → <span class="cmd">/to-issues</span> → <span class="cmd">/loop-it</span>
                               │
-                              └→ 每个 Issue：内联实现 → 门禁自证 → supervisor 检查 → commit（× N）
-                                 批末 ×1：汇总批次分支 → <span class="cmd">/review-it</span> → <span class="cmd">/walkthrough</span> → <span class="cmd">/ship-it</span></code></pre>
+                              └→ 每个 Issue：内联实现 → 门禁自证 → 记 evidence → supervisor 检查 → commit（× N）
+                                 批末 ×1：follow-up 收口 → 汇总批次分支 → <span class="cmd">/review-it</span> → <span class="cmd">/walkthrough</span> → <span class="cmd">/ship-it</span></code></pre>
 
       <div class="tip">
         <strong>提示：</strong>将 <code class="inline-code">.loop-state.json</code> 添加到 <code class="inline-code">.gitignore</code>。如果循环崩溃，再次运行 <code class="inline-code">/loop-it</code> 即可检测状态文件并恢复。

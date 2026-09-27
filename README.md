@@ -91,7 +91,7 @@ cp -R <let-it-go>/skills/flow/graph ~/.agents/skills/graph   # 拍平，不要�
 | 入口 | `/ask-flow` | 不知道该用哪个技能、这套流程该怎么走时问它：它在技能图上路由，**然后直接开始那一步**（模型可调用；只有两条路真接近时才停下来问） |
 | 需求与设计 | `/prd` · `/to-design` | 需求文档 → 设计提案（**只在跨两个及以上服务、改数据模型或迁移、涉及两条以上对外契约时写**；Markdown 是主产物，HTML 只是可选呈现层） |
 | 拆解与分诊 | `/to-issues` · `/triage` | 把自己的 PRD 拆成垂直切片，**每条 Issue 正文就是契约**（目标/非目标/验收条件/必须收集的证据/外部边界/完成定义/未决问题）· 把**外面进来的**原始 issue 分流成可执行卡片 |
-| 实现 | `/implement` · `/test-first` · `/graph` · `/loop-it` | 单个单元内联做完 · 红-绿写测试 · DAG 波次并行（每节点独立 worktree，节点在 fan-in 时过 evidence check）· issue 依赖序串行（每 issue 一次 supervisor 检查，检查点可恢复） |
+| 实现 | `/implement` · `/test-first` · `/graph` · `/loop-it` | 单个单元内联做完 · 红-绿写测试 · DAG 波次并行（每节点独立 worktree，节点在 fan-in 时过 evidence check）· issue 依赖序串行（每 issue 一次 supervisor 检查，结构化证据与 follow-up 台账落在可恢复的检查点里） |
 | 排障 | `/diagnose` · `/conflict` | 先拿到一条会变红的命令再推理的排查循环 · 逐 hunk 按意图解 merge/rebase 冲突 |
 | 审查与交付 | `/review-it` · `/walkthrough` · `/ship-it` | 双轴评审（Spec + 8 维度标准）· 合并前交出「改了什么 + 什么被验证过」的走查件（**只提供证据，不产 PR body**）· **PR body 的唯一产出者**，提交/PR/合入/关闭 Issue，并一次写出实现总结评论 |
 | 代码质量 | `/refactor` · `/modern-go` | 两种模式（`audit` 只报不改 / `fix` 按 Fowler 目录重构）· Go 1.0→1.27+ 现代化 |
