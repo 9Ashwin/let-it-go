@@ -1,27 +1,38 @@
 ---
 name: loop-it
-description: "串行 issue 循环，带检查点与恢复：按依赖给 open issue 排序，逐个在自己的分支上内联实现，最后整批评审、交付一次。Triggers on: loop-it, issue loop, 批量实现, 循环实现, 恢复循环, resume loop."
+description: "实现入口：一个单元就内联做完，一批有依赖的 issue 就串行循环（带检查点与恢复），真并行交给 /graph。Triggers: implement, 实现, 开始做, 做这个 issue, 落地, 把这个做了, loop-it, issue loop, 批量实现, 循环实现, 恢复循环, resume loop."
 
 ---
 
-# loop-it — 带检查点恢复的串行 Issue 循环
+# loop-it — 实现入口：单单元内联，或一批串行循环
 
-取一批有阻塞关系的 open GitHub issue，按依赖顺序**一次一个**内联实现，进度落到 `<scope>/issues/.loop-state.json`，崩溃后可从检查点恢复。
+这是**实现**这一步的入口。进来先判规模，别默认开循环。
 
 **产物落点：作用域内的形状固定，仓库只决定作用域根。** 都落在 `<scope>/` 下——`documents/`（PRD、SPEC、设计：`prd-<feature>.md`、`spec-<feature>.md`、`design-<feature>.md`）、`issues/`（`issue-NNN-<slug>.md`）、`notes/`（走查件、实现笔记、`environment.md`）、`records/`（`<YYYY-MM-DD>-delivery.md`）、`checklists/`（`<YYYY-MM-DD>-<服务>.md`）。**作用域根默认 `tasks/<feature>/`**；仓库有约定（如 `requirements/<scope>/`，或 `AGENTS.md` 里的路由表）就用它的根，目录名不变；仓库完全没约定时用默认值。本文件下面写的路径若与此冲突，以这一段为准。
 
-**这是指导，不是脚本。** 排序（拓扑 + 环打破）、下一项判定、检查点读写全部由 `scripts/loop_state.py` 完成并落盘——不要用散文重推这些算法，跑脚本、读它的输出即可。本文件只说明何时用、单个 issue 的边界，以及批末收尾。
+**这是指导，不是脚本。** 排序（拓扑 + 环打破）、下一项判定、检查点读写全部由 `scripts/loop_state.py` 完成并落盘——不要用散文重推这些算法，跑脚本、读它的输出即可。本文件只说明怎么选模式、单个 issue 的边界，以及批末收尾。
 
 检查点固定在**作用域根的 `issues/.loop-state.json`**（默认 `tasks/<feature>/issues/.loop-state.json`）。下面命令里的相对路径都相对作用域根；从别处跑就显式传 `--state <路径>`。
 
-## 何时用 / 何时不用
+## 先判模式
 
-| 场景 | 选择 |
+| 情形 | 模式 |
 |------|------|
-| 一批 issue 之间有真实阻塞边，要串行推进、崩溃可恢复 | **本 skill** |
-| 节点之间**真并行**（互不共享文件、能各自 worktree 隔离） | `/graph`：每节点独立 worktree，按波次 fan-out；loop-it 是单工作树串行，并行会互相踩 |
-| 有依赖，但部分分支可并行 | 用 `/graph`；loop-it 只做纯串行批次 |
-| 只有一个 issue | 直接内联实现 → `/review-it` → `/ship-it`，不必开循环 |
+| **一个单元**（一条 issue / 一张卡片 / spec 里的一项），整个改动装得进一个上下文 | **单单元**：不开循环，按下面「单单元模式」内联做完 |
+| 一批 issue 之间有真实阻塞边，要串行推进、崩溃可恢复 | **串行循环**：本技能的默认路径，从「批处理模型」往下读 |
+| 节点之间**真并行**（互不共享文件、能各自 worktree 隔离） | 交给 `/graph`：每节点独立 worktree、按波 fan-out；这里是单工作树串行，并行会互相踩 |
+| 有依赖，但部分分支可并行 | 交给 `/graph`；这里只做纯串行批次 |
+
+## 单单元模式
+
+用户已经给了你定义好的工作，而且只有一件。做完它，**不要顺手扩张范围**：范围外的改动会让这份 diff 失去可评审性，也让验收条件对不上。
+
+1. **读清楚它。** 把正文里的验收条件逐条列出来；它引用的 PRD / SPEC / 设计文档一并读；再读相邻代码与现有测试，让命名、错误处理、日志风格与仓库一致。验收条件含糊就先问清楚——猜出来的验收条件会一路错到交付。
+2. **内联实现。** 就在当前会话里写代码，**不建 worktree、不派子代理、不建波分支**：那些是 `/graph` 与串行循环的编排，各有自己一套上下文与分支约定，在这里重复一遍只会把两套契约混在一起。需要先把行为定下来时用 `/test-first`（红 → 绿，一次一个接缝，接缝先与用户约定）。
+3. **自证。** 跑**项目自己的门禁**（`mise run check`、`go build ./... && go test ./...`、`pnpm --dir web lint` …）：边写边跑相关单测，最后跑一次全量，并补上验收条件隐含的测试——没被测过的验收条件不算满足。**门禁红着不要进下一步**：把红的留给评审，等于让评审去猜哪里坏了。
+4. **收尾。** 用 `/review-it` 审这一份 diff（先定 Spec 轴：这条 issue 到底要求什么），改掉被接受的发现、再跑一次门禁，然后 `/ship-it` 交付；走查按 `/walkthrough` 的时机判断。
+
+在 `/graph` 的节点里或本技能的串行循环里运行时，**第 4 步的交付不做**——只 commit 到自己的分支，PR 与合入由编排器在波末 / 批末各做一次。串行循环的每条 issue 仍过一次 supervisor 检查（见「批处理模型」）；`/graph` 的节点不自审，评审留波末一次做。
 
 ## 批处理模型
 
@@ -40,7 +51,7 @@ description: "串行 issue 循环，带检查点与恢复：按依赖给 open is
 - 批末把各 issue 分支汇总到一条批次分支（`git merge --no-ff` 各分支，或直接在累积分支上顺序 commit；**`failed` 的分支不要并入**），`/review-it` 看这条分支相对默认分支（`main` 或 `master`，先解析，别假设）的 diff，`/ship-it` 从它开一个 PR。批末 PR 关闭多个 issue，因此按 `/ship-it` 的「多个 issue 共用一个 PR」逐项列出 commit / 关闭的 issue / 验收证据 / 人工验收状态——否则单个 issue 的实现无法追溯与回滚。
 - **per-issue PR 模式**（仅当用户明确要求）：每个 issue 都走 `/review-it` + `/ship-it`，成本是 N 个 PR / N 次 CI / N 次 merge；这就是「昂贵模式」，用户没点名就用默认。
 
-## 前置检查
+## 前置检查（串行循环）
 
 开始前逐条验证，任一失败就停下并报告。
 
@@ -221,8 +232,9 @@ python3 <SKILL_DIR>/scripts/loop_state.py summary
 ## 与其他 skill 的关系
 
 ```
-/prd（可选）→ /to-issues ─┬─→ /loop-it  (串行，一次一个 issue)
-                                   └─→ /graph    (并行，波次 fan-out)
+/prd（可选）→ /to-issues ─┬─→ /loop-it  单单元：内联做完 → /review-it → /ship-it
+                          ├─→ /loop-it  串行：一次一个 issue（本文件默认路径）
+                          └─→ /graph    并行：波次 fan-out
 
 每个 issue:  内联实现 → 门禁自证 → 记 evidence → supervisor 检查 → commit 到自己的分支
 每个节点:    内联实现 → 门禁自证 → commit 到自己的分支（节点不自审，评审留波末）

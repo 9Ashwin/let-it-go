@@ -184,7 +184,7 @@ PRD 保存后，向用户建议：
   /to-issues    →  拆成 issue（每条自带契约字段块）
 
 或者直接进实现：
-  /to-issues    →  创建 issue，然后 /implement（整批则用 /loop-it）
+  /to-issues    →  创建 issue，然后 /loop-it（它自己判模式：单条内联，或整批串行）
 ```
 
 用户想往下走就调用对应的技能。

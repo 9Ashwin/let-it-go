@@ -511,7 +511,7 @@
         <li><a href="#workflow">3. 工作流总览</a></li>
         <li><a href="#step-prd">4. Step 1: /prd — 需求规划</a></li>
         <li><a href="#step-to-issues">5. Step 1.5: /to-issues — 拆解 Issue 卡片</a></li>
-        <li><a href="#step-impl">6. Step 2: /implement · /loop-it · /graph — 功能实现</a></li>
+        <li><a href="#step-impl">6. Step 2: /loop-it · /graph — 功能实现</a></li>
         <li><a href="#step-review">7. Step 3: /review-it — 代码审查</a></li>
         <li><a href="#step-ship">8. Step 4: /ship-it — 提交交付</a></li>
         <li><a href="#step-svg-diagram">9. Vendor: /svg-diagram — SVG 制图规范与机械校验</a></li>
@@ -537,13 +537,13 @@
         <h3>1. 概述</h3>
       </div>
       <p>
-        <strong>let-it-go</strong> 是一套研发工作流技能集：26 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。
+        <strong>let-it-go</strong> 是一套研发工作流技能集：25 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。
       </p>
       <p>
         它让 AI Agent 能够像一个有经验的工程师一样——从理解需求、拆解任务、编写代码、审查质量，到最终提交合入——全流程自主完成。你只需描述功能想法，剩下的交给工作流。
       </p>
       <div class="tip">
-        <strong>入口：</strong>不用先问该用哪个。<strong>26 个技能的 description 就是路由表</strong>——它写清了各自管什么、什么时候该用，模型命中就自己加载并<strong>直接开始</strong>那一步，不需要你手敲。想强制走某一条时才敲它的名字。
+        <strong>入口：</strong>不用先问该用哪个。<strong>25 个技能的 description 就是路由表</strong>——它写清了各自管什么、什么时候该用，模型命中就自己加载并<strong>直接开始</strong>那一步，不需要你手敲。想强制走某一条时才敲它的名字。
       </div>
 
       <div class="cards">
@@ -718,18 +718,6 @@
         </div>
         <div class="card">
           <div class="card-header">
-            <div class="card-dot blue"></div>
-            <h4>/implement</h4>
-          </div>
-          <p>单个单元的内联闭环</p>
-          <ul>
-            <li>内联实现 → 项目门禁自证 → /review-it → /ship-it</li>
-            <li>不建 worktree、不派子代理、不建波分支</li>
-            <li>只做一个单元，不扩张范围</li>
-          </ul>
-        </div>
-        <div class="card">
-          <div class="card-header">
             <div class="card-dot sage"></div>
             <h4>/test-first</h4>
           </div>
@@ -875,7 +863,7 @@
       </div>
 
       <div class="note">
-        <strong>技能分组：</strong>26 个技能按「在流程里扮演什么角色」分三个桶——<code class="inline-code">flow</code>（流水线本身，9 个）、<code class="inline-code">bonus</code>（中途因为出事了、要保证质量、或需要一个非代码产物伸手拿的，7 个）、<code class="inline-code">vendor</code>（第三方技能的逐字副本，由 manifest 钉住 commit，10 个）。
+        <strong>技能分组：</strong>25 个技能按「在流程里扮演什么角色」分三个桶——<code class="inline-code">flow</code>（流水线本身，8 个）、<code class="inline-code">bonus</code>（中途因为出事了、要保证质量、或需要一个非代码产物伸手拿的，7 个）、<code class="inline-code">vendor</code>（第三方技能的逐字副本，由 manifest 钉住 commit，10 个）。
       </div>
     </div>
 
@@ -934,11 +922,11 @@
       </table>
 
       <div class="tip">
-        <strong>Tip：</strong>安装后输入 <code class="inline-code">/prd</code>、<code class="inline-code">/to-design</code>、<code class="inline-code">/to-issues</code>、<code class="inline-code">/implement</code>、<code class="inline-code">/loop-it</code>、<code class="inline-code">/graph</code>、<code class="inline-code">/review-it</code>、<code class="inline-code">/walkthrough</code>、<code class="inline-code">/ship-it</code>（flow 9 个）、<code class="inline-code">/test-first</code>、<code class="inline-code">/triage</code>、<code class="inline-code">/diagnose</code>、<code class="inline-code">/conflict</code>、<code class="inline-code">/refactor</code>、<code class="inline-code">/modern-go</code>、<code class="inline-code">/understand</code>（bonus 7 个）、<code class="inline-code">/svg-diagram</code>、<code class="inline-code">/find-skills</code>、<code class="inline-code">/frontend-design</code>、<code class="inline-code">/humanizer-zh</code>、<code class="inline-code">/pptx</code>、<code class="inline-code">/resume-optimizer</code>、<code class="inline-code">/skill-creator</code>、<code class="inline-code">/teach</code>、<code class="inline-code">/ui-ux-pro-max</code>、<code class="inline-code">/web-design-guidelines</code>（vendor 10 个）即可直接调用对应技能。其中 <code class="inline-code">/goal</code> 是 DSH 的命令（不是 skill）：模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但只在顶层直接的人类回合执行。
+        <strong>Tip：</strong>安装后输入 <code class="inline-code">/prd</code>、<code class="inline-code">/to-design</code>、<code class="inline-code">/to-issues</code>、<code class="inline-code">/loop-it</code>、<code class="inline-code">/graph</code>、<code class="inline-code">/review-it</code>、<code class="inline-code">/walkthrough</code>、<code class="inline-code">/ship-it</code>（flow 8 个）、<code class="inline-code">/test-first</code>、<code class="inline-code">/triage</code>、<code class="inline-code">/diagnose</code>、<code class="inline-code">/conflict</code>、<code class="inline-code">/refactor</code>、<code class="inline-code">/modern-go</code>、<code class="inline-code">/understand</code>（bonus 7 个）、<code class="inline-code">/svg-diagram</code>、<code class="inline-code">/find-skills</code>、<code class="inline-code">/frontend-design</code>、<code class="inline-code">/humanizer-zh</code>、<code class="inline-code">/pptx</code>、<code class="inline-code">/resume-optimizer</code>、<code class="inline-code">/skill-creator</code>、<code class="inline-code">/teach</code>、<code class="inline-code">/ui-ux-pro-max</code>、<code class="inline-code">/web-design-guidelines</code>（vendor 10 个）即可直接调用对应技能。其中 <code class="inline-code">/goal</code> 是 DSH 的命令（不是 skill）：模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但只在顶层直接的人类回合执行。
       </div>
 
       <div class="note">
-        <strong>模型目录：</strong>26 个技能的 description 合计 5293 字符，模型实际看到 <strong>5232 字符</strong>（DSH 会把每条 description 归一化空白并截到 500 字符）。唯一带 <code class="inline-code">disable-model-invocation</code> 的是 vendor 的 <code class="inline-code">/teach</code>（上游的选择，不进模型目录），要用手敲名字；省下每个会话与<strong>每个子代理</strong>都要付的那份固定成本。
+        <strong>模型目录：</strong>25 个技能的 description 合计 5211 字符，模型实际看到 <strong>5150 字符</strong>（DSH 会把每条 description 归一化空白并截到 500 字符）。唯一带 <code class="inline-code">disable-model-invocation</code> 的是 vendor 的 <code class="inline-code">/teach</code>（上游的选择，不进模型目录），要用手敲名字；省下每个会话与<strong>每个子代理</strong>都要付的那份固定成本。
       </div>
     </div>
 
@@ -963,11 +951,6 @@
         <span class="flow-connector">&rarr;</span>
         <div class="flow-step">
           <span class="step-num n2">2</span>
-          /implement
-        </div>
-        <span class="flow-connector">/</span>
-        <div class="flow-step">
-          <span class="step-num n2">2</span>
           /loop-it · /graph
         </div>
         <span class="flow-connector">&rarr;</span>
@@ -982,9 +965,10 @@
         </div>
       </div>
 
-      <pre><code><span class="cmd">/prd</span> → <span class="comment">[跨两个及以上服务 / 改数据模型或迁移 / 两条以上对外契约 → </span><span class="cmd">/to-design</span><span class="comment">]</span> → <span class="cmd">/to-issues</span> ─┬─→ <span class="cmd">/implement</span>  <span class="comment">（单单元：内联实现 → 门禁自证 → /review-it → /ship-it）</span>
-                                             ├─→ <span class="cmd">/loop-it</span>    <span class="comment">（串行：一次一个 Issue，带检查点恢复）</span>
-                                             └─→ <span class="cmd">/graph</span>      <span class="comment">（并行：按波次 fan-out，每节点独立 git worktree，波次间 fan-in 屏障）</span>
+      <pre><code><span class="cmd">/prd</span> → <span class="comment">[跨两个及以上服务 / 改数据模型或迁移 / 两条以上对外契约 → </span><span class="cmd">/to-design</span><span class="comment">]</span> → <span class="cmd">/to-issues</span> ─┬─→ <span class="cmd">/loop-it</span>   <span class="comment">（实现入口，进来自己判模式）</span>
+                                             │        ├─ 一个单元：内联实现 → 门禁自证 → <span class="cmd">/review-it</span> → <span class="cmd">/ship-it</span>
+                                             │        └─ 一批有依赖：一次一个 Issue，带检查点恢复
+                                             └─→ <span class="cmd">/graph</span>     <span class="comment">（真并行：按波次 fan-out，每节点独立 git worktree，波次间 fan-in 屏障）</span>
                                                      节点：内联实现 → 门禁自证 → commit；波末：集成 → <span class="cmd">/review-it</span> → <span class="cmd">/walkthrough</span> → <span class="cmd">/ship-it</span></code></pre>
 
       <div class="diagram-box">
@@ -1070,7 +1054,7 @@
         </tr>
         <tr>
           <td><span class="badge badge-impl">2. 实现</span></td>
-          <td><code class="inline-code">/implement</code> / <code class="inline-code">/loop-it</code> / <code class="inline-code">/graph</code></td>
+          <td><code class="inline-code">/loop-it</code> / <code class="inline-code">/graph</code></td>
           <td>一个或多个 Issue 卡片</td>
           <td>可运行的代码实现</td>
         </tr>
@@ -1095,7 +1079,7 @@
       </table>
 
       <div class="tip">
-        <strong>Tip：</strong>这条主线不必按顺序走：<strong>一个单元</strong>直接 <code class="inline-code">/implement</code>，<strong>有 bug / 偶发 flake / 性能回归</strong>先 <code class="inline-code">/diagnose</code>，<strong>外面进来的</strong>原始 issue 先 <code class="inline-code">/triage</code>，<strong>正在解 merge / rebase 冲突</strong>用 <code class="inline-code">/conflict</code>。选不准就看各技能的 description——它写清了适用场景，模型会自己挑。
+        <strong>Tip：</strong>这条主线不必按顺序走：<strong>一个单元</strong>直接 <code class="inline-code">/loop-it</code>（它会判成单单元模式），<strong>有 bug / 偶发 flake / 性能回归</strong>先 <code class="inline-code">/diagnose</code>，<strong>外面进来的</strong>原始 issue 先 <code class="inline-code">/triage</code>，<strong>正在解 merge / rebase 冲突</strong>用 <code class="inline-code">/conflict</code>。选不准就看各技能的 description——它写清了适用场景，模型会自己挑。
       </div>
     </div>
 
@@ -1205,18 +1189,18 @@
     <div class="section" id="step-impl">
       <div class="section-title">
         <div class="section-dot sage"></div>
-        <h3>6. Step 2: /implement · /loop-it · /graph — 功能实现</h3>
+        <h3>6. Step 2: /loop-it · /graph — 功能实现</h3>
       </div>
       <p>
-        实现步骤由正在运行的 agent <strong>内联</strong>完成：它读取 Issue 的标题、正文与验收标准（含其中引用的 PRD/SPEC），自己写代码、跑测试与 lint，直到验收条件全部满足。技能提供三条实现路线：只有<strong>一个单元</strong>时内联走 <code class="inline-code">/implement</code>，串行走 <code class="inline-code">/loop-it</code>，并行走 <code class="inline-code">/graph</code>。
+        实现步骤由正在运行的 agent <strong>内联</strong>完成：它读取 Issue 的标题、正文与验收标准（含其中引用的 PRD/SPEC），自己写代码、跑测试与 lint，直到验收条件全部满足。<code class="inline-code">/loop-it</code> 是这一步的<strong>入口</strong>，进来先判规模：只有<strong>一个单元</strong>时不开循环、直接内联做完；<strong>一批有阻塞边</strong>的 issue 走串行循环；<strong>真并行</strong>交给 <code class="inline-code">/graph</code>。
       </p>
 
       <div class="note">
         <strong>Note：<code class="inline-code">/goal</code> 不再是流水线步骤。</strong>在 DSH 中，<code class="inline-code">/goal</code> 是<strong>命令</strong>而不是 skill——由人类在命令行输入，创建一个带自动续跑轮次的持久目标。这条能力的模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但 <code class="inline-code">create_goal</code> 只在<strong>顶层直接的人类回合</strong>执行：子代理铸造不了长期目标，技能在编排中途也不行。因此「实现 Issue」这一步由 agent 内联完成，而不是调用 <code class="inline-code">/goal</code>。若想要一个自动续跑的长目标，应由人类自己输入 <code class="inline-code">/goal &lt;objective&gt;</code>。
       </div>
 
-      <h3>/implement — 单单元内联闭环</h3>
-      <p>一条 issue、一张卡片、spec 里的一项——<strong>只有一个单元</strong>时走这条路，闭环是：<strong>内联实现 → 项目门禁自证 → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code></strong>。它明确<strong>不</strong>建 worktree、<strong>不</strong>派子代理、<strong>不</strong>建波分支——那些是 <code class="inline-code">/loop-it</code> 与 <code class="inline-code">/graph</code> 的编排，单点上图或开循环只是多付编排成本。</p>
+      <h3>单单元模式：内联闭环</h3>
+      <p>一条 issue、一张卡片、spec 里的一项——<strong>只有一个单元</strong>时走这条，闭环是：<strong>内联实现 → 项目门禁自证 → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code></strong>。它明确<strong>不</strong>建 worktree、<strong>不</strong>派子代理、<strong>不</strong>建波分支——那些是串行循环与 <code class="inline-code">/graph</code> 的编排，单点上图或开循环只是多付编排成本。</p>
       <ul class="step-list">
         <li>先读清这个单元：把验收条件逐条列出来，读它引用的 PRD / SPEC / 设计文档，再读相邻代码与现有测试，让命名、错误处理与日志风格和仓库一致</li>
         <li>就跑<strong>项目自己的门禁</strong>自证（<code class="inline-code">mise run check</code>、<code class="inline-code">go build ./... &amp;&amp; go test ./...</code>、<code class="inline-code">pnpm --dir web lint</code> …）：边写边跑相关单测，最后跑一次全量；<strong>没被测过的验收条件不算满足</strong></li>
@@ -1224,7 +1208,7 @@
       </ul>
 
       <h3>参考：/test-first — 红 → 绿</h3>
-      <p>需要先把行为定下来再写实现时用它：一个测试 → 一段实现 → 再一个测试，一次一个接缝。它同样是 <code class="inline-code">/implement</code> 内部会用到的参考，可以单独调用。</p>
+      <p>需要先把行为定下来再写实现时用它：一个测试 → 一段实现 → 再一个测试，一次一个接缝。它同样是 <code class="inline-code">/loop-it</code> 内部会用到的参考，可以单独调用。</p>
       <ul class="step-list">
         <li><strong>接缝要预先与用户约定</strong>：写任何测试之前，先把「要测哪些接缝」写下来并与用户确认——测不了所有东西，先约定接缝，精力才会落在关键路径与复杂逻辑上</li>
         <li>三个反模式：<strong>与实现耦合</strong>（mock 内部协作者、测私有方法、从侧信道验证）、<strong>同义反复</strong>（期望值用与实现相同的方式重算，于是按构造就通过）、<strong>横向切片</strong>（先把所有测试写完，测的是想象出来的形状而非面向用户的行为）</li>
@@ -1238,7 +1222,7 @@
         <li><strong>只 commit 到自己的分支</strong>：不 push、不开 PR、不合并，也不自审——节点的报告是证据而不是结论</li>
       </ul>
 
-      <h3>/loop-it — 串行实现</h3>
+      <h3>串行模式：一次一个 Issue</h3>
       <ul class="step-list">
         <li>获取仓库中所有打开的 GitHub Issue</li>
         <li>解析 Issue 正文里的依赖关系，做依赖感知的拓扑排序，得到可安全开始的顺序</li>
@@ -1265,7 +1249,7 @@
       </ul>
 
       <div class="tip">
-        <strong>Tip：</strong>「实现」由 agent 内联完成——单个单元走 <code class="inline-code">/implement</code>（内联实现 → 门禁自证 → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code>，不建 worktree、不派子代理）；<code class="inline-code">/goal</code> 是 DSH 的命令而不是 skill：模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但 <code class="inline-code">create_goal</code> 只在顶层直接的人类回合执行——子代理和编排中途都铸造不了长期目标；<code class="inline-code">/review-it</code>、<code class="inline-code">/ship-it</code> 是真实 skill，由编排器在波级各调用一次。子代理要付出父级完整 prompt、工具 schema 与技能目录的固定成本，所以节点止于 commit、琐碎工作内联做；并发上限默认 3–4，波内节点数建议 2–3。
+        <strong>Tip：</strong>「实现」由 agent 内联完成——单个单元走 <code class="inline-code">/loop-it</code> 的单单元模式（内联实现 → 门禁自证 → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code>，不建 worktree、不派子代理）；<code class="inline-code">/goal</code> 是 DSH 的命令而不是 skill：模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但 <code class="inline-code">create_goal</code> 只在顶层直接的人类回合执行——子代理和编排中途都铸造不了长期目标；<code class="inline-code">/review-it</code>、<code class="inline-code">/ship-it</code> 是真实 skill，由编排器在波级各调用一次。子代理要付出父级完整 prompt、工具 schema 与技能目录的固定成本，所以节点止于 commit、琐碎工作内联做；并发上限默认 3–4，波内节点数建议 2–3。
       </div>
     </div>
 
@@ -1910,7 +1894,7 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       </ul>
 
       <div class="note">
-        <strong>Note：</strong><code class="inline-code">ready</code> 的条目交回主线——一串有依赖关系的用 <code class="inline-code">/loop-it</code>，互不共享文件的用 <code class="inline-code">/graph</code>，只有一个单元就用 <code class="inline-code">/implement</code>。
+        <strong>Note：</strong><code class="inline-code">ready</code> 的条目交回主线——一串有依赖关系的用 <code class="inline-code">/loop-it</code>，互不共享文件的用 <code class="inline-code">/graph</code>，只有一个单元就用 <code class="inline-code">/loop-it</code>（它会判成单单元模式）。
       </div>
     </div>
 
@@ -1943,7 +1927,7 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       </ul>
 
       <div class="note">
-        <strong>Note：</strong>排查通常是一个<strong>内联单元</strong>，不要为它开 <code class="inline-code">/graph</code>。定位清楚之后按单点改动回主线：<code class="inline-code">/implement</code> → 项目门禁 → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code>。
+        <strong>Note：</strong>排查通常是一个<strong>内联单元</strong>，不要为它开 <code class="inline-code">/graph</code>。定位清楚之后按单点改动回主线：<code class="inline-code">/loop-it</code>（单单元模式）→ 项目门禁 → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code>。
       </div>
     </div>
 
@@ -2021,10 +2005,10 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       </div>
 
       <h3>Q: 必须按顺序使用所有步骤吗？</h3>
-      <p>不必。每个 Skill 都是独立的，可以单独使用。比如你已经有 Issue 了，可以直接从实现开始——单个单元走 <code class="inline-code">/implement</code>，串行走 <code class="inline-code">/loop-it</code>，并行走 <code class="inline-code">/graph</code>；代码已经写好，可以直接用 <code class="inline-code">/review-it</code> 审查。但完整走一遍流程能获得最好的效果。</p>
+      <p>不必。每个 Skill 都是独立的，可以单独使用。比如你已经有 Issue 了，可以直接从实现开始——单个单元或串行都走 <code class="inline-code">/loop-it</code>（它自己判模式），并行走 <code class="inline-code">/graph</code>；代码已经写好，可以直接用 <code class="inline-code">/review-it</code> 审查。但完整走一遍流程能获得最好的效果。</p>
 
       <h3>Q: /goal 是什么？为什么不在 skills 目录中？</h3>
-      <p>在 DSH 中，<code class="inline-code">/goal</code> 是<strong>命令</strong>而不是 skill，因此不在 <code class="inline-code">~/.agents/skills</code> 中。它由人类在命令行输入，创建一个带自动续跑轮次的持久目标；这条能力的模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但 <code class="inline-code">create_goal</code> 只在<strong>顶层直接的人类回合</strong>执行——子代理、或正在编排的技能，都无法给自己铸造一个长期目标。而「实现 Issue」这一动作与它无关，由 agent 内联完成（见 <a href="#step-impl" style="color: #D97757; text-decoration: none;">Step 2: /implement · /loop-it · /graph</a>）。</p>
+      <p>在 DSH 中，<code class="inline-code">/goal</code> 是<strong>命令</strong>而不是 skill，因此不在 <code class="inline-code">~/.agents/skills</code> 中。它由人类在命令行输入，创建一个带自动续跑轮次的持久目标；这条能力的模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但 <code class="inline-code">create_goal</code> 只在<strong>顶层直接的人类回合</strong>执行——子代理、或正在编排的技能，都无法给自己铸造一个长期目标。而「实现 Issue」这一动作与它无关，由 agent 内联完成（见 <a href="#step-impl" style="color: #D97757; text-decoration: none;">Step 2: /loop-it · /graph</a>）。</p>
 
       <h3>Q: 可以在非 GitHub 项目中使用吗？</h3>
       <p>可以。<code class="inline-code">/to-issues</code> 支持把 Issue 保存为本地 Markdown 文件。<code class="inline-code">/review-it</code> 只需要本地 git 仓库。<code class="inline-code">/ship-it</code> 目前依赖 GitHub（<code class="inline-code">gh</code> CLI）。</p>

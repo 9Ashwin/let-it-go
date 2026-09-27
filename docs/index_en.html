@@ -511,7 +511,7 @@
         <li><a href="#workflow">3. Workflow Overview</a></li>
         <li><a href="#step-prd">4. Step 1: /prd — Requirements Planning</a></li>
         <li><a href="#step-to-issues">5. Step 1.5: /to-issues — Break Down into Issues</a></li>
-        <li><a href="#step-implement">6. Step 2: Implementation — /implement · /loop-it &amp; /graph</a></li>
+        <li><a href="#step-implement">6. Step 2: Implementation — /loop-it &amp; /graph</a></li>
         <li><a href="#step-review">7. Step 3: /review-it — Code Review</a></li>
         <li><a href="#step-ship">8. Step 4: /ship-it — Commit and Ship</a></li>
         <li><a href="#step-svg-diagram">9. Vendor: /svg-diagram — SVG Diagramming Conventions and Mechanical Lint</a></li>
@@ -537,7 +537,7 @@
         <h3>1. Overview</h3>
       </div>
       <p>
-        <strong>let-it-go</strong> is a set of development-workflow skills: 26 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill.
+        <strong>let-it-go</strong> is a set of development-workflow skills: 25 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill.
       </p>
       <p>
         It enables AI agents to act like experienced engineers — from understanding requirements, breaking down tasks, writing code, reviewing quality, to final submission and merge — autonomously completing the entire process. You just describe the feature idea, and the workflow handles the rest.
@@ -718,18 +718,6 @@
         </div>
         <div class="card">
           <div class="card-header">
-            <div class="card-dot blue"></div>
-            <h4>/implement</h4>
-          </div>
-          <p>The inline closed loop for a single unit</p>
-          <ul>
-            <li>Implement inline → prove with project gates → /review-it → /ship-it</li>
-            <li>No worktree, no subagent, no wave branch</li>
-            <li>One unit only; never expand scope</li>
-          </ul>
-        </div>
-        <div class="card">
-          <div class="card-header">
             <div class="card-dot sage"></div>
             <h4>/test-first</h4>
           </div>
@@ -875,7 +863,7 @@
       </div>
 
       <div class="note">
-        <strong>Skill groups:</strong> the 26 skills split into three buckets by the role they play — <code class="inline-code">flow</code> (the pipeline itself, 9), <code class="inline-code">bonus</code> (what you reach for mid-flow because something broke, because quality is at stake, or because you need a non-code artifact, 7), and <code class="inline-code">vendor</code> (verbatim third-party copies pinned to a commit by the manifest, 10).
+        <strong>Skill groups:</strong> the 25 skills split into three buckets by the role they play — <code class="inline-code">flow</code> (the pipeline itself, 8), <code class="inline-code">bonus</code> (what you reach for mid-flow because something broke, because quality is at stake, or because you need a non-code artifact, 7), and <code class="inline-code">vendor</code> (verbatim third-party copies pinned to a commit by the manifest, 10).
       </div>
     </div>
 
@@ -891,11 +879,10 @@
       <pre><code><span class="comment"># Recommended — install all skills into ~/.agents/skills</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span>
 
-<span class="comment"># Or install specific skills — flow (9)</span>
+<span class="comment"># Or install specific skills — flow (8)</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">prd</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">to-design</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">to-issues</span>
-<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">implement</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">loop-it</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">graph</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">review-it</span>
@@ -972,11 +959,11 @@
       </table>
 
       <div class="tip">
-        <strong>Tip:</strong> After installation, type <code class="inline-code">/prd</code>, <code class="inline-code">/to-design</code>, <code class="inline-code">/to-issues</code>, <code class="inline-code">/implement</code>, <code class="inline-code">/loop-it</code>, <code class="inline-code">/graph</code>, <code class="inline-code">/review-it</code>, <code class="inline-code">/walkthrough</code>, <code class="inline-code">/ship-it</code> (flow, 9), <code class="inline-code">/test-first</code>, <code class="inline-code">/triage</code>, <code class="inline-code">/diagnose</code>, <code class="inline-code">/conflict</code>, <code class="inline-code">/refactor</code>, <code class="inline-code">/modern-go</code>, <code class="inline-code">/understand</code> (bonus, 7), <code class="inline-code">/svg-diagram</code>, <code class="inline-code">/find-skills</code>, <code class="inline-code">/frontend-design</code>, <code class="inline-code">/humanizer-zh</code>, <code class="inline-code">/pptx</code>, <code class="inline-code">/resume-optimizer</code>, <code class="inline-code">/skill-creator</code>, <code class="inline-code">/teach</code>, <code class="inline-code">/ui-ux-pro-max</code>, <code class="inline-code">/web-design-guidelines</code> (vendor, 10) to directly invoke the corresponding skill. <code class="inline-code">/goal</code> is a DSH command that a human types, not a skill.
+        <strong>Tip:</strong> After installation, type <code class="inline-code">/prd</code>, <code class="inline-code">/to-design</code>, <code class="inline-code">/to-issues</code>, <code class="inline-code">/loop-it</code>, <code class="inline-code">/graph</code>, <code class="inline-code">/review-it</code>, <code class="inline-code">/walkthrough</code>, <code class="inline-code">/ship-it</code> (flow, 8), <code class="inline-code">/test-first</code>, <code class="inline-code">/triage</code>, <code class="inline-code">/diagnose</code>, <code class="inline-code">/conflict</code>, <code class="inline-code">/refactor</code>, <code class="inline-code">/modern-go</code>, <code class="inline-code">/understand</code> (bonus, 7), <code class="inline-code">/svg-diagram</code>, <code class="inline-code">/find-skills</code>, <code class="inline-code">/frontend-design</code>, <code class="inline-code">/humanizer-zh</code>, <code class="inline-code">/pptx</code>, <code class="inline-code">/resume-optimizer</code>, <code class="inline-code">/skill-creator</code>, <code class="inline-code">/teach</code>, <code class="inline-code">/ui-ux-pro-max</code>, <code class="inline-code">/web-design-guidelines</code> (vendor, 10) to directly invoke the corresponding skill. <code class="inline-code">/goal</code> is a DSH command that a human types, not a skill.
       </div>
 
       <div class="note">
-        <strong>The model catalog:</strong> across the 26 skills the descriptions total 5,293 characters, of which the model actually sees <strong>5,232</strong> (DSH normalises whitespace and truncates each description at 500). The only skill carrying <code class="inline-code">disable-model-invocation</code> is the vendored <code class="inline-code">/teach</code> (upstream's choice, so it stays out of the model catalog and you must type its name), which saves the fixed cost every session and <strong>every subagent</strong> would otherwise pay.
+        <strong>The model catalog:</strong> across the 25 skills the descriptions total 5,211 characters, of which the model actually sees <strong>5,150</strong> (DSH normalises whitespace and truncates each description at 500). The only skill carrying <code class="inline-code">disable-model-invocation</code> is the vendored <code class="inline-code">/teach</code> (upstream's choice, so it stays out of the model catalog and you must type its name), which saves the fixed cost every session and <strong>every subagent</strong> would otherwise pay.
       </div>
     </div>
 
@@ -1004,11 +991,6 @@
           /to-issues
         </div>
         <span class="flow-connector">&rarr;</span>
-        <div class="flow-step">
-          <span class="step-num n2">2</span>
-          /implement
-        </div>
-        <span class="flow-connector">/</span>
         <div class="flow-step">
           <span class="step-num n2">2</span>
           /loop-it · /graph
@@ -1107,7 +1089,7 @@
         </tr>
         <tr>
           <td><span class="badge badge-impl">2. Implement</span></td>
-          <td><code class="inline-code">/implement</code> / <code class="inline-code">/loop-it</code> / <code class="inline-code">/graph</code></td>
+          <td><code class="inline-code">/loop-it</code> / <code class="inline-code">/graph</code></td>
           <td>Issue cards (or a task DAG)</td>
           <td>Code implemented inline by the agent</td>
         </tr>
@@ -1132,7 +1114,7 @@
       </table>
 
       <div class="tip">
-        <strong>Tip:</strong> this main line does not have to be walked in order: <strong>a single unit</strong> goes straight to <code class="inline-code">/implement</code>; <strong>a bug, an intermittent flake or a performance regression</strong> starts with <code class="inline-code">/diagnose</code>; <strong>a raw inbound issue</strong> starts with <code class="inline-code">/triage</code>; <strong>an in-progress merge / rebase</strong> uses <code class="inline-code">/conflict</code>. Can't tell which? Read the skill descriptions — each says when it applies, and the model picks one itself.
+        <strong>Tip:</strong> this main line does not have to be walked in order: <strong>a single unit</strong> goes straight to <code class="inline-code">/loop-it</code> (which picks its single-unit mode); <strong>a bug, an intermittent flake or a performance regression</strong> starts with <code class="inline-code">/diagnose</code>; <strong>a raw inbound issue</strong> starts with <code class="inline-code">/triage</code>; <strong>an in-progress merge / rebase</strong> uses <code class="inline-code">/conflict</code>. Can't tell which? Read the skill descriptions — each says when it applies, and the model picks one itself.
       </div>
     </div>
 
@@ -1242,14 +1224,14 @@
     <div class="section" id="step-implement">
       <div class="section-title">
         <div class="section-dot sage"></div>
-        <h3>6. Step 2: Implementation — /implement · /loop-it &amp; /graph</h3>
+        <h3>6. Step 2: Implementation — /loop-it &amp; /graph</h3>
       </div>
       <p>
-        This is the implementation step, and all three routes start from the Issue cards created by <code class="inline-code">/to-issues</code>: a <strong>single unit</strong> goes inline through <code class="inline-code">/implement</code>, <strong>sequential</strong> work through <code class="inline-code">/loop-it</code>, and <strong>parallel</strong> work through <code class="inline-code">/graph</code>. On every route the running agent writes the code itself — implementation is done <strong>inline</strong>, never by handing the work to an external command.
+        <code class="inline-code">/loop-it</code> is the <strong>entry point</strong> for this step, and it picks the mode on the way in: a <strong>single unit</strong> does not open a loop at all — it is implemented inline; a <strong>batch with blocking edges</strong> runs the serial loop; <strong>genuinely parallel</strong> work goes to <code class="inline-code">/graph</code>. On every route the running agent writes the code itself — implementation is done <strong>inline</strong>, never by handing the work to an external command.
       </p>
 
-      <h3>/implement — the single-unit inline loop</h3>
-      <p>One issue, one card, one item in a spec — when there is <strong>exactly one unit</strong>, take this route: <strong>implement inline → prove with the project's gates → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code></strong>. It explicitly does <strong>not</strong> create a worktree, <strong>not</strong> dispatch a subagent and <strong>not</strong> create a wave branch — those are the orchestration owned by <code class="inline-code">/loop-it</code> and <code class="inline-code">/graph</code>, and putting a single unit on the graph or into a loop just pays orchestration cost for nothing.</p>
+      <h3>Single-unit mode: the inline loop</h3>
+      <p>One issue, one card, one item in a spec — when there is <strong>exactly one unit</strong>, take this route: <strong>implement inline → prove with the project's gates → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code></strong>. It explicitly does <strong>not</strong> create a worktree, <strong>not</strong> dispatch a subagent and <strong>not</strong> create a wave branch — those are the orchestration owned by the serial loop and <code class="inline-code">/graph</code>, and putting a single unit on the graph or into a loop just pays orchestration cost for nothing.</p>
       <ul class="step-list">
         <li>Read the unit first: list its acceptance criteria one by one, read the PRD / SPEC / design docs it references, then read the adjacent code and tests so naming, error handling and log style match the repo</li>
         <li>Prove it with <strong>the project's own gates</strong> (<code class="inline-code">mise run check</code>, <code class="inline-code">go build ./... &amp;&amp; go test ./...</code>, <code class="inline-code">pnpm --dir web lint</code>, …): run the focused tests as you go and the full gate once at the end — <strong>a criterion that was never tested is not satisfied</strong></li>
@@ -1257,7 +1239,7 @@
       </ul>
 
       <h3>Reference: /test-first — red → green</h3>
-      <p>Use it when behaviour should be pinned down before the implementation: one test → one piece of implementation → the next test, one seam at a time. It is also the reference <code class="inline-code">/implement</code> uses internally, and it can be invoked on its own.</p>
+      <p>Use it when behaviour should be pinned down before the implementation: one test → one piece of implementation → the next test, one seam at a time. It is also the reference <code class="inline-code">/loop-it</code> uses internally, and it can be invoked on its own.</p>
       <ul class="step-list">
         <li><strong>Agree the seams with the user up front</strong>: before writing any test, write down which seams will be tested and confirm it with the user — you cannot test everything, and agreeing the seams first puts the effort on critical paths and complex logic</li>
         <li>Three anti-patterns: <strong>coupled to the implementation</strong> (mocking internal collaborators, testing private methods, verifying through a side channel), <strong>tautological</strong> (recomputing the expected value the same way the implementation does, so it passes by construction), and <strong>horizontal slicing</strong> (writing all the tests first, which tests an imagined shape rather than user-facing behaviour)</li>
@@ -1271,7 +1253,7 @@
         <li>It <strong>commits to its own branch only</strong>: no push, no PR, no merge, and no self-review — a node report is evidence, not a verdict</li>
       </ul>
 
-      <h3>/loop-it — Sequential Implementation</h3>
+      <h3>Serial mode: one Issue at a time</h3>
       <p>
         <code class="inline-code">/loop-it</code> fetches the open GitHub issues and resolves their order with a <strong>dependency-aware topological sort</strong>. It implements <strong>one Issue at a time, inline</strong> (read the requirement → write the code → prove it with the project's gates → <strong>supervisor check</strong>, judged on evidence rather than how the diff looks) and <strong>commits on that Issue's own branch</strong> — without pushing or opening a PR. At the end of the batch it merges the surviving branches into a single batch branch (<strong>failed branches are never merged in</strong>) and runs <code class="inline-code">/review-it</code> once and <code class="inline-code">/ship-it</code> once. It checkpoints progress to <code class="inline-code">.loop-state.json</code> after every status change, so a crash or interruption can resume from the last checkpoint instead of restarting the whole batch.
       </p>
@@ -1293,7 +1275,7 @@
       </ul>
 
       <div class="tip">
-        <strong>Tip:</strong> implementation is done inline by the agent — a single unit goes through <code class="inline-code">/implement</code> (implement inline → prove with the gates → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code>, no worktree, no subagent); <code class="inline-code">/goal</code> is a DSH command, not a skill, and its model side (<code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>) only runs in a direct top-level human turn; <code class="inline-code">/review-it</code> and <code class="inline-code">/ship-it</code> are real skills the orchestrator calls once per wave. A child pays the parent's full prompt, tool schemas and skill catalog as fixed overhead, which is why a node stops at commit and trivia stays inline; cap concurrency at 3–4 by default and prefer waves of 2–3 nodes.
+        <strong>Tip:</strong> implementation is done inline by the agent — a single unit goes through <code class="inline-code">/loop-it</code>'s single-unit mode (implement inline → prove with the gates → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code>, no worktree, no subagent); <code class="inline-code">/goal</code> is a DSH command, not a skill, and its model side (<code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>) only runs in a direct top-level human turn; <code class="inline-code">/review-it</code> and <code class="inline-code">/ship-it</code> are real skills the orchestrator calls once per wave. A child pays the parent's full prompt, tool schemas and skill catalog as fixed overhead, which is why a node stops at commit and trivia stays inline; cap concurrency at 3–4 by default and prefer waves of 2–3 nodes.
       </div>
 
       <div class="note">
@@ -1942,7 +1924,7 @@ leak check → evidence check per node → merge only shipped nodes → gates on
       </ul>
 
       <div class="note">
-        <strong>Note:</strong> <code class="inline-code">ready</code> items go back to the main line — a chain of dependent ones through <code class="inline-code">/loop-it</code>, ones that share no files through <code class="inline-code">/graph</code>, and a single unit through <code class="inline-code">/implement</code>.
+        <strong>Note:</strong> <code class="inline-code">ready</code> items go back to the main line — a chain of dependent ones through <code class="inline-code">/loop-it</code>, ones that share no files through <code class="inline-code">/graph</code>, and a single unit through <code class="inline-code">/loop-it</code> (it picks its single-unit mode).
       </div>
     </div>
 
@@ -1975,7 +1957,7 @@ leak check → evidence check per node → merge only shipped nodes → gates on
       </ul>
 
       <div class="note">
-        <strong>Note:</strong> debugging is usually a <strong>single inline unit</strong> — do not open a <code class="inline-code">/graph</code> for it. Once it is located, return to the main line as a single-point change: <code class="inline-code">/implement</code> → project gates → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code>.
+        <strong>Note:</strong> debugging is usually a <strong>single inline unit</strong> — do not open a <code class="inline-code">/graph</code> for it. Once it is located, return to the main line as a single-point change: <code class="inline-code">/loop-it</code> (single-unit mode) → project gates → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code>.
       </div>
     </div>
 
@@ -2053,7 +2035,7 @@ leak check → evidence check per node → merge only shipped nodes → gates on
       </div>
 
       <h3>Q: Do I have to use all steps in order?</h3>
-      <p>No. Each Skill is independent and can be used standalone. For example, if you already have Issues, you can start directly from <code class="inline-code">/implement</code> (a single unit), <code class="inline-code">/loop-it</code> (sequential) or <code class="inline-code">/graph</code> (parallel); if code is already written, you can use <code class="inline-code">/review-it</code> directly. But going through the full workflow yields the best results.</p>
+      <p>No. Each Skill is independent and can be used standalone. For example, if you already have Issues, you can start directly from <code class="inline-code">/loop-it</code> (a single unit, or sequential — it picks the mode) or <code class="inline-code">/graph</code> (parallel); if code is already written, you can use <code class="inline-code">/review-it</code> directly. But going through the full workflow yields the best results.</p>
 
       <h3>Q: Where does /goal come from? Why isn't it in the skills directory?</h3>
       <p><code class="inline-code">/goal</code> is a DSH <strong>command</strong>, not a skill, so it is not in <code class="inline-code">~/.agents/skills</code>. A human types it to create a persisted objective with automatic continuation rounds. The model side of that surface is <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>, but <code class="inline-code">create_goal</code> only runs in a <strong>direct top-level human turn</strong> — a subagent, or a skill running mid-orchestration, cannot mint a long-horizon goal for itself. It is not the implementation step either: implementation is done inline by the running agent (see <a href="#step-implement" style="color: #D97757; text-decoration: none;">Step 2: Implementation</a>).</p>

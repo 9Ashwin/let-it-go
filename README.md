@@ -25,7 +25,7 @@
 
 ## let-it-go 是什么
 
-let-it-go 是一套研发工作流技能集：26 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。你说想做什么，剩下的交给 Agent：澄清问题、写 PRD、拆成带契约字段的 Issue、在隔离的工作树里并行实现、审查、开 PR、合入。
+let-it-go 是一套研发工作流技能集：25 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。你说想做什么，剩下的交给 Agent：澄清问题、写 PRD、拆成带契约字段的 Issue、在隔离的工作树里并行实现、审查、开 PR、合入。
 
 **实现节点是子代理**，每个节点一个独立 git worktree，职责到「实现 → 跑通项目门禁自证 → commit 到自己分支」为止。泄漏检查、集成、集成后的门禁、评审、交付收成一件事，**按波次各做一次**：一个 PR 关闭这一波满足的全部 Issue。
 
@@ -53,7 +53,7 @@ cp -R <let-it-go>/skills/flow/graph ~/.agents/skills/graph   # 拍平，不要�
 还可以作为**部署层配置**安装（随包携带 preset、`toolFilter`、persona，可锁定 commit）——安装命令与参数说明见文档站：**<https://9ashwin.github.io/let-it-go/#install>**。
 
 > [!TIP]
-> 不记得该用哪个技能？**不用敲**——26 个技能的 description 就是路由表，模型命中就自己加载并直接开始；想强制走某一条时才敲它的名字。
+> 不记得该用哪个技能？**不用敲**——25 个技能的 description 就是路由表，模型命中就自己加载并直接开始；想强制走某一条时才敲它的名字。
 >
 > 完整使用指南（安装、每一步怎么触发、验收标准、FAQ）在 **<https://9ashwin.github.io/let-it-go/>**，会自动按浏览器语言跳转到中文或英文版；仓库内是 [docs/index_cn.html](docs/index_cn.html) 与 [docs/index_en.html](docs/index_en.html)。
 
@@ -90,14 +90,14 @@ cp -R <let-it-go>/skills/flow/graph ~/.agents/skills/graph   # 拍平，不要�
 | --- | --- | --- |
 | 需求与设计 | `/prd` · `/to-design` | 需求文档 → 设计提案（**只在跨两个及以上服务、改数据模型或迁移、涉及两条以上对外契约时写**；Markdown 是主产物，HTML 只是可选呈现层） |
 | 拆解与分诊 | `/to-issues` · `/triage` | 把自己的 PRD 拆成垂直切片，**每条 Issue 正文就是契约**（目标/非目标/验收条件/必须收集的证据/外部边界/完成定义/未决问题）· 把**外面进来的**原始 issue 分流成可执行卡片 |
-| 实现 | `/implement` · `/test-first` · `/graph` · `/loop-it` | 单个单元内联做完 · 红-绿写测试 · DAG 波次并行（每节点独立 worktree，节点在 fan-in 时过 evidence check）· issue 依赖序串行（每 issue 一次 supervisor 检查，结构化证据与 follow-up 台账落在可恢复的检查点里） |
+| 实现 | `/loop-it` · `/test-first` · `/graph` | **实现入口，进来自己判模式**：单个单元就内联做完（不建 worktree、不派子代理）· 一批有依赖的 issue 走串行循环（每 issue 一次 supervisor 检查，结构化证据与 follow-up 台账落在可恢复的检查点里）· 红-绿写测试 · DAG 波次并行（每节点独立 worktree，节点在 fan-in 时过 evidence check） |
 | 排障 | `/diagnose` · `/conflict` | 先拿到一条会变红的命令再推理的排查循环 · 逐 hunk 按意图解 merge/rebase 冲突 |
 | 审查与交付 | `/review-it` · `/walkthrough` · `/ship-it` | 双轴评审（Spec + 8 维度标准）· 合并前交出「改了什么 + 什么被验证过」的走查件（**只提供证据，不产 PR body**）· **PR body 的唯一产出者**，提交/PR/合入/关闭 Issue，并一次写出实现总结评论 |
 | 代码质量 | `/refactor` · `/modern-go` | 两种模式（`audit` 只报不改 / `fix` 按 Fowler 目录重构）· Go 1.0→1.27+ 现代化 |
 | 文档与制图 | `/understand` · `/svg-diagram`（vendor） | 把本次改动变成可交互审阅网页 · SVG 制图规范 + 12 项机械校验（自带 `svg-lint`） |
 | 第三方（`skills/vendor/`，逐字副本） | `/find-skills` · `/frontend-design` · `/humanizer-zh` · `/pptx` · `/resume-optimizer` · `/skill-creator` · `/teach` · `/ui-ux-pro-max` · `/web-design-guidelines` | 发现并安装生态里的技能 · 前端视觉设计方向 · 中文文本去模板化润色 · `.pptx` / `.potx` 的读写与编辑 · 简历审计与优化（成果型改写、按目标 JD 调整）· 创建/改进技能并跑评测 · 以教学方式讲清一个概念 · 可检索的 UI/UX 设计知识库 · 按 Web Interface Guidelines 审 UI 代码 |
 
-26 个技能（flow 9 / bonus 7 / vendor 10）全部**模型可调用**：description 就是路由表，模型命中就自己加载并直接开始，不需要你手敲；只有想强制走某一条时才需要敲名字。description 合计 5293 字符，模型实际看到 **5232 字符**（DSH 会把每条归一化空白并截到 500 字符）。唯一带 `disable-model-invocation` 的是 vendor 的 `teach`，那是上游的选择，不进模型目录，要用手敲名字。
+25 个技能（flow 8 / bonus 7 / vendor 10）全部**模型可调用**：description 就是路由表，模型命中就自己加载并直接开始，不需要你手敲；只有想强制走某一条时才需要敲名字。description 合计 5211 字符，模型实际看到 **5150 字符**（DSH 会把每条归一化空白并截到 500 字符）。唯一带 `disable-model-invocation` 的是 vendor 的 `teach`，那是上游的选择，不进模型目录，要用手敲名字。
 
 `/goal` 是宿主的**命令**（不是技能）。模型侧是 `create_goal` / `update_goal`，门禁是 **authority 而不是措辞**：`create_goal` 只在**顶层 agent 的直接人类回合**有效，所以子代理和编排中途建不了——但**人类不必说 "goal"**，他直接交出一个长期目标（"把这批 issue 全做完"）时就该建，这正是它被设计的用法。长批次里 goal 是**会话级驱动**（一个回合结束后把会话重新推起来），检查点（`.loop-state.json` / `.graph_state.json`）是**仓库级状态**（记到哪了）——两者互补，计数也各算各的（`maxGoalRounds` 管续跑轮数，`attempts` 管单个 issue 的重试）。
 
