@@ -188,6 +188,8 @@ return await parallel(args.nodes.map((n) => () =>
 
 不要轮询正在跑的波。`workflow` 调用在整个波完成时返回；你自己起的裸 `subagent` 则以一条通知结算。**审计你起的子代理**，看谁还在跑。
 
+**但那条通知只在交互式会话里会来。** headless 里回合结束就是运行结束，所以**凡是「要拿到它的结果才能继续」的裸 `subagent`，都传 `run_in_background: false`**——否则你会以「等它返回」结束回合（`turn_end: completed`），被派出去的那个节点连同它后面的 fan-in 一起消失。波级派发用 `workflow` 就是为了避开这件事：它自己 await 全部 thunk。
+
 ## 第 4 步：fan-in——屏障、集成、评审、交付
 
 屏障是**每个**节点的子代理都已结算。然后按顺序：
