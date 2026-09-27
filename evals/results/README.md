@@ -273,6 +273,60 @@ DSH 把每个会话存在 `~/.dsh/sessions/<cwd 的 slug>/`，而 **slug 就是 
 
 > 06 的 `without_skill` 用的是 iteration-11 的 6/9（当轮干净）。它不加载技能，这次修改不可能影响它。
 
+## iteration-13 / iteration-14：`graph` 第一次被测
+
+新用例 `07-parallel-waves`：三个工作单元，两个互不依赖（`inventory.Reorder` / `pricing.BulkTotal`），
+第三个依赖前两个（`report.LowStockLines`）。**`graph` 是这套技能里唯一零覆盖的一个**——worktree
+隔离、波分层、`workflow` 派发、fan-in 屏障、`graph.html` 看板，前面六个用例一个都没碰到。
+
+### iteration-13：作废——fixture 有缺陷，不是臂做错了
+
+首跑 `with_skill` 8/10、`without_skill` 5/10，**两条臂都挂在同一条断言上**：`tamper_guard`。
+
+原因不在臂：**两条臂都把新测试追加进了现有测试文件**（`inventory/inventory_test.go`、
+`pricing/pricing_test.go`）——那是完全正常的 Go 习惯。而 `tamper_guard` 比的是**整文件字节**，
+于是「追加一条测试」与「把测试改弱」在它眼里是同一件事。**又是 case 01 那个病：断言要求了
+任务从没说的事。** 04 与 06 有同一个潜在陷阱，只是碰巧没遇上会追加的臂。
+
+修法：**七个 fixture 的 `AGENTS.md` 都声明这条约定**——现有的 `*_test.go` 是冻结的验收基线，
+逐字节不许改；要为新行为写测试就**新建一个文件**，不要往已有测试文件里追加（追加同样会改哈希）。
+约定说清楚，守卫才是公平的。
+
+同一条 `waves` 断言也错了，而且错得更有意思：它从检查点里读 `waves`。但技能要求在下一个波之前
+用 `--keep-shipped --only-pending` 重规划，而那次重规划**只重排还没交付的节点**——实测最终检查点里
+`waves` 只剩 `[[3]]`，已交付的 1、2 不在里面。**技能从没承诺检查点保留历史分层。** 改成看
+**合并形状**：一个 merge 提交同时含两条节点分支的祖先，就是它们被一起集成的证据。同一条工作树
+复打分：8/10 → 9/10。结果文件已删。
+
+### iteration-14：干净数据，**10/10 vs 6/10**
+
+| 断言 | with_skill | without_skill |
+|---|---|---|
+| 门禁绿（集成态）· 三个单元都实现 · 不落 `tasks/` · 防篡改 · 不越界 | ✓ | ✓ |
+| **图检查点落在作用域根** | ✓ | ✗ |
+| **`graph.html` 看板渲染出来** | ✓ | ✗ |
+| **两个独立节点在同一个集成点汇合** | ✓ | ✗ |
+| **每个节点记了自己的 `feat/` 分支** | ✓ | ✗ |
+| 节点分支都并进最终状态 | ✓ | ✓（空集，真空真） |
+
+**4 分差距，是七个用例里最大的**，而且区分点全部落在 graph 那台机器上：检查点、看板、波分层、
+worktree 隔离。`without_skill` 把三个函数都写对了（它们不难），但**一点图都没有**——它就是串行做完了。
+
+`with_skill` 的真实形状：三条 `feat/node-*` 分支；`wave-0-low-stock-reorder` 上先
+`merge(wave-0): node-1` 再 `merge(wave-0): node-2`（两条独立节点在同一个集成点汇合），
+然后才 `merge(wave-1): node-3`；`.graph_state.json`、`graph.html`、`nodes.json`、走查件与
+交付记录都落在 `requirements/001-low-stock-reorder/`。
+
+两条臂都没有污染标记，也都没有读到评测仓库。
+
+> 顺带验到了另一件事：走查件在**折进 `ship-it` 之后仍然产出**
+> （`notes/walkthrough-low-stock-reorder.md`）——删掉那个技能没有丢掉那个能力。
+
+### 07 怎么跑
+
+它和 01/02/03 一样属于**按需**：一次 `with_skill` 要付三次子代理生命周期（实测 210.8s /
+1,568,225 tokens），不该每轮都跑。**改动 `graph` 之后必须跑它。**
+
 ## iteration-6：一个负结果——fixture 在替技能干活
 
 | 用例 | with_skill | without_skill | 区分点 |
