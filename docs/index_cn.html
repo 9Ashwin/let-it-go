@@ -1065,7 +1065,7 @@
         <li>根据回答生成结构化 PRD（用户故事、功能需求、非目标、验收标准）</li>
         <li>展示 PRD 供审阅，确认或调整</li>
         <li>保存 PRD 到 <code class="inline-code">tasks/prd-[feature-name].md</code></li>
-        <li>建议下一步：<code class="inline-code">/to-issues</code> 拆解为 Issue</li>
+        直接继续：<code class="inline-code">/to-issues</code> 拆解为 Issue（不停下来问）
       </ul>
 
       <h3>输出示例</h3>
@@ -1126,9 +1126,10 @@
         <li>定位输入（自动检测 PRD、手动指定，或直接粘贴需求描述）</li>
         <li>先识别 prefactoring（"让改动变简单"的铺垫工作），排在最前</li>
         <li>拆解为垂直切片 Issue，把契约字段（目标 / 非目标 / 验收条件 / 必须收集的证据 / 外部边界 / 完成定义 / 未决问题）写进正文，标注 <em>demo path</em> 与显式 <em>Blocked by</em> 依赖边，按依赖顺序编号</li>
-        <li>quiz 用户复核：粒度、依赖边、demo path 是否为行为而非某一层</li>
-        <li>选择创建平台（GitHub / Local）</li>
-        <li>阻塞者优先创建，逐条落地并输出汇总报告（含可立即开始的 frontier）</li>
+        把编号清单摆出来：粒度、依赖边、demo path 是否为行为而非某一层（本地模式不等回复）
+        判定创建模式：有 <code class="inline-code">origin</code> 且 <code class="inline-code">gh</code> 已认证走 GitHub，否则本地（自己判，不问）
+        阻塞者优先创建，逐条落地并输出汇总报告（含可立即开始的 frontier）
+        直接往下：按形态进 <code class="inline-code">/loop-it</code> 或 <code class="inline-code">/graph</code>，不等回复
       </ul>
 
       <div class="note">

@@ -1097,7 +1097,7 @@
         <li>Generates structured PRD based on answers (User Stories, Functional Requirements, Non-Goals, Acceptance Criteria)</li>
         <li>Presents PRD for review; confirm or adjust</li>
         <li>Saves PRD to <code class="inline-code">tasks/prd-[feature-name].md</code></li>
-        <li>Suggests the next step: <code class="inline-code">/to-issues</code></li>
+        Continues straight into <code class="inline-code">/to-issues</code> (no stop to ask)
       </ul>
 
       <h3>Output Example</h3>
@@ -1158,9 +1158,10 @@
         <li>Locate the input (auto-detect a PRD, specify one, or paste requirements prose)</li>
         <li>Find prefactoring ("make the change easy" groundwork) and order it first</li>
         <li>Break down into vertical-slice Issues, writing the contract fields (goal / non-goals / acceptance criteria / required evidence / external boundary / definition of done / open questions) into the body, with a <em>demo path</em> and explicit <em>Blocked by</em> edges, numbered in dependency order</li>
-        <li>Quiz the user: granularity, blocking edges, and whether each demo path is a behaviour rather than a layer</li>
-        <li>Select creation platform (GitHub / Local)</li>
-        <li>Create blockers first, then output a summary report (including the ready-to-start frontier)</li>
+        Puts the numbered list up: granularity, blocking edges, and whether each demo path is a behaviour rather than a layer (local mode does not wait for a reply)
+        Decides the creation mode itself: <code class="inline-code">origin</code> plus a passing <code class="inline-code">gh auth status</code> means GitHub, otherwise local
+        Create blockers first, then output a summary report (including the ready-to-start frontier)
+        Continues into <code class="inline-code">/loop-it</code> or <code class="inline-code">/graph</code> by shape, without waiting for a reply
       </ul>
 
       <div class="note">
