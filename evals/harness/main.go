@@ -382,11 +382,20 @@ func assertProbe(caseID, workdir string, spec AssertionSpec) (bool, string) {
 	if configRel != "" {
 		configAbs = filepath.Join(workdir, configRel)
 	}
-	defer func() {
-		if configAbs != "" {
-			os.Remove(configAbs)
-		}
-	}()
+	// 探针要写配置文件，跑完必须把**原样**还回去。只删不还的话，一次 grade 就把臂
+	// 留下的产物毁掉，第二次 grade 的结果就不是同一次运行的了（实测踩到过：
+	// 臂的测试依赖那份配置，重跑时突然变红）。
+	if configAbs != "" {
+		original, readErr := os.ReadFile(configAbs)
+		existed := readErr == nil
+		defer func() {
+			if existed {
+				os.WriteFile(configAbs, original, 0o644)
+			} else {
+				os.Remove(configAbs)
+			}
+		}()
+	}
 
 	pattern := regexp.MustCompile(spec.str("extract"))
 	if spec.str("extract") == "" {

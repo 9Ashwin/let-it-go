@@ -1,0 +1,45 @@
+{
+  "id": "03-artifact-handoff",
+  "name": "artifact-handoff",
+  "what_it_tests": "上一个会话留下的需求资料**到底能不能用**。fixture 里种着一份 `requirements/<scope>/`（README 写了范围/已交付/未交付/关键决定，issues/ 里有待办的 issue-002），代码是 issue-001 已交付的状态。给一个**全新会话**只指认那个目录，看它能不能不追问就把 issue-002 做对。\n\n这是回答「flow 该不该有 PRD」的那条断言：前面两个用例只查了「需求资料有没有落盘」，查不出它是不是《Plan mode is dead》说的那种「没人愿意读的 AI 文本」。资料只有被下一个会话真的用起来，才配叫契约。",
+  "prompt": "这是上一个会话留下的需求资料：requirements/01_REQ-low-stock-threshold/。\n\n按它把还没做完的做掉。有不懂的先问，别猜。做完跑一遍门禁确认没弄坏。",
+  "expected_output": "LowStockWarehouses 按数量升序、同数量按名字升序；make check 绿；受保护文件未改。",
+  "fixture": "fixture",
+  "tamper_guard": ["Makefile", "inventory/stock_test.go"],
+  "assertions": [
+    {
+      "kind": "gate",
+      "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+      "command": ["make", "check"]
+    },
+    {
+      "kind": "probe",
+      "text": "只凭那份资料就做对了 issue-002：数量升序，同数量按名字",
+      "files": [["probe/probe_test.go", "inventory/zz_eval_probe_test.go"]],
+      "command": ["go", "test", "-count=1", "-run", "TestEvalProbe", "-v", "./inventory/"],
+      "extract": "EVAL_PROBE (\\{.*\\})",
+      "config": "config/thresholds.json",
+      "scenarios": [
+        {"thresholds": {"wuhan": 5, "xian": 5, "shanghai": 5}, "expect": {"wuhan": 0, "xian": 1, "shanghai": 2}},
+        {"thresholds": null, "expect": {"wuhan": 0, "xian": 1, "shanghai": 2}}
+      ]
+    },
+    {
+      "kind": "path_absent",
+      "text": "没有落到技能默认的 tasks/<feature>/ 下",
+      "glob": "tasks"
+    },
+    {
+      "kind": "checkpoint_location",
+      "text": "若产生了 loop 检查点，它必须在 requirements/<scope>/issues/ 下"
+    },
+    {
+      "kind": "tamper_guard",
+      "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）"
+    },
+    {
+      "kind": "workspace_clean",
+      "text": "没有写到 fixture 之外（子代理没有自己的 cwd，越界是这条路的典型失败）"
+    }
+  ]
+}

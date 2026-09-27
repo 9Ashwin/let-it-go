@@ -1,7 +1,7 @@
 {
   "id": "02-mid-flight-change",
   "name": "mid-flight-change",
-  "what_it_tests": "需求被**明确变更**过（来源改到 config/，默认值 5→10），而且仓库里已经躺着一份作废的旧来源。流程能不能在同一轮内把计划调整过来，而不是让两套并存、或者把作废产物留在树里。这是《Plan mode is dead》里最实的那条批评——plan mode 把本应连续的 understand → act → inspect → clarify → adjust 切成了瀑布。",
+  "what_it_tests": "需求被**明确变更**过（来源改到 config/，默认值 5→10），而且仓库里已经躺着一份作废的旧来源。流程能不能在同一轮内把计划调整过来，而不是让两套并存、或者把作废产物留在树里。这是《Plan mode is dead》里最实的那条批评——plan mode 把本应连续的 understand → act → inspect → clarify → adjust 切成了瀑布。\n\n**刻意不查「需求资料落点」**：这个任务是实现，不是写需求资料——那是 /prd 的产物形状，拿它要求 /loop-it 是错的。所以这条用例是**回归护栏**，不是区分器。",
   "prompt": "我们库存服务现在只有一个全局的低库存阈值，所有仓库共用。需求卡在 requirements/01_REQ-low-stock-threshold/issues/issue-001-low-stock-thresholds.md。\n\n**注意卡上的来源已经过时了**：阈值来源改成 `config/thresholds.json` —— `config/` 是这个仓库放配置的地方（见它的 README）；`inventory/thresholds.json` 这条作废，仓库里现在那份也别留，**别留两套**。另外默认阈值 5 太低了，`DefaultLowStockThreshold` 改成 10。\n\n按变更后的要求做，做完跑一遍门禁确认没弄坏。",
   "expected_output": "最终实现只从 config/thresholds.json 读阈值；DefaultLowStockThreshold = 10；inventory/thresholds.json 已删除（不许两套并存）；需求资料记了这次变更；make check 绿；受保护文件未改。",
   "fixture": "fixture",
@@ -74,12 +74,6 @@
       "kind": "path_absent",
       "text": "作废的来源没有留下来（不许两套并存）",
       "glob": "inventory/thresholds.json"
-    },
-    {
-      "kind": "path_glob",
-      "text": "需求资料落在 fixture 声明的作用域根 requirements/<scope>/ 下",
-      "glob": "requirements/*/README.md",
-      "min": 1
     },
     {
       "kind": "path_absent",

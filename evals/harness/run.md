@@ -136,6 +136,23 @@ nohup python ~/.agents/skills/skill-creator/eval-viewer/generate_review.py \
 
 ---
 
+## 跨会话交接：`03-artifact-handoff`
+
+这条用例回答「flow 该不该有 PRD」。别的用例只查「需求资料有没有落盘」，查不出它是不是
+《Plan mode is dead》说的那种「没人愿意读的 AI 文本」。
+
+做法：fixture 里**种着**一份 `requirements/<scope>/`（README 写了范围/已交付/未交付/关键决定，
+`issues/` 里有待办的 issue-002），代码是 issue-001 已交付的状态。臂的 prompt 只指认那个目录：
+
+> 这是上一个会话留下的需求资料：requirements/01_REQ-low-stock-threshold/。
+> 按它把还没做完的做掉。有不懂的先问，别猜。做完跑一遍门禁确认没弄坏。
+
+**关键在于臂拿不到别的东西**：没有 PRD 之外的任务描述，没人告诉它 issue-002 是什么。
+它只能靠那份资料。做得对 = 资料是可用的契约；做不对或卡住 = 那份资料只是没人读的文本。
+
+⚠️ 模式 A 里子代理**问不了人**（见上），所以「有不懂的先问」落不到实处——它会带着假设继续。
+判定看的是**结果对不对**（探针），不是它有没有问。真要看它会不会问，得用模式 B。
+
 ## 命名与落点
 
 ```
