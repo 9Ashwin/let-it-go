@@ -148,14 +148,21 @@ python3 <SKILL_DIR>/scripts/loop_state.py evidence add --issue N \
 | `retry` | 实现方向错了，重做而不是补丁 |
 | `follow-up` | 本 issue 可放行，但新发现要记成后续任务——用下面的 `followup add` 落进检查点，别只留在会话里 |
 
-`follow-up` 的落点：
+`follow-up` 的落点：**先判它该进本轮，还是留到批末。** 只记台账的话，执行中获得的理解决不了正在做的事——那正是把连续过程切成瀑布的地方。
+
+| 情况 | 做法 |
+|------|------|
+| 同 scope、不阻塞本批剩下的 issue、批还没收尾 | **当场 promote 进本轮**：`followup resolve --id fN --status promoted --issue M`（M 取本批下一个空号）。脚本会把 M 作为 pending 条目插进检查点，`next` 立刻取得到——**不用停下来重跑 `scan`**。卡可以很短：目标 + 验收条件 + 阻塞边，写完就开工 |
+| 跨 scope、需要新决策、或批已经收尾 | 记进台账，批末统一收口：promote 成下一轮的 issue，或 `--status dropped --why "<为什么不做>"` |
+
+记录用：
 
 ```bash
 python3 <SKILL_DIR>/scripts/loop_state.py followup add --from-issue N \
   --title "<要做什么>" --why "<观察到什么，为什么不是本 issue 的活>" [--evidence "<哪条证据让它可见>"]
 ```
 
-它写进检查点、随需求资料版本化、由 `summary` 列出来。批末若还有 open 的，`set` 会提醒你收口：要么 `followup resolve --id fN --status promoted --issue M` 变成新 issue 再跑一轮（之后重跑 `scan` 把 M 拉进本批），要么 `--status dropped --why "<为什么不做>"` 明确丢掉。**不允许"记在脑子里"**——这就是"任务树允许在执行中增长"的落点，没有它，RFC 里的 follow-up 只是一个结论词。
+它写进检查点、随需求资料版本化、由 `summary` 列出来。批末若还有 open 的，`set` 会提醒你收口。**不允许"记在脑子里"**——这就是"任务树允许在执行中增长"的落点，没有它，RFC 里的 follow-up 只是一个结论词。
 
 **打回或重做的 issue 不进批次分支**：`set --status failed` 记下原因并保留分支，继续下一个。**ship 仍然只在批末做一次**——每个 issue 一次 PR 是这条流水线明确排除的。
 

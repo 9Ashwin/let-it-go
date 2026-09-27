@@ -65,6 +65,7 @@ python ~/.agents/skills/skill-creator/eval-viewer/generate_review.py \
 | 用例 | 测什么 |
 |---|---|
 | [01-single-unit](cases/01-single-unit/case.json) | 单个单元：`loop-it` 应该判成单单元模式内联做完（不建 worktree、不派子代理）；产物落在 fixture 声明的作用域根下 |
+| [02-mid-flight-change](cases/02-mid-flight-change/case.json) | 需求在实现**中途**变化：流程能不能在同一轮内调整，而不是冻结计划或让两套并存 |
 
 ## 已知限制
 

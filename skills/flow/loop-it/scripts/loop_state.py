@@ -762,11 +762,23 @@ def cmd_followup(args: argparse.Namespace) -> int:
         item["promoted_to"] = args.issue
     if args.why:
         item["resolution"] = args.why
+    # 同 scope、不阻塞的发现**直接插进本轮**：写一条 pending 条目，`next` 立刻取得到，
+    # 不必停下来重跑 `scan`。只在批末 promote 的话，执行中获得的理解决不了正在做的事。
+    inserted = False
+    if args.status == "promoted" and str(args.issue) not in state["issues"]:
+        entry = blank_issue(item.get("title", ""))
+        entry["origin"] = item["id"]
+        state["issues"][str(args.issue)] = entry
+        inserted = True
     save_state(state, args.state)
     target = f" → {ref(args.issue)}" if args.issue else ""
     print(f"🔀 {args.id}: open → {args.status}{target}  {item.get('title')}")
     if args.status == "promoted":
-        print("  重新跑 `scan` 把新 issue 拉进这批。")
+        if inserted:
+            print(f"  已把 {ref(args.issue)} 插进本轮（来自 {args.id}）——"
+                  f"`next` 现在就能取到它，不必重跑 `scan`。")
+        else:
+            print(f"  {ref(args.issue)} 已经在检查点里——重跑 `scan` 会重新排序。")
     return 0
 
 

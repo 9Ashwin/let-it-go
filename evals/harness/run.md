@@ -64,6 +64,17 @@ go -C evals/harness run . assert 01-single-unit /tmp/eval-1-01-with --phase pref
 （模板里那句「先读它的 AGENTS.md」就是干这个的）。
 `workspace_clean` 断言就是用来兜住这条路的典型失败：写到 fixture 外面去。
 
+### 3b. 带 `mid_flight_prompt` 的用例：中途把变更发过去
+
+`case.json` 里有 `mid_flight_prompt` 的用例，要在臂**跑起来之后**把那段话发过去
+（`send_message`），让它成为一次真正的中途变更，而不是 prompt 的第二段。
+
+时机：派出去之后立刻发——它会在臂的下一个步骤边界送达。**别等它跑完**：臂已经收工时
+发过去，测的就成了「收到追加需求再干一轮」，而不是「中途调整」。两条臂发**同一段**变更文字。
+
+⚠️ 送达时机靠手动，所以这类用例的结果要注明实际送达时间；臂跑得太快（变更送达时它已收尾）
+时，这一轮按无效处理，在 `notes.md` 里写明。
+
 ### 4. 收结果
 
 子代理一返回就**立刻**把通知里的 `total_tokens` / `duration_ms` 写进

@@ -384,6 +384,13 @@ def test_followups_are_a_queue_not_a_note():
         check("promotion 记录它变成了哪个 issue",
               item["status"] == "promoted" and item["promoted_to"] == 7, str(item))
 
+        # 同 scope、不阻塞的发现要能**当场进本轮**，而不是等下一次 scan：
+        # 只在批末 promote 的话，执行中获得的理解决不了正在做的事。
+        promoted = read_state(state_path)["issues"].get("7")
+        check("promotion 直接把新 issue 插进本轮，并记下它从哪来",
+              promoted is not None and promoted["status"] == "pending"
+              and promoted.get("origin") == "f1", str(promoted))
+
         code, out, err = run("followup", "resolve", "--id", "f1", "--status", "dropped",
                              "--state", state_path)
         check("已解决的 follow-up 不会重开", code == 1, out)
