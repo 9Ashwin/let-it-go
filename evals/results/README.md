@@ -14,6 +14,10 @@ go -C evals/harness run . bench results/iteration-N --skill-name flow
 臂现在由 `evalctl run` 驱动（`dsh --profile headless`，cwd 就是铺出来的 fixture），
 所以 `timing.json` 里的耗时与 token 是真的。
 
+**iteration-1 … iteration-6 的原始结果文件已删**，只留这个文件里的结论。理由：那几轮是
+**旧 fixture + 手工派子代理**条件下收的，条件已经变了，留着会有人拿它当可比数据。
+**iteration-7 起作为新基线完整保留。**
+
 ---
 
 ## iteration-6：一个负结果——fixture 在替技能干活
@@ -39,6 +43,12 @@ go -C evals/harness run . bench results/iteration-N --skill-name flow
 副产品是 case 04 的检查点断言也重新变成真的测量。
 
 > 这一轮是**旧 fixture** 下跑的，留着当负结果；不要拿它跟 iteration-7 比分数。
+
+**顺带测到了成本**（这是第一次有真 timing）：同样 9/9，`with_skill` 用了
+**221.7s / 2,432,199 tokens / 53 次工具调用**，`without_skill` 只用
+**147.6s / 1,177,659 tokens / 42 次**。**技能让它多干了一倍的活，换来的分是一样的。**
+这条不能直接推广（旧 fixture、单次运行），但它说明「技能有没有用」不能只看通过率——
+还得看它多花掉多少。
 
 ## iteration-5
 
