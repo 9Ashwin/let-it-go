@@ -16,9 +16,10 @@
   set --issue N --status <pending|in_progress|shipped|failed|skipped|blocked>
       [--error-class X] [--error TEXT] [--branch B] [--phase P] [--waive TEXT]
       记录一次状态转移，打上时间戳，在一次尝试开始时递增 `attempts`，写入检查点，并打印
-      下一步该做什么。把 issue 标成 `shipped` 时，若没有结构化的 `evidence`，会打一条告警，
-      **拒绝**——一条背后没有观察的 shipped 记录只说明有事发生过，说明不了是什么证明了它。
-      确实拿不到观察时用 `--waive "原因"` 显式豁免，豁免会记进检查点并在 `summary` 里标出。
+      下一步该做什么。把 issue 标成 `shipped` 时，若没有结构化的 `evidence`，会打一条告警——
+      观测的落点已经改成 scope README 的验收表，检查点里那份结构化记录是可选的。
+      拿不到观察时可以用 `--waive "原因"` 把原因写进检查点——那是自愿声明，不是豁免
+      （已经没有闸门可豁免了），`summary` 里会标出来。
       仍缺 `decisions` / `verification` / `open` 时只告警，不拦——那是判断，不是可核验的事实。
 
   note --issue N [--progress TEXT] [--decisions TEXT] [--verification TEXT]
