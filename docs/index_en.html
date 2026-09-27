@@ -951,6 +951,28 @@
       <div class="note">
         <strong>The model catalog:</strong> across the 24 skills the descriptions total 5,423 characters, of which the model actually sees <strong>5,362</strong> (DSH normalises whitespace and truncates each description at 500). The only skill carrying <code class="inline-code">disable-model-invocation</code> is the vendored <code class="inline-code">/teach</code> (upstream's choice, so it stays out of the model catalog and you must type its name), which saves the fixed cost every session and <strong>every subagent</strong> would otherwise pay.
       </div>
+
+      <h3>Set Up Your Repository</h3>
+      <p>Once the skills are installed, <strong>your repository declares four things</strong> — the flow reads them to know where artifacts go and which gate to run.</p>
+      <table>
+        <tr><th>Declare</th><th>Decided by</th><th>Notes</th></tr>
+        <tr><td><strong>Scope root</strong></td><td>Scan the repo</td><td>Where requirement material lives. If the repo has a convention (<code class="inline-code">requirements/&lt;scope&gt;/</code>, <code class="inline-code">docs/</code>, <code class="inline-code">specs/</code>), use its root</td></tr>
+        <tr><td><strong>Gate</strong></td><td>Scan the repo</td><td>The command that must stay green: <code class="inline-code">make check</code> · <code class="inline-code">go build ./... &amp;&amp; go test ./...</code> · <code class="inline-code">pnpm lint</code> · <code class="inline-code">mise run check</code></td></tr>
+        <tr><td><strong>Acceptance baseline</strong></td><td><strong>A human decides</strong></td><td>Which tests are frozen, and where new tests go. Left undeclared, appending to an existing test file can read as weakening it</td></tr>
+        <tr><td><strong>Only touch files in this repo</strong></td><td>Recommended</td><td>Keeps the agent from writing outside the repository</td></tr>
+      </table>
+      <p>Put it in <code class="inline-code">AGENTS.md</code> at the repository root — DSH <strong>loads it automatically</strong>, no need to point at it in the prompt:</p>
+      <pre><code><span class="comment"># &lt;repo name&gt; conventions</span>
+
+<span class="cmd">-</span> <span class="value">**The scope root is `requirements/&lt;scope&gt;/`.** How the scope directory is organised inside is up to the flow.</span>
+<span class="cmd">-</span> <span class="value">**The gate is `make check`** (= `make test` + `make lint`). It must stay green after any change.</span>
+<span class="cmd">-</span> <span class="value">**The acceptance baseline is frozen in the existing `*_test.go` files**: byte for byte, do not touch them.</span>
+<span class="value">  New tests go in a **new file** — appending changes its hash too, which reads like weakening it.</span>
+<span class="cmd">-</span> <span class="value">Only touch files in this repository.</span></code></pre>
+      <div class="tip">
+        <strong>Tip:</strong> <strong>It runs without any of this.</strong> With nothing declared the flow falls back to the default scope root <code class="inline-code">tasks/&lt;feature&gt;/</code> and goes looking for the gate itself. Declaring makes the result <strong>deterministic</strong>; it is not what makes the flow <strong>work</strong> — so don't get stuck on writing this file.
+      </div>
+
     </div>
 
     <!-- Section 3: Workflow Overview -->

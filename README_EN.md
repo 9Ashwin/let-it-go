@@ -68,6 +68,32 @@ It can also be installed as **deployment configuration** (a preset that travels 
 >
 > The full usage guide (installation, how to trigger each step, acceptance criteria, FAQ) lives at **<https://9ashwin.github.io/let-it-go/>**, which redirects to the Chinese or English version based on your browser language; in the repo it is [docs/index_cn.html](docs/index_cn.html) and [docs/index_en.html](docs/index_en.html).
 
+## Set Up Your Repository
+
+Once the skills are installed, **your repository declares four things** — the flow reads them to know where artifacts go and which gate to run.
+
+| Declare | Decided by | Notes |
+|---|---|---|
+| **Scope root** | Scan the repo | Where requirement material lives. If the repo has a convention (`requirements/<scope>/`, `docs/`, `specs/`), use its root |
+| **Gate** | Scan the repo | The command that must stay green: `make check` · `go build ./... && go test ./...` · `pnpm lint` · `mise run check` |
+| **Acceptance baseline** | **A human decides** | Which tests are frozen, and where new tests go. Left undeclared, appending to an existing test file can read as weakening it |
+| **Only touch files in this repo** | Recommended | Keeps the agent from writing outside the repository |
+
+Put it in `AGENTS.md` at the repository root — DSH **loads it automatically**, no need to point at it in the prompt:
+
+```markdown
+# <repo name> conventions
+
+- **The scope root is `requirements/<scope>/`.** How the scope directory is organised inside is up to the flow.
+- **The gate is `make check`** (= `make test` + `make lint`). It must stay green after any change.
+- **The acceptance baseline is frozen in the existing `*_test.go` files**: byte for byte, do not touch them.
+  New tests go in a **new file** — appending to an existing test file changes its hash too,
+  and that reads exactly like weakening it.
+- Only touch files in this repository.
+```
+
+**It runs without any of this.** With nothing declared the flow falls back to the default scope root `tasks/<feature>/` and goes looking for the gate itself. Declaring makes the result *deterministic*; it is not what makes the flow *work* — so don't get stuck on writing this file.
+
 ## How It Runs
 
 Parallel tasks are implemented by node and shipped by wave; serial tasks are wrapped up as a batch. A node is an implementation subagent in its own worktree, and a wave is a group of nodes that can run together.

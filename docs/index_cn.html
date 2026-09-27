@@ -915,6 +915,28 @@
       <div class="note">
         <strong>模型目录：</strong>24 个技能的 description 合计 5423 字符，模型实际看到 <strong>5362 字符</strong>（DSH 会把每条 description 归一化空白并截到 500 字符）。唯一带 <code class="inline-code">disable-model-invocation</code> 的是 vendor 的 <code class="inline-code">/teach</code>（上游的选择，不进模型目录），要用手敲名字；省下每个会话与<strong>每个子代理</strong>都要付的那份固定成本。
       </div>
+
+      <h3>接入到你的仓库</h3>
+      <p>技能装好之后，<strong>你的仓库声明四件事</strong>——流程读它们，才知道产物放哪、跑哪个门禁。</p>
+      <table>
+        <tr><th>要声明</th><th>谁决定</th><th>说明</th></tr>
+        <tr><td><strong>作用域根</strong></td><td>扫仓库</td><td>需求资料放哪。仓库有约定（<code class="inline-code">requirements/&lt;scope&gt;/</code>、<code class="inline-code">docs/</code>、<code class="inline-code">specs/</code>）就用它的根</td></tr>
+        <tr><td><strong>门禁</strong></td><td>扫仓库</td><td>改动之后必须绿的命令：<code class="inline-code">make check</code> · <code class="inline-code">go build ./... &amp;&amp; go test ./...</code> · <code class="inline-code">pnpm lint</code> · <code class="inline-code">mise run check</code></td></tr>
+        <tr><td><strong>验收基线</strong></td><td><strong>人拍板</strong></td><td>哪些测试是冻结的、新测试写在哪。不声明的话，往现有测试文件里追加也可能被当成「把测试改弱」</td></tr>
+        <tr><td><strong>只改本仓库内的文件</strong></td><td>建议</td><td>防止 agent 写到仓库外去</td></tr>
+      </table>
+      <p>写进仓库根的 <code class="inline-code">AGENTS.md</code>——DSH 会<strong>自动加载</strong>它，不必在提示词里指认：</p>
+      <pre><code><span class="comment"># &lt;仓库名&gt; 协作约定</span>
+
+<span class="cmd">-</span> <span class="value">**作用域根是 `requirements/&lt;scope&gt;/`**。scope 目录里面怎么分，由流程自己定。</span>
+<span class="cmd">-</span> <span class="value">**门禁是 `make check`**（= `make test` + `make lint`）。改动之后必须它绿。</span>
+<span class="cmd">-</span> <span class="value">**验收基线冻结在现有的 `*_test.go` 里**：逐字节不许改。新测试写进**新文件**，</span>
+<span class="value">  不要往已有测试文件里追加——追加同样会改哈希，看起来就像把测试改弱了。</span>
+<span class="cmd">-</span> <span class="value">只改本仓库内的文件。</span></code></pre>
+      <div class="tip">
+        <strong>Tip：</strong><strong>什么都不声明也能跑</strong>：流程会退到默认作用域根 <code class="inline-code">tasks/&lt;feature&gt;/</code>，并自己去找门禁。声明的作用是让结果<strong>确定</strong>，不是让流程<strong>能跑</strong>——别为了写这份文件卡住。
+      </div>
+
     </div>
 
     <!-- Section 3: Workflow Overview -->
