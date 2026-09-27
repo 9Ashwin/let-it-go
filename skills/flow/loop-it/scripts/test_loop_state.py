@@ -388,7 +388,7 @@ def test_evidence_is_recorded_structured():
 
 
 def test_followups_are_a_queue_not_a_note():
-    """supervisor 判定为 `follow-up` 的东西必须有地方落下来，否则就丢了。
+    """评审判定为 `follow-up` 的东西必须有地方落下来，否则就丢了。
 
     要点是一批工作能在运行中生长：follow-up 被记录下来，熬过一次重新 scan，在 `summary`
     里可见，并且可以被提升成真正的 issue 进入下一轮，而不是只活在发现它的那次对话里。

@@ -38,7 +38,7 @@
   followup add --from-issue N --title TEXT [--why TEXT] [--evidence TEXT]
   followup list [--all]
   followup resolve --id ID --status <promoted|dropped> [--issue N] [--why TEXT]
-      这轮工作自己的任务队列。supervisor 给出 `follow-up` 判定，意味着 issue 通过了，但
+      这轮工作自己的任务队列。评审给出 `follow-up` 判定，意味着 issue 通过了，但
       有件新事不能丢：它记录在这里，随检查点一起版本化，并由 `summary` 打印，绝不留在
       对话里。`promoted` 记录它变成了哪个 issue 编号，下一次 `scan` 会把这个 issue 捡进
       来——一批工作就是这样自我延伸的。
@@ -929,7 +929,7 @@ def main(argv: list[str] | None = None) -> int:
 
     followup = sub.add_parser("followup", help="记录、列出或解决 follow-up 任务")
     followup_sub = followup.add_subparsers(dest="action", required=True)
-    followup_add = followup_sub.add_parser("add", help="记录 supervisor 发现了什么")
+    followup_add = followup_sub.add_parser("add", help="记录评审发现了什么")
     followup_add.add_argument("--from-issue", type=int, required=True)
     followup_add.add_argument("--title", required=True)
     followup_add.add_argument("--why", help="观察到了什么，以及为什么这不是本 issue 的活")
