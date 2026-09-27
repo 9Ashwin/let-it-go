@@ -1,13 +1,27 @@
 {
- "suffix": "先加载你打算用的技能；如果不需要技能就直接说明。然后只说明接下来会做什么，不要真的动手。",
- "note": "每条 prompt 的期望都能在对应技能自己的 description / 正文里找到依据；近邻是共享关键词但该走别的技能（或不该加载）的那种。",
- "cases": [
+ "passed": 28,
+ "results": [
   {
    "id": "prd-unshaped",
    "prompt": "我们想让用户能给订单打标签，但具体怎么落我还没想好，你先帮我把需求理清楚。",
    "expect": [
     "prd"
    ],
+   "runs": [
+    [
+     "prd"
+    ],
+    [
+     "prd"
+    ],
+    [
+     "prd"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 79.2,
    "why": "prd 的触发说明：需求还没成形时走这里"
   },
   {
@@ -16,6 +30,21 @@
    "expect": [
     "prd"
    ],
+   "runs": [
+    [
+     "prd"
+    ],
+    [
+     "prd"
+    ],
+    [
+     "prd"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 110.7,
    "why": "prd 的触发词里逐字有「落地方式你定」"
   },
   {
@@ -24,6 +53,21 @@
    "expect": [
     "to-design"
    ],
+   "runs": [
+    [
+     "to-design"
+    ],
+    [
+     "to-design"
+    ],
+    [
+     "to-design"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 139.3,
    "why": "to-design 的触发条件：跨 2+ 服务、改数据模型"
   },
   {
@@ -32,6 +76,21 @@
    "expect": [
     "to-design"
    ],
+   "runs": [
+    [
+     "to-design"
+    ],
+    [
+     "to-design"
+    ],
+    [
+     "to-design"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 93.7,
    "why": "RFC 把 /prd-to-spec 并进了 to-design，规格说明归它（这正是原先与 prd 撞车的那一处）"
   },
   {
@@ -40,6 +99,21 @@
    "expect": [
     "to-issues"
    ],
+   "runs": [
+    [
+     "to-issues"
+    ],
+    [
+     "to-issues"
+    ],
+    [
+     "to-issues"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 62.1,
    "why": "to-issues 的动词：拆解、生成卡片"
   },
   {
@@ -48,6 +122,23 @@
    "expect": [
     "loop-it"
    ],
+   "runs": [
+    [
+     "loop-it"
+    ],
+    [
+     "loop-it",
+     "review-it",
+     "ship-it"
+    ],
+    [
+     "loop-it"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 110.1,
    "why": "loop-it：一批有依赖的 issue 串行循环"
   },
   {
@@ -56,6 +147,23 @@
    "expect": [
     "loop-it"
    ],
+   "runs": [
+    [
+     "loop-it"
+    ],
+    [
+     "loop-it",
+     "test-first"
+    ],
+    [
+     "loop-it",
+     "test-first"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 83.8,
    "why": "loop-it：一个单元就内联做完"
   },
   {
@@ -64,6 +172,21 @@
    "expect": [
     "graph"
    ],
+   "runs": [
+    [
+     "graph"
+    ],
+    [
+     "graph"
+    ],
+    [
+     "graph"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 89.4,
    "why": "graph 的触发词：并行实现、真并行"
   },
   {
@@ -72,6 +195,21 @@
    "expect": [
     "graph"
    ],
+   "runs": [
+    [
+     "graph"
+    ],
+    [
+     "graph"
+    ],
+    [
+     "graph"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 91.9,
    "why": "graph：任务图 / DAG / 波次"
   },
   {
@@ -80,6 +218,21 @@
    "expect": [
     "review-it"
    ],
+   "runs": [
+    [
+     "review-it"
+    ],
+    [
+     "review-it"
+    ],
+    [
+     "review-it"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 49.3,
    "why": "review-it：提交/交付之前的评审收尾"
   },
   {
@@ -88,6 +241,21 @@
    "expect": [
     "review-it"
    ],
+   "runs": [
+    [
+     "review-it"
+    ],
+    [
+     "review-it"
+    ],
+    [
+     "review-it"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 58.7,
    "why": "review-it 的触发词：review、审查这次改动"
   },
   {
@@ -96,12 +264,36 @@
    "expect": [
     "ship-it"
    ],
+   "runs": [
+    [
+     "ship-it"
+    ],
+    [
+     "ship-it"
+    ],
+    [
+     "ship-it"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 46.5,
    "why": "ship-it 的触发词：提交代码、创建PR、合入、关闭issue"
   },
   {
    "id": "near-trivial-function",
    "prompt": "帮我用 Go 写一个快速排序函数。",
    "expect": [],
+   "runs": [
+    null,
+    null,
+    null
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 53.3,
    "why": "平凡请求，不该加载任何技能"
   },
   {
@@ -110,6 +302,21 @@
    "expect": [
     "to-design"
    ],
+   "runs": [
+    [
+     "to-design"
+    ],
+    [
+     "to-design"
+    ],
+    [
+     "to-design"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 53.4,
    "why": "近邻：同样说「写文档」，但问的是「为什么」——to-design 的正文划的正是这条线"
   },
   {
@@ -118,6 +325,21 @@
    "expect": [
     "to-issues"
    ],
+   "runs": [
+    [
+     "to-issues"
+    ],
+    [
+     "to-issues"
+    ],
+    [
+     "to-issues"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 73.4,
    "why": "近邻：prd 也谈需求，但「拆」是 to-issues 的动词"
   },
   {
@@ -126,6 +348,21 @@
    "expect": [
     "diagnose"
    ],
+   "runs": [
+    [
+     "diagnose"
+    ],
+    [
+     "diagnose"
+    ],
+    [
+     "diagnose"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 53.9,
    "why": "近邻：都碰测试，但偶发 flake 是 diagnose 的射程"
   },
   {
@@ -134,6 +371,21 @@
    "expect": [
     "conflict"
    ],
+   "runs": [
+    [
+     "conflict"
+    ],
+    [
+     "conflict"
+    ],
+    [
+     "conflict"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 46.3,
    "why": "conflict 的触发词"
   },
   {
@@ -142,6 +394,21 @@
    "expect": [
     "refactor"
    ],
+   "runs": [
+    [
+     "refactor"
+    ],
+    [
+     "refactor"
+    ],
+    [
+     "refactor"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 47.9,
    "why": "refactor：坏味道 / 反模式"
   },
   {
@@ -150,6 +417,21 @@
    "expect": [
     "modern-go"
    ],
+   "runs": [
+    [
+     "modern-go"
+    ],
+    [
+     "modern-go"
+    ],
+    [
+     "modern-go"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 75.6,
    "why": "modern-go 的触发词"
   },
   {
@@ -158,6 +440,21 @@
    "expect": [
     "test-first"
    ],
+   "runs": [
+    [
+     "test-first"
+    ],
+    [
+     "test-first"
+    ],
+    [
+     "test-first"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 47.6,
    "why": "test-first 的触发词：先写测试、红绿"
   },
   {
@@ -166,6 +463,21 @@
    "expect": [
     "understand"
    ],
+   "runs": [
+    [
+     "understand"
+    ],
+    [
+     "understand"
+    ],
+    [
+     "understand"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 43,
    "why": "understand：把本次改动变成审阅页"
   },
   {
@@ -174,6 +486,21 @@
    "expect": [
     "triage"
    ],
+   "runs": [
+    [
+     "triage"
+    ],
+    [
+     "triage"
+    ],
+    [
+     "triage"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 49.4,
    "why": "triage：外面进来的条目"
   },
   {
@@ -182,6 +509,21 @@
    "expect": [
     "humanizer-zh"
    ],
+   "runs": [
+    [
+     "humanizer-zh"
+    ],
+    [
+     "humanizer-zh"
+    ],
+    [
+     "humanizer-zh"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 41.4,
    "why": "vendor 技能，flow 不该抢它"
   },
   {
@@ -191,6 +533,24 @@
     "review-it",
     "ship-it"
    ],
+   "runs": [
+    [
+     "review-it",
+     "ship-it"
+    ],
+    [
+     "review-it",
+     "ship-it"
+    ],
+    [
+     "review-it",
+     "ship-it"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 73.4,
    "why": "允许串联：两个都在期望里，先加载谁不强制"
   },
   {
@@ -199,6 +559,21 @@
    "expect": [
     "star"
    ],
+   "runs": [
+    [
+     "star"
+    ],
+    [
+     "star"
+    ],
+    [
+     "star"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 60.3,
    "why": "star 的本职：空仓库铺约定"
   },
   {
@@ -207,6 +582,21 @@
    "expect": [
     "star"
    ],
+   "runs": [
+    [
+     "star"
+    ],
+    [
+     "star"
+    ],
+    [
+     "star"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 55.8,
    "why": "扫仓库 + 铺约定，仍是 star"
   },
   {
@@ -215,13 +605,39 @@
    "expect": [
     "loop-it"
    ],
+   "runs": [
+    [
+     "loop-it"
+    ],
+    [
+     "loop-it"
+    ],
+    [
+     "loop-it"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 200.8,
    "why": "近邻：star 与 loop-it 的「开始做」撞车的正面测试——这句该走 loop-it（实现入口），不该被 star 抢走"
   },
   {
    "id": "near-github-star",
    "prompt": "帮我 star 一下 anthropics/skills 这个 GitHub 仓库。",
    "expect": [],
+   "runs": [
+    null,
+    null,
+    null
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 46,
    "why": "近邻：star 的名字撞 GitHub 的 star 动作——这是 gh 的操作，不该加载任何技能"
   }
- ]
+ ],
+ "suffix": "先加载你打算用的技能；如果不需要技能就直接说明。然后只说明接下来会做什么，不要真的动手。",
+ "total": 28
 }
