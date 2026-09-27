@@ -850,7 +850,7 @@
       </div>
 
       <div class="note">
-        <strong>技能分组：</strong>24 个技能按「在流程里扮演什么角色」分三个桶——<code class="inline-code">flow</code>（流水线本身，8 个）、<code class="inline-code">bonus</code>（中途因为出事了、要保证质量、或需要一个非代码产物伸手拿的，7 个）、<code class="inline-code">vendor</code>（第三方技能的逐字副本，由 manifest 钉住 commit，10 个）。
+        <strong>技能分组：</strong>24 个技能按「在流程里扮演什么角色」分三个桶——<code class="inline-code">flow</code>（流水线本身，7 个）、<code class="inline-code">bonus</code>（中途因为出事了、要保证质量、或需要一个非代码产物伸手拿的，7 个）、<code class="inline-code">vendor</code>（第三方技能的逐字副本，由 manifest 钉住 commit，10 个）。
       </div>
     </div>
 
@@ -861,8 +861,7 @@
         <h3>2. 安装</h3>
       </div>
       <h3>作为 skill 目录安装</h3>
-      <pre><code><span class="comment"># 全部 skills 拍平到 ~/.agents/skills；重跑这条就是更新（会提示覆盖已安装的）</span>
-<span class="cmd">npx skills add</span> <span class="value">9Ashwin/let-it-go</span></code></pre>
+      <pre><code><span class="cmd">npx skills add</span> <span class="value">9Ashwin/let-it-go</span></code></pre>
       <ul class="step-list">
         <li>skills 落到 <code class="inline-code">~/.agents/skills</code>，这条装法不必动任何 profile 依赖。</li>
         <li><code class="inline-code">npx skills</code> 递归扫描，安装时把 <code class="inline-code">skills/&lt;桶&gt;/&lt;技能&gt;</code> <strong>拍平</strong>成 <code class="inline-code">~/.agents/skills/&lt;技能&gt;</code>——技能根只扫一层，所以必须拍平。</li>

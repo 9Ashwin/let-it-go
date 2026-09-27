@@ -47,8 +47,6 @@ Skills decide the steps and boundaries. Python scripts with self-tests handle or
 ### Install as a skill directory
 
 ```bash
-# 24 skills, flattened into ~/.agents/skills. Re-running this is the update —
-# it reports which installs it is about to overwrite.
 npx skills add 9Ashwin/let-it-go
 ```
 
@@ -137,8 +135,6 @@ cordis.patch.yml   # the DSH bundle patch: each of the three buckets is its own 
 ```
 
 `flow` is the project's core workflow; `bonus` and `vendor` are supplementary personal collections. `vendor` is synced verbatim from upstream, with a `NOTICE.md` in each directory recording its source, commit, license, and sync date.
-
-A DSH skill root is scanned **exactly one level deep** (`<root>/<name>/SKILL.md`), so `cordis.patch.yml` lists each of the three buckets as its own root rather than pointing at `skills/`. `npx skills add` scans recursively and flattens on install; either install route yields exactly the same set. `scripts/check_skills.py` guards the three silent failures: **a skill left at the top level** (no root covers it), **a bucket missing from the patch** (that whole bucket disappears without an error), and **a root `.claude-plugin/marketplace.json` out of step with the buckets** (the install picker falls back to one flat list of skills, also without an error).
 
 ## Maintenance
 

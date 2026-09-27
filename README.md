@@ -47,7 +47,6 @@ let-it-go 的核心是 [`skills/flow`](skills/flow) 中的 7 个研发工作流�
 ### 作为技能目录安装
 
 ```bash
-# 24 个技能拍平到 ~/.agents/skills。重跑这条就是更新——它会提示覆盖已安装的
 npx skills add 9Ashwin/let-it-go
 ```
 
@@ -136,8 +135,6 @@ cordis.patch.yml   # DSH bundle patch：三个桶各列为一个 customSkillDirs
 ```
 
 `flow` 是本项目的核心工作流；`bonus` 与 `vendor` 是自用补充集合。`vendor` 按上游原样同步，每个目录带一份 `NOTICE.md`（来源 / commit / 许可 / 同步日期）。
-
-DSH 的技能根**只扫一层**（`<root>/<name>/SKILL.md`），所以 `cordis.patch.yml` 把三个桶各列为一个 root，而不是指向 `skills/`。`npx skills add` 是递归扫描、安装时拍平，无论走哪条安装路径，得到的技能集完全相同。`scripts/check_skills.py` 守着三个静默失败面：**技能被放回顶层**（三个 root 都覆盖不到它）、**某个桶漏进 patch**（那一桶会整体消失，且不报错），以及**根目录 `.claude-plugin/marketplace.json` 与桶内容不一致**（安装 picker 退回成一列平铺的技能，同样不报错）。
 
 ## 维护
 
