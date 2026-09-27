@@ -114,10 +114,10 @@ The project centers on [`skills/flow`](skills/flow). Names below use the `/` pre
 
 | Directory | Contents |
 | --- | --- |
-| [`skills/bonus`](skills/bonus) | `/conflict`, `/diagnose`, `/modern-go`, `/refactor`, `/test-first`, `/triage`, `/understand`: conflict resolution, diagnosis, code quality, testing, triage, and change explanations |
+| [`skills/bonus`](skills/bonus) | `/conflict`, `/diagnose`, `/modern-go`, `/refactor`, `/star`, `/test-first`, `/triage`, `/understand`: conflict resolution, diagnosis, code quality, workspace initialisation, testing, triage, and change explanations |
 | [`skills/vendor`](skills/vendor) | `/find-skills`, `/frontend-design`, `/humanizer-zh`, `/pptx`, `/resume-optimizer`, `/skill-creator`, `/svg-diagram`, `/teach`, `/ui-ux-pro-max`, `/web-design-guidelines`: tools for skill management, design, writing, presentations, resumes, and diagrams |
 
-The repository contains 24 skills in total: 7 core and 17 supplementary. Of these, 23 support automatic selection by description; `/teach` retains upstream's `disable-model-invocation` setting and requires manual invocation. Skills in `vendor` are verbatim upstream copies; see each directory's `NOTICE.md` for source, version, and license.
+The repository contains 25 skills in total: 7 core and 18 supplementary. Of these, 24 support automatic selection by description; `/teach` retains upstream's `disable-model-invocation` setting and requires manual invocation. Skills in `vendor` are verbatim upstream copies; see each directory's `NOTICE.md` for source, version, and license.
 
 </details>
 
@@ -126,7 +126,7 @@ The repository contains 24 skills in total: 7 core and 17 supplementary. Of thes
 ```
 skills/
 ├── flow/          # the PRD → ship workflow, used as the task requires (7)
-├── bonus/         # supplementary engineering tools collected for personal use (7)
+├── bonus/         # supplementary engineering tools collected for personal use (8)
 └── vendor/        # personal collection of upstream copies, pinned by the manifest (10)
 scripts/           # check_skills.py (layout / frontmatter / cross-refs / patch)
                    # sync_vendor.py (vendor sync and additions)

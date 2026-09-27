@@ -29,6 +29,7 @@
         "./diagnose",
         "./modern-go",
         "./refactor",
+        "./star",
         "./test-first",
         "./triage",
         "./understand"

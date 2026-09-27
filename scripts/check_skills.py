@@ -129,6 +129,23 @@ def load_frontmatter(path: str) -> dict | str:
     return data
 
 
+def strip_code_fences(body: str) -> str:
+    """去掉围栏代码块。
+
+    围栏里的是**内容**，不是引用。模板类技能把"要写进别处"的 markdown 放在围栏里，那些相对
+    链接在目标工作区才解析得到——扫它们会把一份正确的模板报成死链（`start` 就是这么撞上的）。
+    注意只有链接检查该跳过围栏：脚本引用恰恰常常写在围栏里（`python3 <SKILL_DIR>/scripts/x.py`）。
+    """
+    kept, inside = [], False
+    for line in body.split("\n"):
+        if line.lstrip().startswith("```"):
+            inside = not inside
+            continue
+        if not inside:
+            kept.append(line)
+    return "\n".join(kept)
+
+
 def check_reference_links(repo_root: str, skills: list[tuple[str, str, str]]) -> list[str]:
     """Every `references/x.md` a skill links to must exist.
 
@@ -144,7 +161,7 @@ def check_reference_links(repo_root: str, skills: list[tuple[str, str, str]]) ->
                 if not entry.endswith(".md"):
                     continue
                 source = os.path.join(root, entry)
-                body = open(source, encoding="utf-8").read()
+                body = strip_code_fences(open(source, encoding="utf-8").read())
                 for target in re.findall(r"\]\(([^)#:]+\.md)\)", body):
                     if target.startswith(("http://", "https://")):
                         continue

@@ -114,10 +114,10 @@ npx skills add 9Ashwin/let-it-go
 
 | 目录 | 收录内容 |
 | --- | --- |
-| [`skills/bonus`](skills/bonus) | `/conflict`、`/diagnose`、`/modern-go`、`/refactor`、`/test-first`、`/triage`、`/understand`：冲突处理、排障、代码质量、测试、分诊与变更解释 |
+| [`skills/bonus`](skills/bonus) | `/conflict`、`/diagnose`、`/modern-go`、`/refactor`、`/star`、`/test-first`、`/triage`、`/understand`：冲突处理、排障、代码质量、**工作区初始化**、测试、分诊与变更解释 |
 | [`skills/vendor`](skills/vendor) | `/find-skills`、`/frontend-design`、`/humanizer-zh`、`/pptx`、`/resume-optimizer`、`/skill-creator`、`/svg-diagram`、`/teach`、`/ui-ux-pro-max`、`/web-design-guidelines`：技能管理、设计、写作、演示文稿、简历与制图等工具 |
 
-仓库合计收录 24 个技能（核心 7 个，补充 17 个）。其中 23 个支持模型按 description 自动选择；`/teach` 按上游设置保留 `disable-model-invocation`，需要手动调用。`vendor` 中的技能为上游逐字副本，来源、版本与许可见各目录的 `NOTICE.md`。
+仓库合计收录 25 个技能（核心 7 个，补充 18 个）。其中 24 个支持模型按 description 自动选择；`/teach` 按上游设置保留 `disable-model-invocation`，需要手动调用。`vendor` 中的技能为上游逐字副本，来源、版本与许可见各目录的 `NOTICE.md`。
 
 </details>
 
@@ -126,7 +126,7 @@ npx skills add 9Ashwin/let-it-go
 ```
 skills/
 ├── flow/          # PRD → 交付的主流程，按任务需要选用（7 个）
-├── bonus/         # 收集自用的工程补充工具（7 个）
+├── bonus/         # 收集自用的工程补充工具（8 个）
 └── vendor/        # 收集自用的上游逐字副本，由 manifest 钉住 commit（10 个）
 scripts/           # check_skills.py（布局 / frontmatter / 交叉引用 / patch 校验）
                    # sync_vendor.py（vendor 同步与新增）

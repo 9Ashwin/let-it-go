@@ -536,7 +536,7 @@
         <h3>1. Overview</h3>
       </div>
       <p>
-        <strong>let-it-go</strong> is a set of development-workflow skills: 24 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill.
+        <strong>let-it-go</strong> is a set of development-workflow skills: 25 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill.
       </p>
       <p>
         It enables AI agents to act like experienced engineers — from understanding requirements, breaking down tasks, writing code, reviewing quality, to final submission and merge — autonomously completing the entire process. You just describe the feature idea, and the workflow handles the rest.
@@ -850,7 +850,7 @@
       </div>
 
       <div class="note">
-        <strong>Skill groups:</strong> the 24 skills split into three buckets by the role they play — <code class="inline-code">flow</code> (the pipeline itself, 7), <code class="inline-code">bonus</code> (what you reach for mid-flow because something broke, because quality is at stake, or because you need a non-code artifact, 7), and <code class="inline-code">vendor</code> (verbatim third-party copies pinned to a commit by the manifest, 10).
+        <strong>Skill groups:</strong> the 25 skills split into three buckets by the role they play — <code class="inline-code">flow</code> (the pipeline itself, 7), <code class="inline-code">bonus</code> (what you reach for mid-flow: something broke, quality is at stake, you need a non-code artifact, or a new workspace needs its conventions, 8), and <code class="inline-code">vendor</code> (verbatim third-party copies pinned to a commit by the manifest, 10).
       </div>
     </div>
 
@@ -873,7 +873,7 @@
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">review-it</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">ship-it</span>
 
-<span class="comment"># bonus (7)</span>
+<span class="comment"># bonus (8)</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">test-first</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">triage</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">diagnose</span>
@@ -910,11 +910,11 @@
       </table>
 
       <div class="tip">
-        <strong>Tip:</strong> After installation, type <code class="inline-code">/prd</code>, <code class="inline-code">/to-design</code>, <code class="inline-code">/to-issues</code>, <code class="inline-code">/loop-it</code>, <code class="inline-code">/graph</code>, <code class="inline-code">/review-it</code>, <code class="inline-code">/ship-it</code> (flow, 8), <code class="inline-code">/test-first</code>, <code class="inline-code">/triage</code>, <code class="inline-code">/diagnose</code>, <code class="inline-code">/conflict</code>, <code class="inline-code">/refactor</code>, <code class="inline-code">/modern-go</code>, <code class="inline-code">/understand</code> (bonus, 7), <code class="inline-code">/svg-diagram</code>, <code class="inline-code">/find-skills</code>, <code class="inline-code">/frontend-design</code>, <code class="inline-code">/humanizer-zh</code>, <code class="inline-code">/pptx</code>, <code class="inline-code">/resume-optimizer</code>, <code class="inline-code">/skill-creator</code>, <code class="inline-code">/teach</code>, <code class="inline-code">/ui-ux-pro-max</code>, <code class="inline-code">/web-design-guidelines</code> (vendor, 10) to directly invoke the corresponding skill. <code class="inline-code">/goal</code> is a DSH command that a human types, not a skill.
+        <strong>Tip:</strong> After installation, type <code class="inline-code">/prd</code>, <code class="inline-code">/to-design</code>, <code class="inline-code">/to-issues</code>, <code class="inline-code">/loop-it</code>, <code class="inline-code">/graph</code>, <code class="inline-code">/review-it</code>, <code class="inline-code">/ship-it</code> (flow, 7), <code class="inline-code">/test-first</code>, <code class="inline-code">/triage</code>, <code class="inline-code">/diagnose</code>, <code class="inline-code">/conflict</code>, <code class="inline-code">/refactor</code>, <code class="inline-code">/modern-go</code>, <code class="inline-code">/star</code>, <code class="inline-code">/understand</code> (bonus, 8), <code class="inline-code">/svg-diagram</code>, <code class="inline-code">/find-skills</code>, <code class="inline-code">/frontend-design</code>, <code class="inline-code">/humanizer-zh</code>, <code class="inline-code">/pptx</code>, <code class="inline-code">/resume-optimizer</code>, <code class="inline-code">/skill-creator</code>, <code class="inline-code">/teach</code>, <code class="inline-code">/ui-ux-pro-max</code>, <code class="inline-code">/web-design-guidelines</code> (vendor, 10) to directly invoke the corresponding skill. <code class="inline-code">/goal</code> is a DSH command that a human types, not a skill.
       </div>
 
       <div class="note">
-        <strong>The model catalog:</strong> across the 24 skills the descriptions total 5,423 characters, of which the model actually sees <strong>5,362</strong> (DSH normalises whitespace and truncates each description at 500). The only skill carrying <code class="inline-code">disable-model-invocation</code> is the vendored <code class="inline-code">/teach</code> (upstream's choice, so it stays out of the model catalog and you must type its name), which saves the fixed cost every session and <strong>every subagent</strong> would otherwise pay.
+        <strong>The model catalog:</strong> across the 25 skills the descriptions total 5,693 characters, of which the model actually sees <strong>5,632</strong> (DSH normalises whitespace and truncates each description at 500). The only skill carrying <code class="inline-code">disable-model-invocation</code> is the vendored <code class="inline-code">/teach</code> (upstream's choice, so it stays out of the model catalog and you must type its name), which saves the fixed cost every session and <strong>every subagent</strong> would otherwise pay.
       </div>
 
       <h3>Set Up Your Repository</h3>
