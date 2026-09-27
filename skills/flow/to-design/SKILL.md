@@ -1,6 +1,6 @@
 ---
 name: to-design
-description: "从 PRD 写一份 Go 风格的设计提案——Abstract / Background / Design / Rationale / Compatibility / Implementation，重在「为什么」；可选渲染成自包含的 house-style HTML 页面。Triggers: to-design, 设计文档, 设计提案, design doc, 生成设计文档."
+description: "从 PRD 写一份 Go 风格的设计提案——Abstract / Background / Design / Rationale / Compatibility / Implementation，重在「为什么」；**SPEC / 规格说明也归这里**（原来的 /prd-to-spec 已并入本技能）；可选渲染成自包含的 house-style HTML 页面。Triggers: to-design, 设计文档, 设计提案, design doc, 生成设计文档, SPEC, spec, 规格说明, 写spec, 技术方案."
 
 ---
 

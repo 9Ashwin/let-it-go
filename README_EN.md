@@ -5,9 +5,9 @@
 
 <div align="center">
   <h1>let-it-go</h1>
-  <img src="docs/images/let-it-go-banner.png" alt="Paper workflow: prd and to-design → to-issues → loop-it or graph → review-it and walkthrough → ship-it" width="100%" />
-  <p>A complete software workflow inside your coding agent: requirements → design → breakdown → parallel implementation → review → shipping.<br>
-  Skills make the judgment calls; ordering and checkpoints go to tested scripts; implementation goes to subagents isolated in their own git worktree.</p>
+  <img src="docs/images/let-it-go-banner.png" alt="Paper workflow: prd and to-design → to-issues → loop-it or graph → review-it → ship-it" width="100%" />
+  <p>A step-by-step workflow for your coding agent, from requirements to delivery.<br>
+  Clarify the goal, break down the work, implement in dependency order, and ship with review and verification evidence.</p>
   <div align="center">
     <a href="https://9ashwin.github.io/let-it-go/"><img src="https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E6%96%87%E6%A1%A3-9ashwin.github.io-d97757" alt="Online docs" /></a>
     <img src="https://img.shields.io/github/license/9Ashwin/let-it-go" alt="License" />
@@ -26,11 +26,21 @@
 
 ## What is let-it-go?
 
-let-it-go is a set of development-workflow skills: 25 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill. You say what you want; the agent asks the questions, writes the PRD, splits it into contract-carrying Issues, implements in parallel inside isolated worktrees, reviews, opens the PR and merges.
+let-it-go is a collection of 25 development-workflow skills for coding agents. Describe your goal, and the agent clarifies requirements, breaks down Issues, implements, verifies, and ships as the task requires. Each step has a defined responsibility and completion criteria.
 
-**An implementation node is a subagent** in its own git worktree, and its job stops at "implement → prove it against the project's gates → commit on its own branch". Leak check, integration, gates on the integrated tree, review and shipping are one step, done **once per wave**: a single PR closes every Issue the wave satisfies.
+The banner's five stages map to these skills:
 
-Ordering, layering, cycle detection and checkpointing are arithmetic, and they live in the Python scripts shipped with the skills (standard library only, with self-tests). The skills themselves carry only judgement: **scripts do the arithmetic, skills do the judgement**.
+| Stage | Skills | Outcome |
+| --- | --- | --- |
+| Requirements & design | `/prd` · `/to-design` | Define acceptance criteria and, when needed, document the design and its tradeoffs |
+| Task breakdown | `/to-issues` | Create Issues with implementation contracts, acceptance criteria, and dependencies |
+| Implementation | `/loop-it` or `/graph` | Implement and verify the change; choose a single task, serial batch, or parallel execution based on dependencies |
+| Review | `/review-it` | Check the change against requirements |
+| Delivery | `/ship-it` | Commit, open a PR, merge, and close satisfied Issues; merge locally when there is no remote |
+
+Start at the stage your task needs. A single task with clear acceptance criteria can go straight to `/loop-it`; use `/graph` when independent tasks can run in separate worktrees.
+
+Skills decide the steps and boundaries. Python scripts with self-tests handle ordering, layering, cycle detection, and checkpoints.
 
 ## Quick Start
 
@@ -54,19 +64,19 @@ cp -R <let-it-go>/skills/flow/graph ~/.agents/skills/graph   # flattened, not th
 It can also be installed as **deployment configuration** (a preset that travels with the package, `toolFilter`, persona, commit pinning) — the commands and flags are in the docs: **<https://9ashwin.github.io/let-it-go/#install>**.
 
 > [!TIP]
-> Not sure which skill to reach for? **You don't have to type anything** — the 26 descriptions are the routing table, so the model loads the matching one and starts it; type a name only to force a particular route.
+> Once installed, describe what you want to do. The agent selects an entry point from the skill descriptions; name a skill when you want a specific step. `/teach` requires manual invocation.
 >
 > The full usage guide (installation, how to trigger each step, acceptance criteria, FAQ) lives at **<https://9ashwin.github.io/let-it-go/>**, which redirects to the Chinese or English version based on your browser language; in the repo it is [docs/index_cn.html](docs/index_cn.html) and [docs/index_en.html](docs/index_en.html).
 
 ## How It Runs
 
-Three phases with scopes that do not overlap:
+Parallel tasks are implemented by node and shipped by wave; serial tasks are wrapped up as a batch. A node is an implementation subagent in its own worktree, and a wave is a group of nodes that can run together.
 
 | Scope | Does | Doesn't |
 | --- | --- | --- |
 | **Node** | Implements in its own worktree, proves itself with the project's gates, and **only commits to its own branch** | No push, no PR, no merge, no self-review |
-| **Wave** | Leak check → merge only the nodes that finished → run gates on the integrated tree → **review once** (one section per node, focused on the seams between nodes) → **write the walkthrough once** (evidence only: what changed, what was run, what it proved) → **ship once** (the PR body and merge checklist are produced here and nowhere else; one PR with a per-item evidence table) | No node-level PRs; no per-node walkthrough |
-| **Batch** | The serial path in `/loop-it` works the same way: implement and commit one Issue at a time inline, passing a supervisor check per Issue (judged on evidence, not on how the diff reads), then review, walk through and ship once at the end of the batch | — |
+| **Wave** | Leak check → merge only the nodes that finished → run gates on the integrated tree → **review once** (one section per node, focused on the seams between nodes) → **ship once** (writes the walkthrough first - evidence only: what changed, what was run, what it proved - then the PR body and merge checklist, produced here and nowhere else; one PR with a per-item evidence table) | No node-level PRs; no per-node walkthrough |
+| **Batch** | `/loop-it` implements and commits one Issue at a time, inline or through an implementation subagent; small batches get one adversarial review at the end, while large batches add per-Issue supervisor checks; delivery - walkthrough included - happens once at the end | No skipping the final review; no per-Issue PRs |
 
 A few deliberate design choices:
 
@@ -85,20 +95,20 @@ A few deliberate design choices:
 
 The table uses short skill names; the prefix is `/` everywhere (DSH).
 
-**Not sure which one? Don't ask first.** Each description says what that skill owns and when to reach for it, so the model picks one and starts; turning every step into a "please confirm" pushes back onto the human a judgement the agent should be making.
+Beyond the main workflow, diagnosis, testing, refactoring, and documentation skills can be used independently as needed.
 
 | Stage | Skill | What it does |
 | --- | --- | --- |
 | Requirements & design | `/prd` · `/to-design` | Requirements doc → design proposal (**only when the change spans two or more services, alters the data model or a migration, or touches two or more external contracts**; Markdown is the main artifact, HTML an optional rendering) |
 | Breakdown & triage | `/to-issues` · `/triage` | Split your own PRD into vertical slices where **the Issue body is the contract** (goal / non-goals / acceptance criteria / required evidence / external boundary / definition of done / open questions) · turn **incoming** raw issues into agent-ready cards |
-| Implementation | `/loop-it` · `/test-first` · `/graph` | **The entry point for this step, and it picks the mode on the way in**: a single unit is finished inline (no worktree, no subagent) · a batch with blocking edges runs the serial loop (one supervisor check per Issue; structured evidence and a follow-up ledger live in the resumable checkpoint) · red-green testing · DAG waves in parallel (one worktree per node, and nodes pass an evidence check at fan-in) |
+| Implementation | `/loop-it` · `/test-first` · `/graph` | Finish a single task inline (no worktree, no subagent) · run dependent batches serially, choosing review intensity by batch size and saving evidence and follow-ups in a resumable checkpoint · red-green testing · DAG waves in parallel (one worktree per node, and nodes pass an evidence check at fan-in) |
 | Diagnosis | `/diagnose` · `/conflict` | A debugging loop that demands a red-capable command first · resolve merge/rebase conflicts hunk by hunk by intent |
-| Review & shipping | `/review-it` · `/walkthrough` · `/ship-it` | Two-axis review (Spec + 8 standards dimensions) · the pre-merge walkthrough proving what changed and what was verified (**evidence only; it does not produce the PR body**) · **the sole producer of the PR body**: commit/PR/merge/close Issue, plus the one implementation summary comment |
+| Review & shipping | `/review-it` · `/ship-it` | Two-axis review (Spec + 8 standards dimensions) · **writes the walkthrough first**: what changed and what was verified, before merging (**evidence only; it does not produce the PR body**) · **the sole producer of both the walkthrough and the PR body**: commit/PR/merge/close Issue, plus the one implementation summary comment |
 | Code quality | `/refactor` · `/modern-go` | Two modes (`audit` reports without changing code / `fix` refactors from Fowler's catalog) · Go 1.0→1.27+ modernization |
 | Docs & diagrams | `/understand` · `/svg-diagram` (vendor) | Turn the current change into an interactive review page · SVG diagramming conventions plus 12 mechanical checks (bundled `svg-lint`) |
 | Third-party (`skills/vendor/`, verbatim copies) | `/find-skills` · `/frontend-design` · `/humanizer-zh` · `/pptx` · `/resume-optimizer` · `/skill-creator` · `/teach` · `/ui-ux-pro-max` · `/web-design-guidelines` | Discover and install skills from the ecosystem · front-end visual direction · strip template-speak from Chinese prose · read, write and edit `.pptx` / `.potx` · audit and rewrite a résumé around outcomes and the target JD · create and improve skills with evals · explain a concept as a lesson · a searchable UI/UX design knowledge base · review UI code against the Web Interface Guidelines |
 
-All 25 skills (flow 8 / bonus 7 / vendor 10) are **model-invocable**: the descriptions are the routing table, so the model loads the matching one and starts that step itself — you only type a name to force a particular route. The descriptions total 5,211 characters, of which the model actually sees **5,150** (DSH normalises whitespace and truncates each at 500). The only skill carrying `disable-model-invocation` is the vendored `teach`, which is upstream's choice, stays out of the model catalog, and must be typed by name.
+There are 25 skills (flow 8 / bonus 7 / vendor 10), of which 24 can be selected automatically from their descriptions. The vendored `teach` retains upstream's `disable-model-invocation` setting, stays out of the model catalog, and requires manual invocation. Those 24 descriptions total 5,572 characters, or 5,340 after DSH's whitespace normalization and 500-character cap per description.
 
 `/goal` is a host **command**, not a skill. The model side of that surface is `create_goal` / `update_goal`, and its gate is **authority, not wording**: `create_goal` runs only in a **direct top-level human turn**, so a subagent or a mid-orchestration step cannot mint one — but the human does **not** have to say "goal". Handing over a long-running objective ("work through this whole batch") is exactly when it should be created, and that is the behaviour it was designed for. On a long batch the goal is the **session-scoped driver** (it re-prompts the session once a turn ends) while the checkpoint (`.loop-state.json` / `.graph_state.json`) is the **repo-scoped state** (where the batch got to) — the two are complementary and count different things (`maxGoalRounds` bounds continuation, `attempts` counts one issue's retries).
 
@@ -106,7 +116,7 @@ All 25 skills (flow 8 / bonus 7 / vendor 10) are **model-invocable**: the descri
 
 ```
 skills/
-├── flow/          # one link in the PRD → ship chain, run in order (10)
+├── flow/          # the PRD → ship workflow, used as the task requires (8)
 ├── bonus/         # engineering work and artifacts you reach for mid-flow (7)
 └── vendor/        # verbatim third-party copies, pinned to a commit by the manifest (10)
 scripts/           # check_skills.py (layout / frontmatter / cross-refs / patch)
@@ -117,7 +127,7 @@ cordis.patch.yml   # the DSH bundle patch: each of the three buckets is its own 
 
 The test is the role a skill plays: `flow` is the pipeline itself; `bonus` is what you reach for mid-flight because something broke, because quality is at stake, or because you need a non-code artifact (a testing method, diagnosis, conflicts, incoming triage, refactoring, design docs, a review page); `vendor` adds no new skills — it collects upstream third-party skills verbatim, each directory carrying a `NOTICE.md` (source / commit / license / sync date).
 
-A DSH skill root is scanned **exactly one level deep** (`<root>/<name>/SKILL.md`), so `cordis.patch.yml` lists each of the three buckets as its own root rather than pointing at `skills/`. `npx skills add` scans recursively and flattens on install; either install route yields exactly the same set. `scripts/check_skills.py` guards the three silent failures: **a skill left at the top level** (no root covers it), **a bucket missing from the patch** (that whole bucket disappears without an error), and **a root `.claude-plugin/marketplace.json` out of step with the buckets** (the install picker falls back to one flat list of 26, also without an error).
+A DSH skill root is scanned **exactly one level deep** (`<root>/<name>/SKILL.md`), so `cordis.patch.yml` lists each of the three buckets as its own root rather than pointing at `skills/`. `npx skills add` scans recursively and flattens on install; either install route yields exactly the same set. `scripts/check_skills.py` guards the three silent failures: **a skill left at the top level** (no root covers it), **a bucket missing from the patch** (that whole bucket disappears without an error), and **a root `.claude-plugin/marketplace.json` out of step with the buckets** (the install picker falls back to one flat list of skills, also without an error).
 
 ## Maintenance
 

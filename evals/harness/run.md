@@ -114,7 +114,7 @@ headless profile **从进程的 cwd 出发**——铺出来的仓库就是它的
 - fixture 自己的 `AGENTS.md` **自动加载**。实测：在一个只有 `AGENTS.md` 的目录里让它
   复述约定里的暗号，它复述了，还自己指出「这个目录不是 git 仓库」。
 - `~/.agents/skills/` 下的技能**照常发现**。实测：它能列出技能名，`loop-it`、`prd`、
-  `to-issues`、`review-it`、`walkthrough` 都在里面。
+  `to-issues`、`review-it` 都在里面。
 - `--json` 的事件流里 `status/step_end` 带 `usage`，token 从那里累加；wall clock 自己计时。
   **`timing.json` 不再是永远的 0。**
 

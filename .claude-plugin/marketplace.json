@@ -17,8 +17,7 @@
         "./review-it",
         "./ship-it",
         "./to-design",
-        "./to-issues",
-        "./walkthrough"
+        "./to-issues"
       ]
     },
     {

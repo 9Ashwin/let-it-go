@@ -47,7 +47,7 @@ description: "实现入口：一个单元就内联做完，一批有依赖的 is
 1. **读清楚它。** 把正文里的验收条件逐条列出来；它引用的 PRD / SPEC / 设计文档一并读；再读相邻代码与现有测试，让命名、错误处理、日志风格与仓库一致。验收条件含糊就先问清楚——猜出来的验收条件会一路错到交付。
 2. **内联实现。** 就在当前会话里写代码，**不建 worktree、不派子代理、不建波分支**：一件小事派出去，交接成本比它本身还大；那些编排是 `/graph` 的波次与串行批次的调度，各有自己一套上下文与分支约定，在这里重复一遍只会把两套契约混在一起。需要先把行为定下来时用 `/test-first`（红 → 绿，一次一个接缝，接缝先与用户约定）。
 3. **自证。** 跑**项目自己的门禁**（`mise run check`、`go build ./... && go test ./...`、`pnpm --dir web lint` …）：边写边跑相关单测，最后跑一次全量，并补上验收条件隐含的测试——没被测过的验收条件不算满足。**门禁红着不要进下一步**：把红的留给评审，等于让评审去猜哪里坏了。
-4. **收尾。** 用 `/review-it` 审这一份 diff（先定 Spec 轴：这条 issue 到底要求什么），改掉被接受的发现、再跑一次门禁，然后 `/ship-it` 交付；走查按 `/walkthrough` 的时机判断。
+4. **收尾。** 用 `/review-it` 审这一份 diff（先定 Spec 轴：这条 issue 到底要求什么），改掉被接受的发现、再跑一次门禁，然后 `/ship-it` 交付——它第一步就是写走查件。
 
 在 `/graph` 的节点里或本技能的串行循环里运行时，**第 4 步的交付不做**——只 commit 到需求分支，PR 与合入由编排器在波末 / 批末各做一次。串行循环要不要逐 issue 过 supervisor，按「批处理模型」里的**评审强度**选（批次小就只做批末那一次对抗性评审）；`/graph` 的节点不自审，评审留波末一次做。
 
@@ -57,7 +57,7 @@ description: "实现入口：一个单元就内联做完，一批有依赖的 is
 
 ```
 每个 issue（N 次）:  实现（内联，或派一个实现者子代理）→ 用项目门禁自证 → 在需求分支上 commit
-批末（1 次）:        /review-it 审整批 diff → /walkthrough → /ship-it → 交付（有远端是 1 个 PR；没有远端是本地 merge）→ 关闭本批满足的 issue
+批末（1 次）:        /review-it 审整批 diff → /ship-it（先写走查件）→ 交付（有远端是 1 个 PR；没有远端是本地 merge）→ 关闭本批满足的 issue
 ```
 
 ### 评审强度：两种，按批次大小选
@@ -83,7 +83,7 @@ description: "实现入口：一个单元就内联做完，一批有依赖的 is
 - **每个 issue 怎么实现：内联，还是派一个实现者子代理。**
   - **内联**：issue 少、或者每个都小，自己写最省事。
   - **派子代理**：一批 issue 多、或者每个都大——因为**编排者的上下文要活到批末**（它得一直盯着
-    检查点、做批末的 `/review-it` 与 `/walkthrough`），实现细节不该把它撑爆。DSH 的 `subagent`
+    检查点、做批末的 `/review-it` 与走查件），实现细节不该把它撑爆。DSH 的 `subagent`
     工具自己就是这么定位的：「offload focused, independent work — research, **a scoped
     implementation**, an analysis — **so it does not consume this conversation's context**」。
 
@@ -296,9 +296,8 @@ python3 <SKILL_DIR>/scripts/loop_state.py note --issue N \
 python3 <SKILL_DIR>/scripts/loop_state.py followup list
 # 1) 就在这条需求分支上审整批 diff
 /review-it
-# 2) 一份走查件：改了什么、跑了什么、证明了什么，并给出 PR body 与合并清单
-/walkthrough
-# 3) 一个 PR、一次 CI、一次 merge，关闭本批满足的 issue
+# 2) 交付：先写走查件（改了什么、跑了什么、证明了什么），再由它给出 PR body 与合并清单，
+#    一个 PR、一次 CI、一次 merge，关闭本批满足的 issue
 /ship-it
 python3 <SKILL_DIR>/scripts/loop_state.py summary
 ```
@@ -307,7 +306,7 @@ python3 <SKILL_DIR>/scripts/loop_state.py summary
 
 批末评审同样**逐 issue 分节**过一遍合并 diff，重点看 issue 之间的结合部（共享接口、装配文件、配置与状态），而不是每个 issue 的内部实现。
 
-`walkthrough` 也只在批末做一次，理由与评审相同：它证明的是集成后的整体，而逐 issue 走查会为每个可能活不过集成的 diff 各付一轮截图。PR body 由 `/ship-it` 产出——它是唯一产出者，`/walkthrough` 只提供证据。批级的**设计决策/偏离/权衡/待确认**四类由 `/ship-it` 的实现总结评论承载一次；**逐 issue 的四类**（进度/关键决策/验证记录/未决事项）落在检查点里（上面的 `note`），每条验收条件的结构化观测落在 `evidence`，新发现的任务落在 `followup`，都不另出笔记文件——只有仓库约定要求时才另写一份，并把路径写进 `--verification`。批末 PR 按 `/ship-it` 的「多个 issue 共用一个 PR」逐项列出每个 issue 的 commit、关闭编号、验收证据与人工验收状态。`failed` 的 issue 已经 `revert` 掉了，也不进这张表。
+走查件也只在批末做一次，理由与评审相同：它证明的是集成后的整体，而逐 issue 走查会为每个可能活不过集成的 diff 各付一轮截图。**走查件与 PR body 都由 `/ship-it` 产出**——它是唯一产出者，走查件提供证据、body 采用它。批级的**设计决策/偏离/权衡/待确认**四类由 `/ship-it` 的实现总结评论承载一次；**逐 issue 的四类**（进度/关键决策/验证记录/未决事项）落在检查点里（上面的 `note`），每条验收条件的结构化观测落在 `evidence`，新发现的任务落在 `followup`，都不另出笔记文件——只有仓库约定要求时才另写一份，并把路径写进 `--verification`。批末 PR 按 `/ship-it` 的「多个 issue 共用一个 PR」逐项列出每个 issue 的 commit、关闭编号、验收证据与人工验收状态。`failed` 的 issue 已经 `revert` 掉了，也不进这张表。
 
 `/ship-it` 之后保留 `.loop-state.json` 作为记录，由用户决定何时删除。
 
@@ -342,6 +341,6 @@ python3 <SKILL_DIR>/scripts/loop_state.py summary
 
 每个 issue:  内联实现 → 门禁自证 → 记 evidence → 在需求分支上 commit（逐 issue supervisor 只在批次大时做）
 每个节点:    内联实现 → 门禁自证 → commit 到自己的分支（节点不自审，评审留波末）
-批末 / 波末（各一次）:  follow-up 收口 → /review-it → /walkthrough → /ship-it
+批末 / 波末（各一次）:  follow-up 收口 → /review-it → /ship-it（先写走查件）
                         （决策/偏离/权衡由 /ship-it 的 issue 评论承载一次）
 ```

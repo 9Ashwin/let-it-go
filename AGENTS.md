@@ -7,7 +7,7 @@
 ## 结构
 
 ```
-skills/flow/     流水线本身：prd to-design to-issues loop-it graph review-it walkthrough ship-it
+skills/flow/     流水线本身：prd to-design to-issues loop-it graph review-it ship-it
 skills/bonus/    中途伸手拿的：conflict diagnose modern-go refactor test-first triage understand
 skills/vendor/   第三方技能的逐字副本，由 vendor.json 钉住 commit
 scripts/         维护脚本（check_skills.py、sync_vendor.py）
@@ -34,9 +34,9 @@ make test    # 再跑各技能自带脚本的自测
   再 `make vendor`；否则下次 `make vendor-update` 会静默覆盖掉你的改动。
 - **技能正文写判断，算术写脚本。** 排序、分层、环检测、检查点状态机都在技能自带的
   脚本里（纯标准库、带自测）；技能只写「什么时候用、边界在哪」。
-- **产物落点由技能定义、仓库只决定作用域根。** 六个会写产物的技能
-  （`prd` / `to-design` / `to-issues` / `walkthrough` / `loop-it` / `graph`）开头那段
-  「产物落点」是唯一正文，别在别处复述。
+- **产物落点由技能定义、仓库只决定作用域根。** 会写产物的技能
+  （`prd` / `to-design` / `to-issues` / `loop-it` / `graph`，以及 `ship-it` 的
+  `references/walkthrough.md`）开头那段「产物落点」是唯一正文，别在别处复述。
 - **面向模型的文字用中文**（description 里的英文触发词保留，那是路由信号）；
   代码标识符、命令、路径不翻译。脚本注释也写中文。
 - **技能改名 / 新增 / 删除之后**：`scripts/check_skills.py` 会查死引用，
