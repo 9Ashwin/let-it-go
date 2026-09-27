@@ -123,8 +123,6 @@ The repository contains 24 skills in total: 7 core and 17 supplementary. Of thes
 
 </details>
 
-`/goal` is a host **command**, not a skill. The model side of that surface is `create_goal` / `update_goal`, and its gate is **authority, not wording**: `create_goal` runs only in a **direct top-level human turn**, so a subagent or a mid-orchestration step cannot mint one — but the human does **not** have to say "goal". Handing over a long-running objective ("work through this whole batch") is exactly when it should be created, and that is the behaviour it was designed for. On a long batch the goal is the **session-scoped driver** (it re-prompts the session once a turn ends) while the checkpoint (`.loop-state.json` / `.graph_state.json`) is the **repo-scoped state** (where the batch got to) — the two are complementary and count different things (`maxGoalRounds` bounds continuation, `attempts` counts one issue's retries).
-
 ## Repository layout
 
 ```

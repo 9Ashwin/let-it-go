@@ -1234,7 +1234,7 @@
       </div>
 
       <div class="note">
-        <strong>Note: <code class="inline-code">/goal</code> is not a pipeline step.</strong> In DSH, <code class="inline-code">/goal</code> is a <strong>command</strong>, not a skill: a human types it to create a persisted objective with autonomous continuation rounds. Its model side (<code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>) only runs in a <strong>direct top-level human turn</strong>, so a subagent — or a skill running mid-orchestration — cannot mint a long-horizon goal for itself. The implementation step above is therefore done <strong>inline by the running agent</strong> (read the Issue, write the code, run the tests), not by calling <code class="inline-code">/goal</code>. A human may still type <code class="inline-code">/goal &lt;objective&gt;</code> for a single long-running objective, but that sits outside this pipeline.
+        <strong>Note: <code class="inline-code">/goal</code> is not a pipeline step.</strong> Implementation is done <strong>inline by the running agent</strong>, not by calling <code class="inline-code">/goal</code>; a human types <code class="inline-code">/goal &lt;objective&gt;</code> for a long-running objective with autonomous continuation.
       </div>
     </div>
 
@@ -1947,7 +1947,7 @@ leak check → evidence check per node → merge only shipped nodes → gates on
       <p>No. Each Skill is independent and can be used standalone. For example, if you already have Issues, you can start directly from <code class="inline-code">/loop-it</code> (a single unit, or sequential — it picks the mode) or <code class="inline-code">/graph</code> (parallel); if code is already written, you can use <code class="inline-code">/review-it</code> directly. But going through the full workflow yields the best results.</p>
 
       <h3>Q: Where does /goal come from? Why isn't it in the skills directory?</h3>
-      <p><code class="inline-code">/goal</code> is a DSH <strong>command</strong>, not a skill, so it is not in <code class="inline-code">~/.agents/skills</code>. A human types it to create a persisted objective with automatic continuation rounds. The model side of that surface is <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>, but <code class="inline-code">create_goal</code> only runs in a <strong>direct top-level human turn</strong> — a subagent, or a skill running mid-orchestration, cannot mint a long-horizon goal for itself. It is not the implementation step either: implementation is done inline by the running agent (see <a href="#step-implement" style="color: #D97757; text-decoration: none;">Step 2: Implementation</a>).</p>
+      <p><code class="inline-code">/goal</code> is a DSH <strong>command</strong>, not a skill, so it is not in <code class="inline-code">~/.agents/skills</code>: a human types it to give one long-running objective autonomous continuation. It is not the implementation step either — implementation is done inline by the running agent (see <a href="#step-implement" style="color: #D97757; text-decoration: none;">Step 2: Implementation</a>).</p>
 
       <h3>Q: Can I use this in non-GitHub projects?</h3>
       <p>Yes. <code class="inline-code">/to-issues</code> can save Issues as local Markdown files. <code class="inline-code">/review-it</code> only needs a local git repository. <code class="inline-code">/ship-it</code> currently depends on GitHub (<code class="inline-code">gh</code> CLI).</p>

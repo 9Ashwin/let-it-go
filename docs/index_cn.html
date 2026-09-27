@@ -1155,7 +1155,7 @@
       </p>
 
       <div class="note">
-        <strong>Note：<code class="inline-code">/goal</code> 不再是流水线步骤。</strong>在 DSH 中，<code class="inline-code">/goal</code> 是<strong>命令</strong>而不是 skill——由人类在命令行输入，创建一个带自动续跑轮次的持久目标。这条能力的模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但 <code class="inline-code">create_goal</code> 只在<strong>顶层直接的人类回合</strong>执行：子代理铸造不了长期目标，技能在编排中途也不行。因此「实现 Issue」这一步由 agent 内联完成，而不是调用 <code class="inline-code">/goal</code>。若想要一个自动续跑的长目标，应由人类自己输入 <code class="inline-code">/goal &lt;objective&gt;</code>。
+        <strong>Note：<code class="inline-code">/goal</code> 不再是流水线步骤。</strong>「实现 Issue」由 agent 内联完成，不是调用 <code class="inline-code">/goal</code>；想要自动续跑的长目标，由人类自己输入 <code class="inline-code">/goal &lt;objective&gt;</code>。
       </div>
 
       <h3>单单元模式：内联闭环</h3>
@@ -1921,7 +1921,7 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       <p>不必。每个 Skill 都是独立的，可以单独使用。比如你已经有 Issue 了，可以直接从实现开始——单个单元或串行都走 <code class="inline-code">/loop-it</code>（它自己判模式），并行走 <code class="inline-code">/graph</code>；代码已经写好，可以直接用 <code class="inline-code">/review-it</code> 审查。但完整走一遍流程能获得最好的效果。</p>
 
       <h3>Q: /goal 是什么？为什么不在 skills 目录中？</h3>
-      <p>在 DSH 中，<code class="inline-code">/goal</code> 是<strong>命令</strong>而不是 skill，因此不在 <code class="inline-code">~/.agents/skills</code> 中。它由人类在命令行输入，创建一个带自动续跑轮次的持久目标；这条能力的模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但 <code class="inline-code">create_goal</code> 只在<strong>顶层直接的人类回合</strong>执行——子代理、或正在编排的技能，都无法给自己铸造一个长期目标。而「实现 Issue」这一动作与它无关，由 agent 内联完成（见 <a href="#step-impl" style="color: #D97757; text-decoration: none;">Step 2: /loop-it · /graph</a>）。</p>
+      <p><code class="inline-code">/goal</code> 是 DSH 的<strong>命令</strong>，不是技能，所以不在 <code class="inline-code">~/.agents/skills</code> 中：由人类自己输入，给一个长期目标开自动续跑。实现那一步与它无关，由 agent 内联完成（见 <a href="#step-impl" style="color: #D97757; text-decoration: none;">Step 2: /loop-it · /graph</a>）。</p>
 
       <h3>Q: 可以在非 GitHub 项目中使用吗？</h3>
       <p>可以。<code class="inline-code">/to-issues</code> 支持把 Issue 保存为本地 Markdown 文件。<code class="inline-code">/review-it</code> 只需要本地 git 仓库。<code class="inline-code">/ship-it</code> 目前依赖 GitHub（<code class="inline-code">gh</code> CLI）。</p>
