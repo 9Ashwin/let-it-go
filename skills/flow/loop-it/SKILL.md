@@ -299,7 +299,7 @@ python3 <SKILL_DIR>/scripts/loop_state.py summary
 
 ## 失败处理
 
-错误类别（build / test / lint / merge / ci / auth / rate-limit / network / unknown）、恢复策略与最大重试次数见 [`references/error-recovery.md`](references/error-recovery.md)——它是查找表，按需加载。分类后按上限重试；重试耗尽就 `set --status failed --error-class <class> --error "<msg>"` 并继续下一项，**绝不无限重试，绝不 force-push**。
+错误类别（build / test / lint / merge / ci / auth / rate-limit / network / unknown）、恢复策略与最大重试次数见 [`references/error-recovery.md`](references/error-recovery.md)——它是查找表，按需加载。分类后按上限重试；重试耗尽就 `set --status failed --error-class <class> --error "<msg>"` 并继续下一项。**两条红线**：不无限重试（一个卡住的 issue 会把整批的时间吃光，而检查点里 `failed` 才是诚实的记录），不 force-push（它会重写别人已经基于其工作的历史，而这条分支可能已经推给别人看过）。
 
 ## 运行须知
 
