@@ -1,0 +1,13 @@
+{
+ "assertions": [
+  "改动之后 fixture 自己的门禁 make check 仍然绿",
+  "只凭那份资料就做对了 issue-002：数量升序，同数量按名字",
+  "没有落到技能默认的 tasks/<feature>/ 下",
+  "若产生了 loop 检查点，它必须在 requirements/<scope>/issues/ 下",
+  "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+  "没有写到 fixture 之外（臂的 cwd 就是 fixture，越界是这条路的典型失败）"
+ ],
+ "eval_id": 3,
+ "eval_name": "03-artifact-handoff",
+ "prompt": "这是上一个会话留下的需求资料：requirements/01_REQ-low-stock-threshold/。\n\n按它把还没做完的做掉。有不懂的先问，别猜。做完跑一遍门禁确认没弄坏。"
+}
