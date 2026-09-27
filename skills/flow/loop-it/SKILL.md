@@ -14,6 +14,15 @@ description: "实现入口：一个单元就内联做完，一批有依赖的 is
 
 检查点固定在**作用域根的 `issues/.loop-state.json`**（默认 `tasks/<feature>/issues/.loop-state.json`）。下面命令里的相对路径都相对作用域根；从别处跑就显式传 `--state <路径>`。
 
+**先设一次，后面所有命令原样可抄**（会话的 cwd 是仓库根，检查点在作用域根下，不设就得每条命令
+都拼一遍路径）：
+
+```bash
+S=<SKILL_DIR>/scripts/loop_state.py
+ST=requirements/<scope>/issues/.loop-state.json    # 仓库约定的作用域根
+python3 $S next --state $ST
+```
+
 ## 先过一道门：这份工作定义好了吗
 
 「定义好了」= 手上有**别人写好的验收条件**——一条 issue 卡、spec 里的一项、一份 PRD。
@@ -203,6 +212,16 @@ fi
 python3 <SKILL_DIR>/scripts/loop_state.py evidence add --issue N \
   --kind <test|runtime|database|external|human> --result <pass|fail|deferred> \
   --command "<真正跑的那条命令>" [--artifact <留下来的输出路径>]
+```
+
+**多条一起记：`--batch -` 从 stdin 读 JSON 行。** 一次观测能覆盖多条验收条件时，**观测写成一个
+脚本、证据一次写完**——别为了对应关系把一次验证拆成 N 次往返。批量的只是**写入**，观测一条不少：
+
+```bash
+python3 $S evidence add --state $ST --issue N --batch - <<'EV'
+{"kind":"runtime","command":"bash smoke.sh  # 一个脚本跑完 6 个端点","result":"pass"}
+{"kind":"test","command":"go test ./... -count=1","result":"pass"}
+EV
 ```
 
 `kind` 是观测的**种类**不是强度：`test` 单元/静态、`runtime` 本地真实链路、`database` 存储读回、`external` 外部系统往返、`human` 人工验收。`deferred` 是"没跑"的诚实答案——它必须能和 `pass` 分开，把没跑的写成 `pass` 就是伪造证据。

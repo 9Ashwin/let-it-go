@@ -38,15 +38,21 @@ def check(name: str, condition: bool, detail: str = "") -> None:
         failures.append(name)
 
 
-def run(*argv: str) -> tuple[int, str, str]:
-    """在进程内运行 CLI，捕获（退出码、stdout、stderr）。"""
+def run(*argv: str, stdin: str | None = None) -> tuple[int, str, str]:
+    """在进程内运行 CLI，捕获（退出码、stdout、stderr）。`stdin` 供 `--batch -` 用。"""
     out, err = io.StringIO(), io.StringIO()
+    saved = sys.stdin
     code = 0
-    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-        try:
-            ls.main([str(a) for a in argv])
-        except SystemExit as exc:
-            code = exc.code if isinstance(exc.code, int) else 1
+    if stdin is not None:
+        sys.stdin = io.StringIO(stdin)
+    try:
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            try:
+                ls.main([str(a) for a in argv])
+            except SystemExit as exc:
+                code = exc.code if isinstance(exc.code, int) else 1
+    finally:
+        sys.stdin = saved
     return code, out.getvalue(), err.getvalue()
 
 
@@ -160,6 +166,38 @@ def test_corrupt_state_is_refused():
         check("set 同样拒绝损坏的状态文件", code != 0, err)
         code, _, err = run("next", "--state", os.path.join(tmp, "missing.json"))
         check("next 缺少检查点是错误", code != 0, err)
+
+
+def test_evidence_batch_appends_in_one_write():
+    """批量写证据：一次调用写多条，条数与内容都对。"""
+    with tempfile.TemporaryDirectory() as tmp:
+        state_path = os.path.join(tmp, ".loop-state.json")
+        issues = os.path.join(tmp, "issues.json")
+        with open(issues, "w", encoding="utf-8") as handle:
+            json.dump([{"number": 1, "title": "t", "labels": [], "body": "- [ ] a"}], handle)
+        run("scan", "--issues", issues, "--state", state_path, "--repo", "o/r")
+        run("set", "--issue", 1, "--status", "in_progress", "--state", state_path)
+
+        batch = "\n".join(json.dumps(r, ensure_ascii=False) for r in [
+            {"kind": "test", "command": "go test ./... -count=1", "result": "pass"},
+            {"kind": "runtime", "command": "curl -si localhost:8080/healthz", "result": "pass",
+             "artifact": "out/health.txt"},
+            {"kind": "runtime", "command": "curl -si localhost:8080/static/", "result": "pass"},
+        ])
+        code, out, err = run("evidence", "add", "--issue", 1, "--state", state_path,
+                             "--batch", "-", stdin=batch)
+        check("批量退出码为 0", code == 0, err)
+        records = read_state(state_path)["issues"]["1"]["evidence"]
+        check("一次写入三条", len(records) == 3, records)
+        check("命令原样保留", records[0]["command"] == "go test ./... -count=1")
+        check("artifact 保留", records[1].get("artifact") == "out/health.txt")
+        check("每条都打了时间戳", all(r.get("observed_at") for r in records))
+
+        # 非法行要拦下来，而不是写进去一半
+        code, _, err = run("evidence", "add", "--issue", 1, "--state", state_path, "--batch", "-",
+                           stdin='{"kind":"nope","command":"x","result":"pass"}')
+        check("非法 kind 被拒", code != 0, out)
+        check("被拒时没写进去", len(read_state(state_path)["issues"]["1"]["evidence"]) == 3)
 
 
 def test_blocked_and_next_computation():
@@ -420,6 +458,7 @@ def main() -> int:
         test_shipping_without_evidence_is_refused,
         test_shipping_without_notes_warns,
         test_evidence_is_recorded_structured,
+        test_evidence_batch_appends_in_one_write,
         test_followups_are_a_queue_not_a_note,
     ):
         print(f"- {test.__name__}")

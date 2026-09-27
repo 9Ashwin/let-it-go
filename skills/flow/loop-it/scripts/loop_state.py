@@ -667,6 +667,36 @@ def clip(text: str, width: int = 48) -> str:
     return text if len(text) <= width else text[: width - 1] + "…"
 
 
+def read_evidence_batch(source: str) -> list[dict]:
+    """读一批 evidence 记录（JSON 行，一行一条）。
+
+    为什么要它：证据是**按验收条件**记的，一条一次调用就是一次工具往返——一张 12 条验收条件的卡
+    就是 12 次。观测该合并成一个脚本，记录也该一次写完。批量的只是**写入**，观测本身一条不少。
+    """
+    text = sys.stdin.read() if source == "-" else open(source, encoding="utf-8").read()
+    records: list[dict] = []
+    for lineno, line in enumerate(text.splitlines(), 1):
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        try:
+            item = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise SystemExit(f"evidence batch 第 {lineno} 行不是合法 JSON: {exc}") from exc
+        if not isinstance(item, dict):
+            raise SystemExit(f"evidence batch 第 {lineno} 行不是对象")
+        if item.get("kind") not in EVIDENCE_KINDS:
+            raise SystemExit(f"evidence batch 第 {lineno} 行 kind 非法: {item.get('kind')!r}")
+        if item.get("result") not in EVIDENCE_RESULTS:
+            raise SystemExit(f"evidence batch 第 {lineno} 行 result 非法: {item.get('result')!r}")
+        if not item.get("command"):
+            raise SystemExit(f"evidence batch 第 {lineno} 行缺 command")
+        records.append(item)
+    if not records:
+        raise SystemExit("evidence batch 是空的")
+    return records
+
+
 def cmd_evidence(args: argparse.Namespace) -> int:
     state = load_state(args.state, required=True)
     entry = require_issue(state, args.issue, args.state)
@@ -682,6 +712,25 @@ def cmd_evidence(args: argparse.Namespace) -> int:
             print(f"  [{record.get('kind')}] {record.get('result')}  {record.get('observed_at')}{artifact}")
             print(f"    $ {record.get('command')}")
         return 0
+
+    if args.batch:
+        records = read_evidence_batch(args.batch)
+        for record in records:
+            record.setdefault("observed_at", now())
+        entry.setdefault("evidence", []).extend(records)
+        entry["updated_at"] = now()
+        save_state(state, args.state)
+        kinds = sorted({r.get("kind", "?") for r in records})
+        print(
+            f"{ref(args.issue)}: 已记录 {len(records)} 条 evidence（{', '.join(kinds)}）"
+            f"（共 {len(entry['evidence'])} 条）"
+        )
+        return 0
+
+    missing = [n for n in ("kind", "command", "result") if not getattr(args, n)]
+    if missing:
+        print(f"evidence add: 缺 --{' --'.join(missing)}（或者用 --batch）", file=sys.stderr)
+        return 2
 
     record = {
         "kind": args.kind,
@@ -858,9 +907,12 @@ def main(argv: list[str] | None = None) -> int:
     evidence_sub = evidence.add_subparsers(dest="action", required=True)
     evidence_add = evidence_sub.add_parser("add", help="追加一条观察")
     evidence_add.add_argument("--issue", type=int, required=True)
-    evidence_add.add_argument("--kind", required=True, choices=EVIDENCE_KINDS)
-    evidence_add.add_argument("--command", required=True, help="产生它的命令")
-    evidence_add.add_argument("--result", required=True, choices=EVIDENCE_RESULTS)
+    # 单条形态与批量形态二选一；下面在 cmd_evidence 里校验，不靠 argparse 的 required。
+    evidence_add.add_argument("--kind", choices=EVIDENCE_KINDS)
+    evidence_add.add_argument("--command", help="产生它的命令")
+    evidence_add.add_argument("--result", choices=EVIDENCE_RESULTS)
+    evidence_add.add_argument("--batch", metavar="FILE",
+                              help="从 JSON 行批量追加（`-` 读 stdin）——一条 issue 的证据一次写完")
     evidence_add.add_argument("--artifact", help="值得留存的输出路径")
     evidence_add.add_argument("--observed-at", help="观察到的时间（默认：当前时间）")
     evidence_add.add_argument("--state", default=DEFAULT_STATE)
