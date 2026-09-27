@@ -26,9 +26,9 @@
 
 ## let-it-go 是什么
 
-let-it-go 是一套供编码 Agent 使用的研发工作流技能集，共 25 个技能。你描述目标，Agent 按任务需要澄清需求、拆解 Issue、实现、验证并交付。每一步都有明确的职责和完成条件。
+let-it-go 的核心是 [`skills/flow`](skills/flow) 中的 7 个研发工作流技能。你描述目标，Agent 按任务需要澄清需求、拆解 Issue、实现、验证并交付。每一步都有明确的职责和完成条件。
 
-配图中的五个阶段对应这些技能：
+这 7 个技能组成配图中的五个阶段：
 
 | 阶段 | 技能 | 完成什么 |
 | --- | --- | --- |
@@ -93,22 +93,31 @@ cp -R <let-it-go>/skills/flow/graph ~/.agents/skills/graph   # 拍平，不要�
 
 ## 技能
 
-下表用技能短名，前缀统一是 `/`（DSH）。
+项目核心集中在 [`skills/flow`](skills/flow)。下表用 `/技能名` 表示调用入口（DSH），点击名称可查看完整规则。
 
-主流程之外，排障、测试、重构和文档技能可以按需要单独使用。
+| 技能 | 职责与边界 |
+| --- | --- |
+| [`/prd`](skills/flow/prd/SKILL.md) | 澄清目标、范围和未决问题，写成可验证的验收条件 |
+| [`/to-design`](skills/flow/to-design/SKILL.md) | 需要明确方案与取舍时写设计提案；Markdown 是主产物，HTML 是可选呈现 |
+| [`/to-issues`](skills/flow/to-issues/SKILL.md) | 拆成垂直切片，Issue 正文写清实现契约、验收条件、证据要求与阻塞关系 |
+| [`/loop-it`](skills/flow/loop-it/SKILL.md) | 实现入口：单项内联完成，有依赖的批次串行推进；检查点支持恢复，评审强度按批次大小选择 |
+| [`/graph`](skills/flow/graph/SKILL.md) | 有真实并行度时按依赖图分波执行，每个节点独立 worktree，汇合时检查证据，波末统一评审与交付 |
+| [`/review-it`](skills/flow/review-it/SKILL.md) | 分别检查需求符合度（Spec）和代码标准（8 个维度），两轴独立报告 |
+| [`/ship-it`](skills/flow/ship-it/SKILL.md) | 先写走查件、整理验证证据，再生成 PR body，完成提交、推送、PR、合入、关闭 Issue 与实现总结；无远端时本地合入 |
 
-| 阶段 | 技能 | 做什么 |
-| --- | --- | --- |
-| 需求与设计 | `/prd` · `/to-design` | 需求文档 → 设计提案（**只在跨两个及以上服务、改数据模型或迁移、涉及两条以上对外契约时写**；Markdown 是主产物，HTML 只是可选呈现层） |
-| 拆解与分诊 | `/to-issues` · `/triage` | 把自己的 PRD 拆成垂直切片，**每条 Issue 正文就是契约**（目标/非目标/验收条件/必须收集的证据/外部边界/完成定义/未决问题）· 把**外面进来的**原始 issue 分流成可执行卡片 |
-| 实现 | `/loop-it` · `/test-first` · `/graph` | 单项任务内联完成（不建 worktree、不派子代理）· 有依赖的批次串行推进，按规模选择评审强度，检查点保存证据与 follow-up 台账 · 红-绿写测试 · DAG 波次并行（每节点独立 worktree，节点在 fan-in 时过 evidence check） |
-| 排障 | `/diagnose` · `/conflict` | 先拿到一条会变红的命令再推理的排查循环 · 逐 hunk 按意图解 merge/rebase 冲突 |
-| 审查与交付 | `/review-it` · `/ship-it` | 双轴评审（Spec + 8 维度标准）· **先写走查件**：合并前交出「改了什么 + 什么被验证过」（**只提供证据，不产 PR body**）· **走查件与 PR body 的唯一产出者**，提交/PR/合入/关闭 Issue，并一次写出实现总结评论 |
-| 代码质量 | `/refactor` · `/modern-go` | 两种模式（`audit` 只报不改 / `fix` 按 Fowler 目录重构）· Go 1.0→1.27+ 现代化 |
-| 文档与制图 | `/understand` · `/svg-diagram`（vendor） | 把本次改动变成可交互审阅网页 · SVG 制图规范 + 12 项机械校验（自带 `svg-lint`） |
-| 第三方（`skills/vendor/`，逐字副本） | `/find-skills` · `/frontend-design` · `/humanizer-zh` · `/pptx` · `/resume-optimizer` · `/skill-creator` · `/teach` · `/ui-ux-pro-max` · `/web-design-guidelines` | 发现并安装生态里的技能 · 前端视觉设计方向 · 中文文本去模板化润色 · `.pptx` / `.potx` 的读写与编辑 · 简历审计与优化（成果型改写、按目标 JD 调整）· 创建/改进技能并跑评测 · 以教学方式讲清一个概念 · 可检索的 UI/UX 设计知识库 · 按 Web Interface Guidelines 审 UI 代码 |
+<details>
+<summary>随仓库收录的自用补充技能</summary>
 
-共 25 个技能（flow 8 / bonus 7 / vendor 10），其中 24 个可由模型按 description 自动选择。vendor 的 `teach` 按上游设置保留 `disable-model-invocation`，不进入模型目录，需要手动调用。这 24 个技能的 description 合计 5572 字符；按 DSH 的空白归一化与每条 500 字符上限计算，模型目录共 5340 字符。
+`skills/bonus` 和 `skills/vendor` 是作者收集来自己使用的补充工具。它们随仓库保留，方便按需取用；项目介绍与主流程以 `skills/flow` 为中心。
+
+| 目录 | 收录内容 |
+| --- | --- |
+| [`skills/bonus`](skills/bonus) | `/conflict`、`/diagnose`、`/modern-go`、`/refactor`、`/test-first`、`/triage`、`/understand`：冲突处理、排障、代码质量、测试、分诊与变更解释 |
+| [`skills/vendor`](skills/vendor) | `/find-skills`、`/frontend-design`、`/humanizer-zh`、`/pptx`、`/resume-optimizer`、`/skill-creator`、`/svg-diagram`、`/teach`、`/ui-ux-pro-max`、`/web-design-guidelines`：技能管理、设计、写作、演示文稿、简历与制图等工具 |
+
+仓库合计收录 24 个技能（核心 7 个，补充 17 个）。其中 23 个支持模型按 description 自动选择；`/teach` 按上游设置保留 `disable-model-invocation`，需要手动调用。`vendor` 中的技能为上游逐字副本，来源、版本与许可见各目录的 `NOTICE.md`。
+
+</details>
 
 `/goal` 是宿主的**命令**（不是技能）。模型侧是 `create_goal` / `update_goal`，门禁是 **authority 而不是措辞**：`create_goal` 只在**顶层 agent 的直接人类回合**有效，所以子代理和编排中途建不了——但**人类不必说 "goal"**，他直接交出一个长期目标（"把这批 issue 全做完"）时就该建，这正是它被设计的用法。长批次里 goal 是**会话级驱动**（一个回合结束后把会话重新推起来），检查点（`.loop-state.json` / `.graph_state.json`）是**仓库级状态**（记到哪了）——两者互补，计数也各算各的（`maxGoalRounds` 管续跑轮数，`attempts` 管单个 issue 的重试）。
 
@@ -116,16 +125,16 @@ cp -R <let-it-go>/skills/flow/graph ~/.agents/skills/graph   # 拍平，不要�
 
 ```
 skills/
-├── flow/          # PRD → 交付的主流程，按任务需要选用（8 个）
-├── bonus/         # 流程中途随时单独触发的工程实践与产物（7 个）
-└── vendor/        # 第三方技能的逐字副本，由 manifest 钉住 commit（10 个）
+├── flow/          # PRD → 交付的主流程，按任务需要选用（7 个）
+├── bonus/         # 收集自用的工程补充工具（7 个）
+└── vendor/        # 收集自用的上游逐字副本，由 manifest 钉住 commit（10 个）
 scripts/           # check_skills.py（布局 / frontmatter / 交叉引用 / patch 校验）
                    # sync_vendor.py（vendor 同步与新增）
 Makefile           # make check / test / vendor-* 的入口
 cordis.patch.yml   # DSH bundle patch：三个桶各列为一个 customSkillDirs root
 ```
 
-判据是「它在这条链上扮演什么角色」：`flow` 是流水线本身；`bonus` 是你在中途因为「出事了 / 要保证质量 / 需要一个非代码产物」伸手拿的（测试方法、排障、冲突、外部分诊、重构、设计文档、审阅页）；`vendor` 不产生新技能，只是把上游第三方技能逐字收进来，每个目录带一份 `NOTICE.md`（来源 / commit / 许可 / 同步日期）。
+`flow` 是本项目的核心工作流；`bonus` 与 `vendor` 是自用补充集合。`vendor` 按上游原样同步，每个目录带一份 `NOTICE.md`（来源 / commit / 许可 / 同步日期）。
 
 DSH 的技能根**只扫一层**（`<root>/<name>/SKILL.md`），所以 `cordis.patch.yml` 把三个桶各列为一个 root，而不是指向 `skills/`。`npx skills add` 是递归扫描、安装时拍平，无论走哪条安装路径，得到的技能集完全相同。`scripts/check_skills.py` 守着三个静默失败面：**技能被放回顶层**（三个 root 都覆盖不到它）、**某个桶漏进 patch**（那一桶会整体消失，且不报错），以及**根目录 `.claude-plugin/marketplace.json` 与桶内容不一致**（安装 picker 退回成一列平铺的技能，同样不报错）。
 

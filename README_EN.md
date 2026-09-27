@@ -26,9 +26,9 @@
 
 ## What is let-it-go?
 
-let-it-go is a collection of 25 development-workflow skills for coding agents. Describe your goal, and the agent clarifies requirements, breaks down Issues, implements, verifies, and ships as the task requires. Each step has a defined responsibility and completion criteria.
+The core of let-it-go is the 7 development-workflow skills in [`skills/flow`](skills/flow). Describe your goal, and the agent clarifies requirements, breaks down Issues, implements, verifies, and ships as the task requires. Each step has a defined responsibility and completion criteria.
 
-The banner's five stages map to these skills:
+These 7 skills form the banner's five stages:
 
 | Stage | Skills | Outcome |
 | --- | --- | --- |
@@ -93,22 +93,31 @@ A few deliberate design choices:
 
 ## Skills
 
-The table uses short skill names; the prefix is `/` everywhere (DSH).
+The project centers on [`skills/flow`](skills/flow). Names below use the `/` prefix (DSH); each links to the full instructions.
 
-Beyond the main workflow, diagnosis, testing, refactoring, and documentation skills can be used independently as needed.
+| Skill | Responsibility and boundary |
+| --- | --- |
+| [`/prd`](skills/flow/prd/SKILL.md) | Clarify goals, scope, and open questions, then define verifiable acceptance criteria |
+| [`/to-design`](skills/flow/to-design/SKILL.md) | Write a design proposal when the approach and tradeoffs need to be explicit; Markdown is the main artifact, HTML an optional rendering |
+| [`/to-issues`](skills/flow/to-issues/SKILL.md) | Split work into vertical slices, with implementation contracts, acceptance criteria, required evidence, and blocking dependencies in each Issue |
+| [`/loop-it`](skills/flow/loop-it/SKILL.md) | The implementation entry point: finish single tasks inline or run dependent batches serially, with resumable checkpoints and review intensity matched to batch size |
+| [`/graph`](skills/flow/graph/SKILL.md) | Run genuinely parallel tasks in dependency waves, with a worktree per node, evidence checks at fan-in, and review and delivery once per wave |
+| [`/review-it`](skills/flow/review-it/SKILL.md) | Assess requirement compliance (Spec) and code standards (8 dimensions), reporting the two axes separately |
+| [`/ship-it`](skills/flow/ship-it/SKILL.md) | Write the walkthrough with verification evidence, then produce the PR body and handle commit, push, PR, merge, Issue closure, and the implementation summary; merge locally when there is no remote |
 
-| Stage | Skill | What it does |
-| --- | --- | --- |
-| Requirements & design | `/prd` · `/to-design` | Requirements doc → design proposal (**only when the change spans two or more services, alters the data model or a migration, or touches two or more external contracts**; Markdown is the main artifact, HTML an optional rendering) |
-| Breakdown & triage | `/to-issues` · `/triage` | Split your own PRD into vertical slices where **the Issue body is the contract** (goal / non-goals / acceptance criteria / required evidence / external boundary / definition of done / open questions) · turn **incoming** raw issues into agent-ready cards |
-| Implementation | `/loop-it` · `/test-first` · `/graph` | Finish a single task inline (no worktree, no subagent) · run dependent batches serially, choosing review intensity by batch size and saving evidence and follow-ups in a resumable checkpoint · red-green testing · DAG waves in parallel (one worktree per node, and nodes pass an evidence check at fan-in) |
-| Diagnosis | `/diagnose` · `/conflict` | A debugging loop that demands a red-capable command first · resolve merge/rebase conflicts hunk by hunk by intent |
-| Review & shipping | `/review-it` · `/ship-it` | Two-axis review (Spec + 8 standards dimensions) · **writes the walkthrough first**: what changed and what was verified, before merging (**evidence only; it does not produce the PR body**) · **the sole producer of both the walkthrough and the PR body**: commit/PR/merge/close Issue, plus the one implementation summary comment |
-| Code quality | `/refactor` · `/modern-go` | Two modes (`audit` reports without changing code / `fix` refactors from Fowler's catalog) · Go 1.0→1.27+ modernization |
-| Docs & diagrams | `/understand` · `/svg-diagram` (vendor) | Turn the current change into an interactive review page · SVG diagramming conventions plus 12 mechanical checks (bundled `svg-lint`) |
-| Third-party (`skills/vendor/`, verbatim copies) | `/find-skills` · `/frontend-design` · `/humanizer-zh` · `/pptx` · `/resume-optimizer` · `/skill-creator` · `/teach` · `/ui-ux-pro-max` · `/web-design-guidelines` | Discover and install skills from the ecosystem · front-end visual direction · strip template-speak from Chinese prose · read, write and edit `.pptx` / `.potx` · audit and rewrite a résumé around outcomes and the target JD · create and improve skills with evals · explain a concept as a lesson · a searchable UI/UX design knowledge base · review UI code against the Web Interface Guidelines |
+<details>
+<summary>Supplementary skills collected for personal use</summary>
 
-There are 25 skills (flow 8 / bonus 7 / vendor 10), of which 24 can be selected automatically from their descriptions. The vendored `teach` retains upstream's `disable-model-invocation` setting, stays out of the model catalog, and requires manual invocation. Those 24 descriptions total 5,572 characters, or 5,340 after DSH's whitespace normalization and 500-character cap per description.
+`skills/bonus` and `skills/vendor` contain tools the author collected for personal use. They remain in the repository for use as needed; the project's focus and main workflow are in `skills/flow`.
+
+| Directory | Contents |
+| --- | --- |
+| [`skills/bonus`](skills/bonus) | `/conflict`, `/diagnose`, `/modern-go`, `/refactor`, `/test-first`, `/triage`, `/understand`: conflict resolution, diagnosis, code quality, testing, triage, and change explanations |
+| [`skills/vendor`](skills/vendor) | `/find-skills`, `/frontend-design`, `/humanizer-zh`, `/pptx`, `/resume-optimizer`, `/skill-creator`, `/svg-diagram`, `/teach`, `/ui-ux-pro-max`, `/web-design-guidelines`: tools for skill management, design, writing, presentations, resumes, and diagrams |
+
+The repository contains 24 skills in total: 7 core and 17 supplementary. Of these, 23 support automatic selection by description; `/teach` retains upstream's `disable-model-invocation` setting and requires manual invocation. Skills in `vendor` are verbatim upstream copies; see each directory's `NOTICE.md` for source, version, and license.
+
+</details>
 
 `/goal` is a host **command**, not a skill. The model side of that surface is `create_goal` / `update_goal`, and its gate is **authority, not wording**: `create_goal` runs only in a **direct top-level human turn**, so a subagent or a mid-orchestration step cannot mint one — but the human does **not** have to say "goal". Handing over a long-running objective ("work through this whole batch") is exactly when it should be created, and that is the behaviour it was designed for. On a long batch the goal is the **session-scoped driver** (it re-prompts the session once a turn ends) while the checkpoint (`.loop-state.json` / `.graph_state.json`) is the **repo-scoped state** (where the batch got to) — the two are complementary and count different things (`maxGoalRounds` bounds continuation, `attempts` counts one issue's retries).
 
@@ -116,16 +125,16 @@ There are 25 skills (flow 8 / bonus 7 / vendor 10), of which 24 can be selected 
 
 ```
 skills/
-├── flow/          # the PRD → ship workflow, used as the task requires (8)
-├── bonus/         # engineering work and artifacts you reach for mid-flow (7)
-└── vendor/        # verbatim third-party copies, pinned to a commit by the manifest (10)
+├── flow/          # the PRD → ship workflow, used as the task requires (7)
+├── bonus/         # supplementary engineering tools collected for personal use (7)
+└── vendor/        # personal collection of upstream copies, pinned by the manifest (10)
 scripts/           # check_skills.py (layout / frontmatter / cross-refs / patch)
                    # sync_vendor.py (vendor sync and additions)
 Makefile           # the entry point for make check / test / vendor-*
 cordis.patch.yml   # the DSH bundle patch: each of the three buckets is its own customSkillDirs root
 ```
 
-The test is the role a skill plays: `flow` is the pipeline itself; `bonus` is what you reach for mid-flight because something broke, because quality is at stake, or because you need a non-code artifact (a testing method, diagnosis, conflicts, incoming triage, refactoring, design docs, a review page); `vendor` adds no new skills — it collects upstream third-party skills verbatim, each directory carrying a `NOTICE.md` (source / commit / license / sync date).
+`flow` is the project's core workflow; `bonus` and `vendor` are supplementary personal collections. `vendor` is synced verbatim from upstream, with a `NOTICE.md` in each directory recording its source, commit, license, and sync date.
 
 A DSH skill root is scanned **exactly one level deep** (`<root>/<name>/SKILL.md`), so `cordis.patch.yml` lists each of the three buckets as its own root rather than pointing at `skills/`. `npx skills add` scans recursively and flattens on install; either install route yields exactly the same set. `scripts/check_skills.py` guards the three silent failures: **a skill left at the top level** (no root covers it), **a bucket missing from the patch** (that whole bucket disappears without an error), and **a root `.claude-plugin/marketplace.json` out of step with the buckets** (the install picker falls back to one flat list of skills, also without an error).
 
