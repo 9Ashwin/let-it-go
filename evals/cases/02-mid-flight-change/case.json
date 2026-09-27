@@ -1,29 +1,73 @@
 {
   "id": "02-mid-flight-change",
   "name": "mid-flight-change",
-  "what_it_tests": "需求在实现**中途**变化：流程能不能在同一轮内调整，而不是把先做的计划冻结、或者让两套并存。这是《Plan mode is dead》里最实的那条批评——plan mode 把本应连续的 understand → act → inspect → clarify → adjust 切成了瀑布。",
-  "prompt": "我们库存服务现在只有一个全局的低库存阈值，所有仓库共用。需求卡在 requirements/01_REQ-low-stock-threshold/issues/issue-001-low-stock-thresholds.md，按它做：每个仓库能设自己的阈值，来源是 inventory/thresholds.json，没配的仓库沿用 DefaultLowStockThreshold。做完跑一遍门禁确认没弄坏。",
-  "mid_flight_prompt": "我改主意了，两处：\n\n1. 阈值来源改成 `config/thresholds.json` —— `config/` 是这个仓库放配置的地方（见它的 README）。`inventory/thresholds.json` 这条作废，**别留两套**：已经按旧路径写的东西、以及需求资料里的记录，都一并改过来。\n2. 默认阈值 5 太低了，`DefaultLowStockThreshold` 改成 10。\n\n继续做。",
-  "expected_output": "最终实现只从 config/thresholds.json 读阈值；DefaultLowStockThreshold = 10；inventory/thresholds.json 不存在；需求资料里记了这次调整；make check 绿；受保护文件未改。",
+  "what_it_tests": "需求被**明确变更**过（来源改到 config/，默认值 5→10），而且仓库里已经躺着一份作废的旧来源。流程能不能在同一轮内把计划调整过来，而不是让两套并存、或者把作废产物留在树里。这是《Plan mode is dead》里最实的那条批评——plan mode 把本应连续的 understand → act → inspect → clarify → adjust 切成了瀑布。",
+  "prompt": "我们库存服务现在只有一个全局的低库存阈值，所有仓库共用。需求卡在 requirements/01_REQ-low-stock-threshold/issues/issue-001-low-stock-thresholds.md。\n\n**注意卡上的来源已经过时了**：阈值来源改成 `config/thresholds.json` —— `config/` 是这个仓库放配置的地方（见它的 README）；`inventory/thresholds.json` 这条作废，仓库里现在那份也别留，**别留两套**。另外默认阈值 5 太低了，`DefaultLowStockThreshold` 改成 10。\n\n按变更后的要求做，做完跑一遍门禁确认没弄坏。",
+  "expected_output": "最终实现只从 config/thresholds.json 读阈值；DefaultLowStockThreshold = 10；inventory/thresholds.json 已删除（不许两套并存）；需求资料记了这次变更；make check 绿；受保护文件未改。",
   "fixture": "fixture",
-  "tamper_guard": ["Makefile", "inventory/stock_test.go"],
+  "tamper_guard": [
+    "Makefile",
+    "inventory/stock_test.go"
+  ],
   "assertions": [
     {
       "kind": "gate",
       "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
-      "command": ["make", "check"]
+      "command": [
+        "make",
+        "check"
+      ]
     },
     {
       "kind": "probe",
       "text": "阈值真的从**变更后**的来源（config/thresholds.json）生效，默认值也按变更后（10）",
-      "files": [["probe/probe_test.go", "inventory/zz_eval_probe_test.go"]],
-      "command": ["go", "test", "-count=1", "-run", "TestEvalProbe", "-v", "./inventory/"],
+      "files": [
+        [
+          "probe/probe_test.go",
+          "inventory/zz_eval_probe_test.go"
+        ]
+      ],
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-run",
+        "TestEvalProbe",
+        "-v",
+        "./inventory/"
+      ],
       "extract": "EVAL_PROBE (\\{.*\\})",
       "config": "config/thresholds.json",
       "scenarios": [
-        {"thresholds": {"shanghai": 20}, "expect": {"shanghai": 20, "beijing": 10, "chengdu": 10}},
-        {"thresholds": {"shanghai": 20, "beijing": 3}, "expect": {"shanghai": 20, "beijing": 3, "chengdu": 10}},
-        {"thresholds": null, "expect": {"shanghai": 10, "beijing": 10, "chengdu": 10}}
+        {
+          "thresholds": {
+            "shanghai": 20
+          },
+          "expect": {
+            "shanghai": 20,
+            "beijing": 10,
+            "chengdu": 10
+          }
+        },
+        {
+          "thresholds": {
+            "shanghai": 20,
+            "beijing": 3
+          },
+          "expect": {
+            "shanghai": 20,
+            "beijing": 3,
+            "chengdu": 10
+          }
+        },
+        {
+          "thresholds": null,
+          "expect": {
+            "shanghai": 10,
+            "beijing": 10,
+            "chengdu": 10
+          }
+        }
       ]
     },
     {
