@@ -6,7 +6,7 @@
   {
    "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
    "passed": true,
-   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go test ./...\nok  \texample.com/inventory/inventory\t0.006s\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go vet ./..."
+   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go test ./...\nok  \texample.com/inventory/inventory\t0.007s\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go vet ./..."
   },
   {
    "text": "按仓库配置的阈值真的生效，且缺省回退到默认值",

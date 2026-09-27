@@ -1,6 +1,6 @@
 # 02-mid-flight-change / with_skill
 
-- dsh：`/tmp/bin/dsh`
+- dsh：`（--regrade：没重跑 dsh，只重新打分）`
 - 耗时：188.5s
 - token：693652
 - 步数：20，工具调用：39

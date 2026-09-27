@@ -1,0 +1,330 @@
+{
+ "metadata": {
+  "skill_name": "flow",
+  "skill_path": "/Users/mervyn/workspaces/github/let-it-go/evals",
+  "executor_model": "deepseek-v4-flash",
+  "analyzer_model": "inline",
+  "timestamp": "2026-09-27T09:33:33Z",
+  "evals_run": [
+   "01-single-unit",
+   "02-mid-flight-change"
+  ],
+  "runs_per_configuration": 1
+ },
+ "runs": [
+  {
+   "eval_id": "01-single-unit",
+   "eval_name": "single-unit",
+   "configuration": "with_skill",
+   "run_number": 1,
+   "result": {
+    "pass_rate": 0.8571428571428571,
+    "passed": 6,
+    "failed": 1,
+    "total": 7,
+    "time_seconds": 224.61,
+    "tokens": 854607,
+    "tool_calls": 30,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go test ./...\nok  \texample.com/inventory/inventory\t0.007s\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go vet ./..."
+    },
+    {
+     "text": "按仓库配置的阈值真的生效，且缺省回退到默认值",
+     "passed": true,
+     "evidence": "  ok   {\"shanghai\":20} → {\"beijing\":5,\"chengdu\":5,\"shanghai\":20}\n  ok   {\"beijing\":3,\"shanghai\":20} → {\"beijing\":3,\"chengdu\":5,\"shanghai\":20}\n  ok   null → {\"beijing\":5,\"chengdu\":5,\"shanghai\":5}"
+    },
+    {
+     "text": "需求资料落在 fixture 声明的作用域根 requirements/<scope>/ 下",
+     "passed": false,
+     "evidence": "requirements/*/README.md → 命中 0 个（需要 ≥1）"
+    },
+    {
+     "text": "没有落到技能默认的 tasks/<feature>/ 下",
+     "passed": true,
+     "evidence": "tasks → 不存在"
+    },
+    {
+     "text": "若产生了 loop 检查点，它必须在 requirements/<scope>/issues/ 下",
+     "passed": true,
+     "evidence": "没有产生 loop 检查点（单单元模式不该产生，允许）"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、inventory/stock_test.go"
+    },
+    {
+     "text": "没有写到 fixture 之外（臂的 cwd 就是 fixture，越界是这条路的典型失败）",
+     "passed": true,
+     "evidence": "fixture 外面没有多出东西（/Users/mervyn/workspaces/github/let-it-go/evals/results/iteration-7/01-single-unit/with_skill 下 9 项，全是 harness 自己的）"
+    }
+   ],
+   "notes": [
+    "- dsh：`（--regrade：没重跑 dsh，只重新打分）`",
+    "- 耗时：224.6s",
+    "- token：854607",
+    "- 步数：22，工具调用：30",
+    "- **Spec 轴**：六条验收条件逐条对上，无缺失 / 多出 / 写错；`thresholds.json` 是需求点名的来源，不算额外。",
+    "- **Standards 轴**：第一轮判 `revise`，抓到一条真实的性能回归——`LowStockWarehouses` 原先逐仓库重复 `os.ReadFile` + `json.Unmarshal` 同一文件（N 次阻塞 I/O）。已修成整批只加载一次；**没有**用包级缓存（那会让 `t.Chdir` 的测试读到陈旧数据）。同时补齐了导出函数的注释（路径相对工作目录、失败静默回退）。复审结论 `accept`。"
+   ]
+  },
+  {
+   "eval_id": "01-single-unit",
+   "eval_name": "single-unit",
+   "configuration": "without_skill",
+   "run_number": 1,
+   "result": {
+    "pass_rate": 1,
+    "passed": 7,
+    "failed": 0,
+    "total": 7,
+    "time_seconds": 111,
+    "tokens": 748966,
+    "tool_calls": 30,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go test ./...\nok  \texample.com/inventory/inventory\t(cached)\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go vet ./..."
+    },
+    {
+     "text": "按仓库配置的阈值真的生效，且缺省回退到默认值",
+     "passed": true,
+     "evidence": "  ok   {\"shanghai\":20} → {\"beijing\":5,\"chengdu\":5,\"shanghai\":20}\n  ok   {\"beijing\":3,\"shanghai\":20} → {\"beijing\":3,\"chengdu\":5,\"shanghai\":20}\n  ok   null → {\"beijing\":5,\"chengdu\":5,\"shanghai\":5}"
+    },
+    {
+     "text": "需求资料落在 fixture 声明的作用域根 requirements/<scope>/ 下",
+     "passed": true,
+     "evidence": "requirements/*/README.md → 命中 1 个（需要 ≥1）"
+    },
+    {
+     "text": "没有落到技能默认的 tasks/<feature>/ 下",
+     "passed": true,
+     "evidence": "tasks → 不存在"
+    },
+    {
+     "text": "若产生了 loop 检查点，它必须在 requirements/<scope>/issues/ 下",
+     "passed": true,
+     "evidence": "没有产生 loop 检查点（单单元模式不该产生，允许）"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、inventory/stock_test.go"
+    },
+    {
+     "text": "没有写到 fixture 之外（臂的 cwd 就是 fixture，越界是这条路的典型失败）",
+     "passed": true,
+     "evidence": "fixture 外面没有多出东西（/Users/mervyn/workspaces/github/let-it-go/evals/results/iteration-7/01-single-unit/without_skill 下 9 项，全是 harness 自己的）"
+    }
+   ],
+   "notes": [
+    "- dsh：`（--regrade：没重跑 dsh，只重新打分）`",
+    "- 耗时：111.0s",
+    "- token：748966",
+    "- 步数：20，工具调用：30"
+   ]
+  },
+  {
+   "eval_id": "02-mid-flight-change",
+   "eval_name": "mid-flight-change",
+   "configuration": "with_skill",
+   "run_number": 1,
+   "result": {
+    "pass_rate": 1,
+    "passed": 7,
+    "failed": 0,
+    "total": 7,
+    "time_seconds": 188.48,
+    "tokens": 693652,
+    "tool_calls": 39,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go test ./...\nok  \texample.com/inventory/inventory\t0.005s\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go vet ./..."
+    },
+    {
+     "text": "阈值真的从**变更后**的来源（config/thresholds.json）生效，默认值也按变更后（10）",
+     "passed": true,
+     "evidence": "  ok   {\"shanghai\":20} → {\"beijing\":10,\"chengdu\":10,\"shanghai\":20}\n  ok   {\"beijing\":3,\"shanghai\":20} → {\"beijing\":3,\"chengdu\":10,\"shanghai\":20}\n  ok   null → {\"beijing\":10,\"chengdu\":10,\"shanghai\":10}"
+    },
+    {
+     "text": "作废的来源没有留下来（不许两套并存）",
+     "passed": true,
+     "evidence": "inventory/thresholds.json → 不存在"
+    },
+    {
+     "text": "没有落到技能默认的 tasks/<feature>/ 下",
+     "passed": true,
+     "evidence": "tasks → 不存在"
+    },
+    {
+     "text": "若产生了 loop 检查点，它必须在 requirements/<scope>/issues/ 下",
+     "passed": true,
+     "evidence": "没有产生 loop 检查点（单单元模式不该产生，允许）"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、inventory/stock_test.go"
+    },
+    {
+     "text": "没有写到 fixture 之外（臂的 cwd 就是 fixture，越界是这条路的典型失败）",
+     "passed": true,
+     "evidence": "fixture 外面没有多出东西（/Users/mervyn/workspaces/github/let-it-go/evals/results/iteration-7/02-mid-flight-change/with_skill 下 7 项，全是 harness 自己的）"
+    }
+   ],
+   "notes": [
+    "- dsh：`（--regrade：没重跑 dsh，只重新打分）`",
+    "- 耗时：188.5s",
+    "- token：693652",
+    "- 步数：20，工具调用：39",
+    "- 新增 `config/thresholds.json`：`{\"shanghai\": 20}`（由旧文件内容迁入）",
+    "- 删除 `inventory/thresholds.json`，仓库里不再有两套",
+    "- `DefaultLowStockThreshold`：`5` → `10`",
+    "- `LowStockThreshold(warehouse)` 从 `config/thresholds.json`（相对进程 cwd）读取 `map[string]int`；命中返回配置值，未配回退默认值",
+    "- 文件不存在 / 读不出来 / 内容不是 JSON 对象 → 一律回退默认值（`loadThresholds` 返回 err 即回退）",
+    "- `IsLowStock` 严格小于、`LowStockWarehouses` 排序、对外签名均未动",
+    "- 配置值生效 + 未配回退；缺文件 / 读不出来 / 非 JSON 对象三条回退路径。用临时目录造配置、测试内 chdir 并恢复，不依赖仓库里那份会被探针改写的文件",
+    "- `make check`（build+test+vet）**退出码 0**，`gofmt -l` 无输出，`-race` 通过",
+    "- 用 eval 官方探针实跑了三种场景，输出与期望逐项一致：",
+    "- `{\"shanghai\":20}` → `{\"shanghai\":20,\"beijing\":10,\"chengdu\":10}`",
+    "- `{\"shanghai\":20,\"beijing\":3}` → `{\"shanghai\":20,\"beijing\":3,\"chengdu\":10}`",
+    "- 配置缺失 → 全 `10`",
+    "- 受保护文件逐字节未变：`Makefile`、`inventory/stock_test.go` 的 sha256 与 seed 完全一致"
+   ]
+  },
+  {
+   "eval_id": "02-mid-flight-change",
+   "eval_name": "mid-flight-change",
+   "configuration": "without_skill",
+   "run_number": 1,
+   "result": {
+    "pass_rate": 1,
+    "passed": 7,
+    "failed": 0,
+    "total": 7,
+    "time_seconds": 46.39,
+    "tokens": 296353,
+    "tool_calls": 22,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go test ./...\nok  \texample.com/inventory/inventory\t(cached)\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go vet ./..."
+    },
+    {
+     "text": "阈值真的从**变更后**的来源（config/thresholds.json）生效，默认值也按变更后（10）",
+     "passed": true,
+     "evidence": "  ok   {\"shanghai\":20} → {\"beijing\":10,\"chengdu\":10,\"shanghai\":20}\n  ok   {\"beijing\":3,\"shanghai\":20} → {\"beijing\":3,\"chengdu\":10,\"shanghai\":20}\n  ok   null → {\"beijing\":10,\"chengdu\":10,\"shanghai\":10}"
+    },
+    {
+     "text": "作废的来源没有留下来（不许两套并存）",
+     "passed": true,
+     "evidence": "inventory/thresholds.json → 不存在"
+    },
+    {
+     "text": "没有落到技能默认的 tasks/<feature>/ 下",
+     "passed": true,
+     "evidence": "tasks → 不存在"
+    },
+    {
+     "text": "若产生了 loop 检查点，它必须在 requirements/<scope>/issues/ 下",
+     "passed": true,
+     "evidence": "没有产生 loop 检查点（单单元模式不该产生，允许）"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、inventory/stock_test.go"
+    },
+    {
+     "text": "没有写到 fixture 之外（臂的 cwd 就是 fixture，越界是这条路的典型失败）",
+     "passed": true,
+     "evidence": "fixture 外面没有多出东西（/Users/mervyn/workspaces/github/let-it-go/evals/results/iteration-7/02-mid-flight-change/without_skill 下 9 项，全是 harness 自己的）"
+    }
+   ],
+   "notes": [
+    "- dsh：`（--regrade：没重跑 dsh，只重新打分）`",
+    "- 耗时：46.4s",
+    "- token：296353",
+    "- 步数：16，工具调用：22",
+    "- `git mv inventory/thresholds.json config/thresholds.json`（内容不变：`{\"shanghai\": 20}`）",
+    "- `inventory/thresholds.json` 已从仓库消失，不存在两套并存",
+    "- `DefaultLowStockThreshold`：`5` → `10`",
+    "- `LowStockThreshold(warehouse)` 现在从 `config/thresholds.json` 读该仓库阈值，读不到该仓库的键或整个配置不可用时回退 `DefaultLowStockThreshold`",
+    "- 新增 `loadThresholds()`：文件不存在、读不出来、内容不是 JSON 对象（`json.Unmarshal` 到 `map[string]int` 失败）一律返回 `nil`，调用方回退默认值",
+    "- `IsLowStock` 签名与 `<` 严格小于语义未动（非目标约束）"
+   ]
+  }
+ ],
+ "run_summary": {
+  "with_skill": {
+   "pass_rate": {
+    "mean": 0.9286,
+    "stddev": 0.0714,
+    "min": 0.8571,
+    "max": 1
+   },
+   "time_seconds": {
+    "mean": 206.545,
+    "stddev": 18.065,
+    "min": 188.48,
+    "max": 224.61
+   },
+   "tokens": {
+    "mean": 774129.5,
+    "stddev": 80477.5,
+    "min": 693652,
+    "max": 854607
+   }
+  },
+  "without_skill": {
+   "pass_rate": {
+    "mean": 1,
+    "stddev": 0,
+    "min": 1,
+    "max": 1
+   },
+   "time_seconds": {
+    "mean": 78.695,
+    "stddev": 32.305,
+    "min": 46.39,
+    "max": 111
+   },
+   "tokens": {
+    "mean": 522659.5,
+    "stddev": 226306.5,
+    "min": 296353,
+    "max": 748966
+   }
+  },
+  "delta": {
+   "pass_rate": "-0.0714",
+   "time_seconds": "+127.8",
+   "tokens": "+251470.0"
+  }
+ },
+ "notes": [
+  "断言「fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）」在两条臂上都通过——它区分不出技能的价值",
+  "断言「作废的来源没有留下来（不许两套并存）」在两条臂上都通过——它区分不出技能的价值",
+  "断言「按仓库配置的阈值真的生效，且缺省回退到默认值」在两条臂上都通过——它区分不出技能的价值",
+  "断言「改动之后 fixture 自己的门禁 make check 仍然绿」在两条臂上都通过——它区分不出技能的价值",
+  "断言「没有写到 fixture 之外（臂的 cwd 就是 fixture，越界是这条路的典型失败）」在两条臂上都通过——它区分不出技能的价值",
+  "断言「没有落到技能默认的 tasks/<feature>/ 下」在两条臂上都通过——它区分不出技能的价值",
+  "断言「若产生了 loop 检查点，它必须在 requirements/<scope>/issues/ 下」在两条臂上都通过——它区分不出技能的价值",
+  "断言「阈值真的从**变更后**的来源（config/thresholds.json）生效，默认值也按变更后（10）」在两条臂上都通过——它区分不出技能的价值"
+ ]
+}

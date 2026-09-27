@@ -20,6 +20,39 @@ go -C evals/harness run . bench results/iteration-N --skill-name flow
 
 ---
 
+## iteration-7：护栏复测，和一个反直觉结果
+
+fixture 改完之后，把两条护栏（单次运行，各一条臂）重跑了一遍。
+
+| 用例 | with_skill | without_skill | 区分点 |
+|---|---|---|---|
+| 01-single-unit | 6/7 | **7/7** | 见下 |
+| 02-mid-flight-change | 7/7 | 7/7 | 无（护栏，符合预期） |
+
+**合计：`with_skill` 0.93 ± 0.07 / `without_skill` 1.00 ± 0.00，delta −0.0714。技能反而更低。**
+
+### case 01：技能输给裸模型，而且是它故意的
+
+`with_skill` 唯一挂掉的是「需求资料落在 `requirements/<scope>/` 下」。原因不是它做得差：
+
+- `loop-it` 判定这是**单单元**任务 → 按技能自己的规则**内联做完，不建需求资料**（小改动不做文书）
+- `without_skill` 读了 fixture 的 `AGENTS.md`，照着「作用域根是 `requirements/<scope>/`」就建了
+
+**这是工作区地图与技能单单元判断的冲突**：工作区说每个需求都建 scope，技能说单单元不必。
+谁该赢是个真的设计问题——不是评测 bug，也不该靠改断言绕过去。
+
+顺带，`with_skill` 还慢得多（206.5s vs 78.7s，token 774K vs 523K）。
+
+### 这一轮还抓到两个真 bug
+
+1. **只有 case 05 的探针修了 cwd，01–04 都没修。** 一条真实的 case 01 臂把配置放在
+   `inventory/thresholds.json`——**prompt 就是这么写的**——仍被判「阈值没生效」，因为探针
+   从包目录出发，实现去找 `inventory/inventory/thresholds.json`。四个探针都补上「回到仓库根
+   再观察」，同一条工作树重打分 6/7。
+2. **`workspace_clean` 量的是环境仓库，不是臂。** 它拿 let-it-go 工作树的脏状态当基准，
+   两次把 Lead 的动作记成臂的越界。DSH 自己的 `benchmarks/AGENTS.md` 明说不要用
+   ambient repositories。已改成只看 fixture 的父目录。
+
 ## iteration-6：一个负结果——fixture 在替技能干活
 
 | 用例 | with_skill | without_skill | 区分点 |

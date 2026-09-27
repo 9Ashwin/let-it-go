@@ -6,7 +6,7 @@
   {
    "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
    "passed": true,
-   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go test ./...\nok  \texample.com/inventory/inventory\t0.006s\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go vet ./..."
+   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go test ./...\nok  \texample.com/inventory/inventory\t0.005s\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go vet ./..."
   },
   {
    "text": "阈值真的从**变更后**的来源（config/thresholds.json）生效，默认值也按变更后（10）",
@@ -34,9 +34,9 @@
    "evidence": "受保护文件逐字节未变：Makefile、inventory/stock_test.go"
   },
   {
-   "text": "没有写到 fixture 之外（子代理没有自己的 cwd，越界是这条路的典型失败）",
+   "text": "没有写到 fixture 之外（臂的 cwd 就是 fixture，越界是这条路的典型失败）",
    "passed": true,
-   "evidence": "let-it-go 工作树没有新脏（运行前已有 12 条，运行后 1 条）"
+   "evidence": "fixture 外面没有多出东西（/Users/mervyn/workspaces/github/let-it-go/evals/results/iteration-7/02-mid-flight-change/with_skill 下 7 项，全是 harness 自己的）"
   }
  ],
  "passed": 7,
