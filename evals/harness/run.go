@@ -105,8 +105,13 @@ func cmdRun(args []string) int {
 
 	prompt := c.Prompt + "\n\n" + suffix
 	started := time.Now()
-	events, finalText, runErr := runHeadless(dsh, work, prompt)
+	events, finalText, rawEvents, runErr := runHeadless(dsh, work, prompt)
 	elapsed := time.Since(started).Seconds()
+
+	// 原始事件流落盘：超时或半途失败时，这是唯一能看出「它卡在哪一步」的东西。
+	if rawEvents != "" {
+		os.WriteFile(filepath.Join(out, "events.jsonl"), []byte(rawEvents), 0o644)
+	}
 
 	timing := Timing{
 		DurationSeconds: round(elapsed, 2),
@@ -145,23 +150,32 @@ type runEvents struct {
 	steps       int
 }
 
+// armTimeout 是一条臂跑到底的上限。300s 太紧——case 05 的正常运行已经到 221s，
+// 再大一点的用例就会被误砍。断言用的 commandTimeout 不动，那是另一回事。
+const armTimeout = 900 * time.Second
+
 // runHeadless 在 workdir 里跑一个任务。dsh 的 headless profile 一个任务跑完就退，
 // 答案走 stdout（--json 时是事件流），诊断走 stderr。
-func runHeadless(dsh, workdir, prompt string) (runEvents, string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
+//
+// 返回的第三个值是**原始事件流**：超时被砍的时候，前面已经发生的事不能丢——
+// 丢掉的正是「它到底卡在哪一步」这条线索。
+func runHeadless(dsh, workdir, prompt string) (runEvents, string, string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), armTimeout)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, dsh, "--profile", "headless", "--json", prompt)
 	cmd.Dir = workdir
+	// headless 的沙箱允许工作区与 /tmp，但**拒绝工作区之外**的默认构建缓存
+	// （`~/Library/Caches/go-build`）。不指一下的话，每条臂都要先自己踩一遍这个坑、
+	// 再想办法绕开——那是环境噪声，不是被测的东西。
+	cmd.Env = append(os.Environ(), "GOCACHE="+filepath.Join(os.TempDir(), "letitgo-eval-gocache"))
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdout, &stderr
 	err := cmd.Run()
-	if ctx.Err() != nil {
-		return runEvents{}, "", fmt.Errorf("超过 %s 还没跑完", commandTimeout)
-	}
+	raw := stdout.String()
 
 	var out runEvents
 	var finalText string
-	for _, line := range strings.Split(stdout.String(), "\n") {
+	for _, line := range strings.Split(raw, "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
@@ -187,11 +201,16 @@ func runHeadless(dsh, workdir, prompt string) (runEvents, string, error) {
 			}
 		}
 	}
+	if ctx.Err() != nil {
+		// 超时被砍：已采到的事件照样带回去，它们说明了卡在哪一步。
+		return out, finalText, raw, fmt.Errorf("超过 %s 还没跑完（最后一步是 step %d，已调用 %d 次工具）",
+			armTimeout, out.steps, out.toolCalls)
+	}
 	if err != nil {
 		// 任务失败也要把已经跑出来的东西带回去，否则没法判断失败在哪一步。
-		return out, finalText, fmt.Errorf("%v（stderr 末尾：%s）", err, tail(stderr.String(), 400))
+		return out, finalText, raw, fmt.Errorf("%v（stderr 末尾：%s）", err, tail(stderr.String(), 400))
 	}
-	return out, finalText, nil
+	return out, finalText, raw, nil
 }
 
 // armSuffix 从 arms.json 取这条臂的提示后缀——臂怎么定义只在一个地方说。

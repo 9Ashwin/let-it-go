@@ -14,7 +14,8 @@
 
 ```
 inventory/     业务代码（Go，package inventory）
-config/        配置（见 config/README.md）
 requirements/  需求资料（作用域根）
 Makefile       门禁
 ```
+
+仓库里还有别的目录时，各自带一份 README 说明自己（`config/` 就是这样的）。

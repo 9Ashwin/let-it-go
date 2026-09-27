@@ -1,6 +1,6 @@
 # 历轮结果
 
-`results/` 不进版本库（跑一轮会产生一堆临时产物）。这个文件是**快照台账**：
+`results/` **进版本库**——结果就是证据。这个文件是**快照台账**：
 每轮跑完把 `benchmark.md` 的结论记一行，这样「技能改好还是改坏了」有据可查。
 
 跑完一轮之后：
@@ -11,7 +11,34 @@ go -C evals/harness run . bench results/iteration-N --skill-name flow
 
 把 `results/iteration-N/benchmark.md` 的表格贴到下面。
 
+臂现在由 `evalctl run` 驱动（`dsh --profile headless`，cwd 就是铺出来的 fixture），
+所以 `timing.json` 里的耗时与 token 是真的。
+
 ---
+
+## iteration-6：一个负结果——fixture 在替技能干活
+
+| 用例 | with_skill | without_skill | 区分点 |
+|---|---|---|---|
+| 05-full-pipeline | 9/9 | 9/9 | **无** |
+
+这一轮**把 case 05 的区分点跑没了**，但原因不在技能：**fixture 自己把 scope 的内部形状
+规定死了**。五个 fixture 共用一份 `AGENTS.md` + `requirements/README.md`，里面写着
+`documents/prd-<feature>.md`、`issues/issue-NNN-<slug>.md`、`notes/`、`records/`，
+连「loop-it 的检查点 `.loop-state.json` 就在这一层」都写了。
+
+一旦 fixture 的 `AGENTS.md` 会**自动加载**（headless 让这件事变成默认），任何称职的 agent
+都会照着产出那些路径——**用不用技能都一样**。于是「有没有 PRD」测的不再是技能，
+而是「agent 会不会读 AGENTS.md」。两条臂都 9/9。
+
+顺带发现 fixture 的 `AGENTS.md` 通篇在说「一个小而完整的 **Python** 服务」、`tests/`（unittest），
+而五个 fixture 全是 Go。有一条臂专门花力气指出了这个矛盾。
+
+修法（`b68dc6d`）：fixture 现在**只声明作用域根**，scope 里面怎么组织交给流程自己定——
+这正是我们定下的分工：**工作区说 scope 在哪，流程决定里面长什么样**。
+副产品是 case 04 的检查点断言也重新变成真的测量。
+
+> 这一轮是**旧 fixture** 下跑的，留着当负结果；不要拿它跟 iteration-7 比分数。
 
 ## iteration-5
 
@@ -82,6 +109,20 @@ prompt 只给一个没成形的诉求（「我们要能按仓库配低库存阈�
   要下结论，先补那几条用例。
 - 两条臂的工程行为（门禁、防篡改、按变更调整、越界写入）在三个用例里**完全一样**。
 
+## ⚠️ iteration-1 … iteration-5 的收集条件
+
+这几轮的分数**不能与 iteration-7 直接比**，两处条件都变了：
+
+- **臂是手工派子代理跑的。** `subagent` 工具没有 cwd 参数，臂继承父会话 cwd，
+  fixture 的 `AGENTS.md` **不会自动加载**，只能在 prompt 里显式指认它。
+  现在改成 `dsh --profile headless`，cwd 就是铺出来的 fixture，约定自动生效。
+- **fixture 当时自己规定了 scope 的内部形状**（见 iteration-6）。
+- 没有 timing：那时 tokens / duration 只在子代理通知里出现一次，没当场落盘，
+  所以那几轮 benchmark 里的用时与 token 都是 0。**现在由 `evalctl run` 自己采。**
+
+结论的方向仍然可以读（技能的价值在批次状态、在 PRD 的产出），但**分数要重测**——
+iteration-7 就是重测。
+
 ## 关于 iteration-0-smoke
 
 harness 刚搭好时用「参考解的真实 grading + 一条手工造的 without_skill」做过一次冒烟，
@@ -90,9 +131,11 @@ harness 刚搭好时用「参考解的真实 grading + 一条手工造的 withou
 
 ## 每条臂要留什么
 
-- `grading.json` — `assert_case` 的机械核对结果（断言、证据、通过率）
+- `grading.json` — 从**外部**打的分（断言、证据、通过率），不是臂的自述
+- `timing.json` — 耗时 / token / 工具调用，由 `evalctl run` 从 `dsh --json` 的事件流里采
 - `benchmark.json` / `benchmark.md` — 该轮的汇总（在 iteration 目录下）
-- `notes.md` — 跑那条臂时的观察，尤其是**断言无效**的原因（例如 Lead 在跑臂期间改了仓库）
+- `notes.md` — 臂最后说了什么；以及**断言无效**的原因（例如 Lead 在跑臂期间改了仓库）
+- `work/` — 臂的工作副本，scratch，不进库；分数在 `grading.json` 里，产物在 `work/` 里
 
-⚠️ **`timing.json` 目前是缺的**：子代理通知里的 tokens / duration 只在通知里出现一次，
-前几轮没当场落盘，所以 benchmark 里的用时与 tokens 都是 0。后续每轮收到通知就写。
+⚠️ **跑臂期间冻结仓库。** `workspace_clean` 拿 materialize 时的脏快照比，
+Lead 顺手改一行 `.gitignore` 就会被记成那条臂的越界（iteration-6 就这么中过一次）。
