@@ -1,0 +1,107 @@
+{
+ "id": "07-parallel-waves",
+ "name": "parallel-waves",
+ "what_it_tests": "并行波：三个工作单元，**两个互不依赖**（`inventory.Reorder` / `pricing.BulkTotal`），\n第三个依赖前两个（`report.LowStockLines`）。`graph` 该判成一张 DAG：前两件进同一个波、各自一个\nworktree 与分支、并发派发；第三件等它们 fan-in 之后才跑；波级只交付一次。\n\n这是这套技能里**唯一没被任何用例覆盖过**的一块——worktree 隔离、波分层、`workflow` 派发、\nfan-in 屏障、`graph.html` 看板，前面六个用例一个都没碰到。它也最复杂，所以最该被钉住。\n\n区分点在**图的形状**，不在代码质量：不加载技能的臂也会把三个函数写对（它们不难），\n但它会把三件事当成一条串行的链来做——没有检查点、没有节点分支、没有波。\n\n⚠️ 这条 prompt 必须**把三个函数的签名写清楚**。签名是任务的契约（真实任务也会给），\n而技能决定的是过程。不写的话，第三件的实现者会自己挑一套签名，探针就测不到它——\n那是 case 01 踩过的坑：断言要求了任务没说清的东西。\n\n⚠️ 「同一个波」不看检查点的 `waves`：臂在下一个波之前会按技能要求用 `--keep-shipped --only-pending` 重规划，而那次重规划**只重排还没交付的节点**——实测最终检查点里 `waves` 只剩 `[[3]]`，已交付的 1、2 不在里面。技能没承诺检查点保留历史分层，所以断言改看**合并形状**：一个 merge 提交同时含两条节点分支的祖先，就是它们被一起集成的证据。",
+ "prompt": "这个仓库有三件事要做，它们之间有**真并行**：\n\n1. `inventory.Reorder(items []Item) []Item` —— 返回数量低于 `ReorderAt = 5` 的条目，\n   按数量升序排，数量相同按 SKU 升序。只碰 `inventory/`。\n2. `pricing.BulkTotal(cents, qty, discountPct int) int` —— 金额减折扣，折扣向下取整\n   （`cents*qty` 减去 `cents*qty*discountPct/100`）。只碰 `pricing/`。\n3. `report.LowStockLines(items []inventory.Item, unitCents map[string]int, discountPct int) []string`\n   —— 对每个待补货的条目输出一行 `\"<sku> x<qty> = <金额>\"`，顺序与 `Reorder` 一致，\n   金额用 `BulkTotal` 算。它**依赖前两件**。\n\n前两件互不依赖，第三件依赖前两件。\n\n做完把三件集成到一起，`make check` 要绿。这个仓库没有 GitHub 远端，不要开 PR；\n最终结果留在默认分支上（验收直接在这里看）。",
+ "expected_output": "三个函数都实现；`.graph_state.json` 与 `graph.html` 落在 requirements/<scope>/；\n检查点里至少两个节点被排进同一个波；每个节点记了自己的 feat/node-* 分支；\nmake check 在集成态上绿；受保护文件未改。",
+ "fixture": "fixture",
+ "tamper_guard": [
+  "Makefile",
+  "inventory/inventory_test.go",
+  "pricing/pricing_test.go"
+ ],
+ "assertions": [
+  {
+   "kind": "gate",
+   "text": "改动之后 fixture 自己的门禁 make check 仍然绿（在集成态上）",
+   "command": [
+    "make",
+    "check"
+   ]
+  },
+  {
+   "kind": "probe",
+   "text": "三个单元的行为都真的实现了（Reorder / BulkTotal / LowStockLines）",
+   "files": [
+    [
+     "probe/probe_test.go",
+     "report/zz_eval_probe_test.go"
+    ]
+   ],
+   "command": [
+    "go",
+    "test",
+    "-count=1",
+    "-run",
+    "TestEvalProbe",
+    "-v",
+    "./report/"
+   ],
+   "extract": "EVAL_PROBE (\\{.*\\})",
+   "scenarios": [
+    {
+     "expect": {
+      "reorder_n": 3,
+      "reorder_first_is_d": 1,
+      "reorder_second_is_a": 1,
+      "bulk": 675,
+      "lines_n": 3,
+      "lines_first_is_d_x1_45": 1
+     }
+    }
+   ]
+  },
+  {
+   "kind": "path_glob",
+   "text": "图检查点落在作用域根（requirements/<scope>/.graph_state.json）",
+   "glob": "requirements/*/.graph_state*",
+   "min": 1
+  },
+  {
+   "kind": "path_glob",
+   "text": "进度看板渲染出来了（requirements/<scope>/graph.html）",
+   "glob": "requirements/*/graph*.html",
+   "min": 1
+  },
+  {
+   "kind": "gate",
+   "text": "两个独立节点在同一个集成点汇合（一个 merge 同时含两条节点分支，那才是一个波）",
+   "command": [
+    "bash",
+    "-c",
+    "for m in $(git rev-list --merges HEAD); do n=0; for b in $(git for-each-ref --format='%(refname:short)' refs/heads | grep '^feat/node-'); do git merge-base --is-ancestor \"$b\" \"$m\" && n=$((n+1)); done; [ \"$n\" -ge 2 ] && exit 0; done; exit 1"
+   ]
+  },
+  {
+   "kind": "gate",
+   "text": "每个节点记了自己的 feat/ 分支（worktree 隔离的证据）",
+   "command": [
+    "bash",
+    "-c",
+    "python3 -c '\nimport json,glob,sys\nps=[p for p in glob.glob(\"requirements/*/.graph_state*\") if not p.endswith(\".tmp\")]\nd=json.load(open(ps[0]))\nbs={n.get(\"branch\",\"\") for n in d[\"nodes\"].values()}\nsys.exit(0 if len({b for b in bs if b.startswith(\"feat/\")})>=2 else 1)\n'"
+   ]
+  },
+  {
+   "kind": "gate",
+   "text": "还在的节点分支都并进了最终状态（fan-in 真的发生了）",
+   "command": [
+    "bash",
+    "-c",
+    "for b in $(git for-each-ref --format='%(refname:short)' refs/heads | grep '^feat/node-'); do git merge-base --is-ancestor \"$b\" HEAD || exit 1; done"
+   ]
+  },
+  {
+   "kind": "path_absent",
+   "text": "没有落到技能默认的 tasks/<feature>/ 下",
+   "glob": "tasks"
+  },
+  {
+   "kind": "tamper_guard",
+   "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）"
+  },
+  {
+   "kind": "workspace_clean",
+   "text": "没有写到 fixture 之外（臂的 cwd 就是 fixture，越界是这条路的典型失败）"
+  }
+ ]
+}

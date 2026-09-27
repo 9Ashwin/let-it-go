@@ -232,7 +232,12 @@ type runEvents struct {
 
 // armTimeout 是一条臂跑到底的上限。300s 太紧——case 05 的正常运行已经到 221s，
 // 再大一点的用例就会被误砍。断言用的 commandTimeout 不动，那是另一回事。
-const armTimeout = 900 * time.Second
+//
+// 1800s：`07-parallel-waves` 跑的是 `graph`，编排器要规划、为每个节点派一个子代理、
+// 在波边界 fan-in 并评审——三次子代理生命周期都算在这一条臂的墙上时间里。900s 会把
+// 一次正常但慢的运行砍成「超时」，而那种失败读起来像技能的问题，其实是超时设小了。
+// 代价是卡住的臂要多占一倍时间；`events.jsonl` 会留下它卡在哪一步。
+const armTimeout = 1800 * time.Second
 
 // runHeadless 在 workdir 里跑一个任务。dsh 的 headless profile 一个任务跑完就退，
 // 答案走 stdout（--json 时是事件流），诊断走 stderr。

@@ -1,4 +1,4 @@
-# eval fixture — 库存服务
+# eval fixture — 零售后台
 
 这是一个小而完整的 Go 服务：有自己的门禁、自己的约定、自己的测试。
 
@@ -15,9 +15,11 @@
 ## 结构
 
 ```
-inventory/     业务代码（Go，package inventory）
+inventory/     库存（package inventory）
+pricing/       计价（package pricing）
+report/        报表（package report）
 requirements/  需求资料（作用域根）
 Makefile       门禁
 ```
 
-仓库里还有别的目录时，各自带一份 README 说明自己（`config/` 就是这样的）。
+三个包互不重叠：`report` 依赖另外两个，`inventory` 与 `pricing` 之间没有依赖。
