@@ -13,9 +13,15 @@
 | `ci_failure` | `gh pr checks` 失败 | 读 CI 日志，本地修复，push | 2 |
 | `auth_failure` | 403、401、认证错误 | 停止，告知用户重新认证 | 0 |
 | `rate_limit` | `rate limit`、`secondary abuse` | 等待 60s，重试 | 3 |
-| `issue_unclear` | issue 无验收条件且无法推断需求 | 跳过，标记 `failed` | 0 |
+| `issue_unclear` | issue 无验收条件且无法推断需求 | 打回：挪到 `feat/issue-N-slug` 留档，标记 `failed` | 0 |
+| `spec_conflict` | issue 的验收条件与冻结基线 / 已有测试直接矛盾 | 同上——**不要**改冻结文件换绿；把冲突写进卡片与 scope README，等人裁决 | 0 |
 | `network_error` | timeout、connection refused | 等待 30s，重试 | 3 |
 | `unknown` | 其他情况 | 记录完整错误，跳过 | 0 |
+
+**凡是标成 `failed` 的，都要挪到 `feat/issue-N-slug` 留档并把该分支记进检查点的 `branch`**
+（`loop-it` 的「例外路径」）。这条曾经只在正文里写成「打回或重做的 issue」，于是真实跑的时候
+一条臂认出了冲突、记了 `failed`，却认为自己属于「等用户裁决」而不是「打回」——留档 commit 就
+留在需求分支上了。**按状态触发，不按措辞。**
 
 **恢复协议：**
 

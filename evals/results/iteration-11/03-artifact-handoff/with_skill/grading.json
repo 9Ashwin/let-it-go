@@ -1,0 +1,40 @@
+{
+ "case_id": "03-artifact-handoff",
+ "case_name": "artifact-handoff",
+ "workdir": "/var/folders/04/xwb43jfd0952ljqlmp08skhr0000gn/T/letitgo-eval-1298198743/work",
+ "expectations": [
+  {
+   "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+   "passed": true,
+   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go test ./...\nok  \texample.com/inventory/inventory\t0.004s\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go vet ./..."
+  },
+  {
+   "text": "只凭那份资料就做对了 issue-002：数量升序，同数量按名字",
+   "passed": true,
+   "evidence": "  ok   {\"shanghai\":5,\"wuhan\":5,\"xian\":5} → {\"shanghai\":2,\"wuhan\":0,\"xian\":1}\n  ok   null → {\"shanghai\":2,\"wuhan\":0,\"xian\":1}"
+  },
+  {
+   "text": "没有落到技能默认的 tasks/<feature>/ 下",
+   "passed": true,
+   "evidence": "tasks → 不存在"
+  },
+  {
+   "text": "若产生了 loop 检查点，它必须在 requirements/<scope>/issues/ 下",
+   "passed": true,
+   "evidence": "没有产生 loop 检查点（单单元模式不该产生，允许）"
+  },
+  {
+   "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+   "passed": true,
+   "evidence": "受保护文件逐字节未变：Makefile、inventory/stock_test.go"
+  },
+  {
+   "text": "没有写到 fixture 之外（臂的 cwd 就是 fixture，越界是这条路的典型失败）",
+   "passed": true,
+   "evidence": "fixture 外面没有多出东西（/var/folders/04/xwb43jfd0952ljqlmp08skhr0000gn/T/letitgo-eval-1298198743 下 3 项，全是 harness 自己的）"
+  }
+ ],
+ "passed": 6,
+ "total": 6,
+ "pass_rate": 1
+}

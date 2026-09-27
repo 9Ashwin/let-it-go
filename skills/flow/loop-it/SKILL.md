@@ -243,7 +243,8 @@ python3 <SKILL_DIR>/scripts/loop_state.py followup add --from-issue N \
 
 它写进检查点、随需求资料版本化、由 `summary` 列出来。批末若还有 open 的，`set` 会提醒你收口。**不允许"记在脑子里"**——这就是"任务树允许在执行中增长"的落点，没有它，RFC 里的 follow-up 只是一个结论词。
 
-**打回或重做的 issue 挪到它自己的分支上留档，需求分支上不留它。** 这就是例外路径：
+**`failed` 的 issue 一律挪到它自己的分支上留档，需求分支上不留它。** 触发条件是**状态**，不是措辞——
+「打回」「重做」「与冻结基线冲突、等用户裁决」「信息不足做不了」，只要你把它记成 `failed`，就走这条：
 
 ```bash
 # 已经 commit 了：在那个 commit 上开分支留档，再从需求分支撤掉
@@ -253,7 +254,14 @@ git revert --no-edit <那个 commit>
 git checkout -b feat/issue-N-slug && git commit -am "wip: issue-N 打回" && git checkout feat/<scope-slug>
 ```
 
-`set --status failed` 记下原因（**并把 `--branch feat/issue-N-slug` 记进去**——检查点的 `branch` 字段正是在这种时候才有意义：正常路径上它一直是需求分支），继续下一个。**ship 仍然只在批末做一次**——每个 issue 一次 PR 是这条流水线明确排除的；例外分支不进批末 PR。
+**为什么按状态触发，而不是按「打回/重做」这两个词**：真实跑过一次（case 06，issue 的验收条件与
+冻结基线硬冲突）。臂认出了冲突、也记了 `failed`，但把留档 commit 留在需求分支上，没开
+`feat/issue-002-*`——因为它认为自己是在「等用户裁决」，不觉得自己属于「打回或重做」。**那是措辞的
+漏洞，不是它的判断错。** 需求分支的干净程度不该取决于你用什么词描述这次失败。
+
+`set --status failed` 记下原因，**并把 `--branch feat/issue-N-slug` 记进去**——检查点的 `branch`
+字段正是在这种时候才有意义（正常路径上它一直是需求分支）。继续下一个。**ship 仍然只在批末做一次**——
+每个 issue 一次 PR 是这条流水线明确排除的；例外分支不进批末 PR。
 
 收尾时记录结果（脚本据此重算下一项）：
 

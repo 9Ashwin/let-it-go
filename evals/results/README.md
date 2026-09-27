@@ -202,6 +202,77 @@ DSH 的 `subagent` 默认后台跑，而后台子代理**不会让本回合保�
    343s / 523s / 576s 的差距就是这么来的）；**token 与分数不受影响**。
    **要拿 timing 下结论，那一轮就串行跑。**
 
+## iteration-11：补齐护栏与例外路径，又抓到一条持久泄漏
+
+8 条臂并发，**8 分 56 秒**。这一轮第一次跑 **06-exception-path**，并把 01/02/03 在新隔离下重测。
+
+| 用例 | with_skill | without_skill | 区分点 |
+|---|---|---|---|
+| 01-single-unit | 6/6 | 6/6 | 无（护栏，符合预期） |
+| 02-mid-flight-change | 7/7（**当轮污染，见下**；iteration-12 复测 7/7） | 7/7 | 无（护栏，符合预期） |
+| 03-artifact-handoff | 6/6 | 6/6 | 无（护栏，符合预期） |
+| 06-exception-path | 7/9 | 6/9 | **检查点**；例外分支两条都没走 |
+
+01/02/03 三个单单元用例**两条臂完全一样**，这是设计如此——它们守的是「技能别把简单事做复杂」，
+不是区分点。真正有区分度的仍是 04（批次状态）、05（规划产物）、06（失败留档）。
+
+### 新泄漏：`~/.dsh/sessions/` 的目录名就是答案键
+
+`02/with_skill` 被标记污染，而它的 tool_result 里**没有** `evals/...` 字样——线索在 `thinking` 里：
+
+> There are prior eval sessions under /Users/mervyn/workspaces/github/let-it-go-evals/results/...
+> the session dir names reveal eval variants.
+
+DSH 把每个会话存在 `~/.dsh/sessions/<cwd 的 slug>/`，而 **slug 就是 cwd**。工作树还在
+`evals/results/` 里那几轮（iteration-6/7/8），会话目录名直接是：
+
+```
+--Users-mervyn-workspaces-github-let-it-go-evals-results-iteration-8-04-serial-batch-without_skill-work--
+```
+
+**仓库路径、用例号、臂名、第几次，全在里面，而且永远不会自己消失。** 一共 16 个这样的目录，
+已删（用户自己的会话没动）。三处修：
+
+1. 临时根前缀改成中性的 `cache-` / `spill-`——臂自己的会话 slug 从此与任何临时目录无法区分。
+2. **`.dsh/sessions` 加进污染标记**：DSH 没有可配置的会话存储根（`DSH_SNAPSHOT_SESSIONS_ROOT`
+   只是测试用的），所以**会话记录仍然共享且可读**——读到就必须报出来，不能静默。
+3. 历史泄漏目录清掉。
+
+### case 06：例外路径写在技能里，但两条臂都没走
+
+| 断言 | with_skill | without_skill |
+|---|---|---|
+| 门禁绿 / 阈值生效且仍严格小于 / 留在需求分支上 | ✓ | ✓ |
+| **打回的 issue 挪到它自己的分支上留档** | ✗ | ✗ |
+| **检查点把 issue-002 记成 `failed` 并写下它的分支** | ✗ | ✗ |
+| 产生了检查点 | ✓ | ✗ |
+| 不落 `tasks/`、防篡改、不越界 | ✓ | ✓ |
+
+`with_skill` 的臂**认出了冲突**（issue-002 要求含等于，冻结基线断言严格小于，同一个调用结论相反）、
+**没有改冻结文件**、也**记了 `failed`**——但它把留档 commit 留在需求分支上，`branch` 写的是
+`feat/stock-tweak`，没开 `feat/issue-002-*`。
+
+**这是措辞的漏洞，不是它的判断错。** 技能正文把触发条件写成「**打回或重做**的 issue」，而它认为
+自己是在「等用户裁决」；查找表 `references/error-recovery.md` 里 `issue_unclear` 那一行的恢复策略
+写的又是「跳过，标记 `failed`」——**没有留档这一步**。两处合起来正好得出它做的事。
+
+改法（`loop-it` 正文 + 查找表）：**触发条件是状态，不是措辞**——凡是记成 `failed` 的（打回、重做、
+与冻结基线冲突、信息不足），一律挪到 `feat/issue-N-slug` 留档并把该分支写进检查点 `branch`；
+查找表新增 `spec_conflict` 一行。
+
+## iteration-12：两条臂复测
+
+| 用例 | with_skill | 结果 |
+|---|---|---|
+| 02-mid-flight-change | 7/7 | 干净（iteration-11 那条污染已作废） |
+| 06-exception-path | **9/9** | 干净 |
+
+06 复测的臂开了 `feat/issue-002-inclusive` 并推到 origin，检查点里
+`issue 2: status=failed, branch=feat/issue-002-inclusive, error_class=spec_conflict`——
+用的正是新加的那个类别。两条臂都没有碰 `~/.dsh/sessions`，也没有读到评测仓库。
+
+> 06 的 `without_skill` 用的是 iteration-11 的 6/9（当轮干净）。它不加载技能，这次修改不可能影响它。
+
 ## iteration-6：一个负结果——fixture 在替技能干活
 
 | 用例 | with_skill | without_skill | 区分点 |

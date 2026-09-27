@@ -104,7 +104,10 @@ func cmdRun(args []string) int {
 	// 别的臂的 results/、harness 源码全在那里。实测有臂真的爬出去读了自己这一轮的
 	// 期望值，还读到了别的臂的检查点。DSH 自己的 benchmarks/AGENTS.md 要求
 	// private mkdtemp roots，就是为了这个。打完分再把树搬回 results/ 供复核。
-	root, err := os.MkdirTemp("", "letitgo-eval-")
+	// 前缀要是**中性的**：DSH 把会话存在 `~/.dsh/sessions/<cwd 的 slug>/` 下，而臂能列这个
+	// 目录——`letitgo-eval-` 这样的名字等于在臂自己的会话目录名里写着「你在被评测」。现在它
+	// 与任何一个临时目录无法区分。代价是我也不能靠名字找残留根了，所以名字仍可 grep。
+	root, err := os.MkdirTemp("", "cache-")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "run:", err)
 		return 1
@@ -136,7 +139,7 @@ func cmdRun(args []string) int {
 	// 就看得见。它现在不再带 case_id（见 Seed 的注释），但文件名与 `protected`
 	// 哈希仍然等于告诉臂「这是评测，去周围找找评分标准」。跑的时候把它挪到另一个
 	// 临时目录，臂跑完再放回来：tamper_guard 与 workspace_clean 都要读它。
-	secret, err := os.MkdirTemp("", "letitgo-seed-")
+	secret, err := os.MkdirTemp("", "spill-")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "run:", err)
 		return 1
@@ -575,7 +578,14 @@ func parkWorkTree(work, out string) error {
 
 // contaminationMarkers 是臂**不该碰**的东西。工作树现在建在仓库外的私有临时根里，
 // 所以它够不着这些；这条检查是保险，让隔离失效时能被看见。
-var contaminationMarkers = []string{"evals/cases", "evals/results", "evals/harness", "arms.json"}
+//
+// `.dsh/sessions` 是后补的一条：DSH 把每个会话存在 `~/.dsh/sessions/<cwd 的 slug>/` 下，
+// 而 **slug 就是 cwd**。工作树还在 `evals/results/` 里那几轮，会话目录名直接是
+// `--Users-…-let-it-go-evals-results-iteration-8-04-serial-batch-without_skill-work--`——
+// 仓库路径、用例号、臂名、第几次全在里面，而且**永远不会自己消失**。实测 iteration-11 的
+// 02/with_skill 就是列了会话目录才被标记的。工作树挪走之后 slug 不再泄漏这些，但
+// **会话记录本身仍然共享且可读**（DSH 没有可配置的存储根），所以读到就要报出来。
+var contaminationMarkers = []string{"evals/cases", "evals/results", "evals/harness", "arms.json", ".dsh/sessions"}
 
 func contaminationIn(rawEvents string) []string {
 	var found []string
