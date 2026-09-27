@@ -148,12 +148,13 @@ python3 <SKILL_DIR>/scripts/loop_state.py followup add --from-issue N \
 
 ```bash
 python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status shipped --branch feat/issue-N-slug
+python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status shipped --waive "<为什么拿不到观察>"
 python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status skipped
 python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status blocked
 python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status failed --error-class build_failure --error "<message>"
 ```
 
-**`shipped` 之前先把检查点填成一条记录，而不是一个状态。** 检查点要原样保留四类内容，不压成摘要——进度、关键决策以及为什么这么决策、验证记录、未决事项。`set --status shipped` 在缺 `decisions` / `verification` / `open` 时会告警，在**一条 evidence 都没有**时也会告警；那两条说的是同一件事：「这一行只说明发生了事，没说明什么证明了它」。补齐四类：
+**`shipped` 之前先把检查点填成一条记录，而不是一个状态。** 检查点要原样保留四类内容，不压成摘要——进度、关键决策以及为什么这么决策、验证记录、未决事项。**一条 evidence 都没有的 `shipped` 会被直接拒绝**（退出码 1，状态不落盘）：那是唯一一处"事实类"缺口，脚本能判定，就不该交给人自觉。确实拿不到观察时用 `--waive "原因"` 显式豁免——原因会记进检查点，`summary` 里会标成 `#N(已豁免)`，所以豁免是留痕的，不是静默的。缺 `decisions` / `verification` / `open` 只告警不拦：那是判断，不是可核验的事实。补齐四类：
 
 ```bash
 python3 <SKILL_DIR>/scripts/loop_state.py note --issue N \

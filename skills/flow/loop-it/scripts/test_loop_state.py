@@ -186,6 +186,8 @@ def test_blocked_and_next_computation():
         state = read_state(state_path)
         check("重试递增 attempts", state["issues"]["1"]["attempts"] == 2, str(state["issues"]["1"]))
 
+        run("evidence", "add", "--issue", 1, "--kind", "test", "--command", "go test ./...",
+            "--result", "pass", "--state", state_path)
         code, out, err = run("set", "--issue", 1, "--status", "shipped",
                              "--branch", "feat/issue-1-foundation", "--state", state_path)
         state = read_state(state_path)
@@ -250,22 +252,53 @@ def test_notes_are_kept_verbatim():
         kept = [entry["text"] for entry in read_state(state_path)["issues"]["1"]["notes"]["decisions"]]
         check("notes 追加而非替换", kept == ["chose X over Y", "and later Z"], str(kept))
 
+        run("evidence", "add", "--issue", 1, "--kind", "test", "--command", "go test ./...",
+            "--result", "pass", "--state", state_path)
         code, out, err = run("set", "--issue", 1, "--status", "shipped", "--state", state_path)
         check("记录齐全时 shipped 不告警", "没有记录 decisions" not in err, err)
 
 
-def test_shipping_without_notes_warns():
-    """没有 decisions、verification 或 open 的 `shipped` 记录是断言，不是记录。"""
+def test_shipping_without_evidence_is_refused():
+    """背后没有观察的 shipped 记录是断言，不是记录——这条是阻塞，不是告警。"""
     with tempfile.TemporaryDirectory() as tmp:
         state_path = os.path.join(tmp, ".loop-state.json")
         issues = write_issues(tmp, [(1, "Only", "no deps")])
         run("scan", "--issues", issues, "--state", state_path, "--repo", "o/r")
 
         code, out, err = run("set", "--issue", 1, "--status", "shipped", "--state", state_path)
+        check("没有 evidence 的 shipped 被拒绝", code != 0, out)
+        check("拒绝时说明怎么补", "evidence add" in err and "--waive" in err, err)
+        check("被拒绝的转移没有落盘",
+              read_state(state_path)["issues"]["1"]["status"] != "shipped",
+              str(read_state(state_path)["issues"]["1"]))
+
+        code, out, err = run("set", "--issue", 1, "--status", "shipped", "--state", state_path,
+                             "--waive", "只有线上环境能验，本地拿不到观察")
+        check("写明原因后可以豁免", code == 0, err)
+        entry = read_state(state_path)["issues"]["1"]
+        check("豁免的原因记进了检查点",
+              entry["status"] == "shipped"
+              and entry["evidence_waiver"]["reason"] == "只有线上环境能验，本地拿不到观察"
+              and entry["evidence_waiver"]["at"], str(entry))
+        check("豁免时给一行信息而非告警", "已豁免" in err, err)
+
+        code, out, err = run("summary", "--state", state_path)
+        check("summary 标出这条豁免", "#1(已豁免)" in out, out)
+
+
+def test_shipping_without_notes_warns():
+    """缺 decisions / verification / open 只告警不拦——那是判断，不是可核验的事实。"""
+    with tempfile.TemporaryDirectory() as tmp:
+        state_path = os.path.join(tmp, ".loop-state.json")
+        issues = write_issues(tmp, [(1, "Only", "no deps")])
+        run("scan", "--issues", issues, "--state", state_path, "--repo", "o/r")
+
+        run("evidence", "add", "--issue", 1, "--kind", "test", "--command", "go test ./...",
+            "--result", "pass", "--state", state_path)
+        code, out, err = run("set", "--issue", 1, "--status", "shipped", "--state", state_path)
         check("状态转移本身仍然成功", code == 0, err)
         check("三个缺失的类别都被指名",
               "没有记录 decisions, verification, open" in err, err)
-        check("缺失的观察也被指名", "没有记录 evidence" in err, err)
 
         run("note", "--issue", 1, "--decisions", "d", "--state", state_path)
         code, out, err = run("set", "--issue", 1, "--status", "shipped", "--state", state_path)
@@ -371,6 +404,7 @@ def main() -> int:
         test_blocked_and_next_computation,
         test_untracked_dependency_waits,
         test_notes_are_kept_verbatim,
+        test_shipping_without_evidence_is_refused,
         test_shipping_without_notes_warns,
         test_evidence_is_recorded_structured,
         test_followups_are_a_queue_not_a_note,

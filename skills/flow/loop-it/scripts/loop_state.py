@@ -14,11 +14,12 @@
       打印顺序、下一个可执行 issue 以及被阻塞/跳过的那些。
 
   set --issue N --status <pending|in_progress|shipped|failed|skipped|blocked>
-      [--error-class X] [--error TEXT] [--branch B] [--phase P]
+      [--error-class X] [--error TEXT] [--branch B] [--phase P] [--waive TEXT]
       记录一次状态转移，打上时间戳，在一次尝试开始时递增 `attempts`，写入检查点，并打印
-      下一步该做什么。把 issue 标成 `shipped` 时，若它仍没记录 `decisions` /
-      `verification` / `open`，或没有结构化的 `evidence`，会给出告警——一条缺了这些的
-      shipped 记录只说明有事发生过，说明不了是什么证明了它。
+      下一步该做什么。把 issue 标成 `shipped` 时，若没有结构化的 `evidence`，这次转移会被
+      **拒绝**——一条背后没有观察的 shipped 记录只说明有事发生过，说明不了是什么证明了它。
+      确实拿不到观察时用 `--waive "原因"` 显式豁免，豁免会记进检查点并在 `summary` 里标出。
+      仍缺 `decisions` / `verification` / `open` 时只告警，不拦——那是判断，不是可核验的事实。
 
   note --issue N [--progress TEXT] [--decisions TEXT] [--verification TEXT]
        [--open TEXT]
@@ -455,8 +456,11 @@ def render_summary(state: dict) -> str:
                  + ", ".join(f"{item['id']}({clip(item.get('title'))})" for item in pending))
     no_evidence = [n for n in buckets.get("shipped", []) if missing_evidence(issues[str(n)])]
     if no_evidence:
-        lines.append(f"  ⚠️  无 evidence 的 shipped: {len(no_evidence)}  "
-                     + ", ".join(ref(n) for n in no_evidence))
+        labels = [
+            ref(n) + ("(已豁免)" if evidence_waiver(issues[str(n)]) else "")
+            for n in no_evidence
+        ]
+        lines.append(f"  ⚠️  无 evidence 的 shipped: {len(no_evidence)}  " + ", ".join(labels))
     lines.append("━" * 52)
     return "\n".join(lines)
 
@@ -554,6 +558,18 @@ def cmd_set(args: argparse.Namespace) -> int:
     previous = entry.get("status", "pending")
     stamp = now()
 
+    if args.status == "shipped" and missing_evidence(entry) and not args.waive:
+        die(
+            f"{ref(args.issue)} 没有记录 evidence —— 背后没有观察的 shipped 记录以后无法审计。\n"
+            f"  先记一条观察：`evidence add --issue {args.issue} "
+            f"--kind <test|runtime|database|external|human> --command '…' "
+            f"--result <pass|fail|deferred>`\n"
+            f"  确实拿不到观察时写明原因豁免：`set --issue {args.issue} --status shipped "
+            f"--waive \"…\"`"
+        )
+    if args.status == "shipped" and args.waive:
+        entry["evidence_waiver"] = {"reason": args.waive, "at": stamp}
+
     if args.status == "in_progress":
         entry["attempts"] = int(entry.get("attempts", 0)) + 1
         entry.setdefault("started_at", stamp)
@@ -588,14 +604,8 @@ def cmd_set(args: argparse.Namespace) -> int:
                 f"`note --issue {args.issue} …` 记录。",
                 file=sys.stderr,
             )
-        if missing_evidence(entry):
-            print(
-                f"  ! {ref(args.issue)} 没有记录 evidence —— 背后没有观察的 shipped 记录"
-                f"以后无法审计。用 "
-                f"`evidence add --issue {args.issue} --kind <test|runtime|database|external|"
-                f"human> --command '…' --result <pass|fail|deferred>` 记一条。",
-                file=sys.stderr,
-            )
+        if args.waive:
+            print(f"  ℹ️  {ref(args.issue)} 的 evidence 已豁免：{args.waive}", file=sys.stderr)
     print(render_next(state))
     if not any(issues[str(n)].get("status") not in DONE for n in order_of(state)):
         print("\n🎉 全部 issue 处理完毕 — 现在做批末收尾：/review-it 审整批 diff，然后 /ship-it 一次 PR。")
@@ -623,6 +633,11 @@ def missing_notes(entry: dict) -> list[str]:
 def missing_evidence(entry: dict) -> bool:
     """shipped 的 issue 背后没有任何结构化观察时为真。"""
     return not entry.get("evidence")
+
+
+def evidence_waiver(entry: dict) -> dict:
+    """这条 issue 上显式豁免 evidence 的记录；没有豁免时为空 dict。"""
+    return entry.get("evidence_waiver") or {}
 
 
 def require_issue(state: dict, number: int, path: str) -> dict:
@@ -805,6 +820,8 @@ def main(argv: list[str] | None = None) -> int:
     setter.add_argument("--error")
     setter.add_argument("--branch")
     setter.add_argument("--phase")
+    setter.add_argument("--waive", metavar="原因",
+                        help="shipped 但确实拿不到 evidence 时，写明原因豁免")
     setter.add_argument("--state", default=DEFAULT_STATE)
     setter.set_defaults(func=cmd_set)
 
