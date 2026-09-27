@@ -860,9 +860,7 @@
         <div class="section-dot sage"></div>
         <h3>2. 安装</h3>
       </div>
-      <p>两条安装路径，二选一即可。</p>
-
-      <h3>方式一（推荐）：作为 skill 目录安装</h3>
+      <h3>作为 skill 目录安装</h3>
       <pre><code><span class="comment"># 全部 skills 拍平到 ~/.agents/skills；重跑这条就是更新（会提示覆盖已安装的）</span>
 <span class="cmd">npx skills add</span> <span class="value">9Ashwin/let-it-go</span></code></pre>
       <ul class="step-list">
@@ -875,34 +873,11 @@
       <pre><code><span class="comment"># 拍平到 ~/.agents/skills/&lt;技能&gt;</span>
 <span class="cmd">cp -R</span> <span class="value">&lt;let-it-go&gt;/skills/flow/graph</span> <span class="value">~/.agents/skills/graph</span></code></pre>
 
-      <h3>方式二（可选）：作为 bundle 安装</h3>
-      <pre><code><span class="comment"># 安装到 web profile</span>
-<span class="cmd">dsh plugin</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="cmd">add</span> <span class="flag">-w</span> <span class="value">github:9Ashwin/let-it-go</span>
-
-<span class="comment"># 生产环境建议锁定到某个 commit</span>
-<span class="cmd">dsh plugin</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="cmd">add</span> <span class="flag">-w</span> <span class="value">github:9Ashwin/let-it-go#&lt;sha&gt;</span>
-
-<span class="comment"># 验证安装</span>
-<span class="cmd">dsh</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="flag">--dump-config</span> | <span class="cmd">grep</span> <span class="flag">-A3</span> <span class="value">let-it-go</span></code></pre>
-      <ul class="step-list">
-        <li><code class="inline-code">-w</code> 不能省略：DSH 把 profile 当作 pnpm workspace 根，pnpm 9 缺少该标志时会报 <code class="inline-code">ERR_PNPM_ADDING_TO_ROOT</code>。</li>
-        <li>包里的 <code class="inline-code">dsh.bundle</code> 声明会让 <code class="inline-code">dsh</code> 把它追加进 profile 的 <code class="inline-code">bundles</code> 层，技能由<strong>包内自带的 provider</strong> 提供，不依赖 <code class="inline-code">~/.agents/skills</code> 是否在技能根里。provider 的 patch 把 <code class="inline-code">skills/flow</code>、<code class="inline-code">skills/bonus</code>、<code class="inline-code">skills/vendor</code> <strong>各列为一个技能根</strong>——技能根只扫一层，漏掉一个桶那一桶就会整体消失。</li>
-        <li>本包是 <strong>config-only bundle</strong>（纯配置包，没有构建脚本），因此<strong>不需要</strong> <code class="inline-code">allowBuilds</code> 授权。</li>
-        <li>生产环境建议锁定 commit：<code class="inline-code">github:9Ashwin/let-it-go#&lt;sha&gt;</code>。</li>
-        <li>验证：<code class="inline-code">dsh --profile web --dump-config | grep -A3 let-it-go</code>，应看到 <code class="inline-code"># == let-it-go-skills</code> 层。</li>
-        <li>本地 checkout 联调：<code class="inline-code">dsh plugin --profile demo add -w /path/to/let-it-go</code>。</li>
-      </ul>
-
-      <div class="note">
-        <strong>两条路怎么选：</strong>Web 这类面由 <strong>shipped preset</strong> 提供技能目录，而 <code class="inline-code">~/.agents/skills</code> 本来就在它的技能根里，所以「只想要技能」时方式一就够了——两个来源的同名技能按<strong>近层优先</strong>去重，<strong>目录副本会赢过插件包副本</strong>，两条都装也不会重复出现，只是在 Web 面上 bundle 赢不了目录。方式二的增量价值是<strong>随包携带 preset</strong>：一个 preset 可以同时决定这个 agent 挂哪些技能、以及它的子代理带不带技能目录（<code class="inline-code">toolFilter</code>）与 persona，把「这套流程怎么跑」变成部署层的一等配置。反过来，若你用没挂 preset 的面（某些 minimal profile），方式二才是技能可见的来源。
-      </div>
-
       <h3>前置要求</h3>
       <table>
         <tr><th>工具</th><th>用途</th><th>安装</th></tr>
         <tr><td><code class="inline-code">npx</code></td><td>npm package runner（推荐方式）</td><td>Node.js 自带</td></tr>
         <tr><td><code class="inline-code">gh</code></td><td>GitHub CLI (Issue/PR 操作)</td><td><code class="inline-code">brew install gh && gh auth login</code></td></tr>
-        <tr><td><code class="inline-code">dsh</code></td><td>DeepSeek Harness CLI（<strong>仅方式二</strong>需要）</td><td>参见 DSH 官方安装说明</td></tr>
       </table>
 
       <div class="tip">

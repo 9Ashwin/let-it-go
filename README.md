@@ -44,7 +44,7 @@ let-it-go 的核心是 [`skills/flow`](skills/flow) 中的 7 个研发工作流�
 
 ## 快速开始
 
-### 方式一：作为技能目录安装（推荐）
+### 作为技能目录安装
 
 ```bash
 # 24 个技能拍平到 ~/.agents/skills。重跑这条就是更新——它会提示覆盖已安装的
@@ -58,10 +58,6 @@ npx skills add 9Ashwin/let-it-go
 ```bash
 cp -R <let-it-go>/skills/flow/graph ~/.agents/skills/graph   # 拍平，不要连桶一起拷
 ```
-
-### 方式二：作为 DSH bundle 安装（可选）
-
-还可以作为**部署层配置**安装（随包携带 preset、`toolFilter`、persona，可锁定 commit）——安装命令与参数说明见文档站：**<https://9ashwin.github.io/let-it-go/#install>**。
 
 > [!TIP]
 > 安装后，直接描述你要做的事。Agent 会按技能描述选择入口；想指定某一步时，也可以直接写技能名。`/teach` 需要手动调用。

@@ -860,9 +860,7 @@
         <div class="section-dot sage"></div>
         <h3>2. Installation</h3>
       </div>
-      <p>Two install routes — pick one, not both.</p>
-
-      <h3>Option 1 (Recommended): Install as a skill directory</h3>
+      <h3>Install as a skill directory</h3>
       <pre><code><span class="comment"># Recommended — install all skills into ~/.agents/skills</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span>
 
@@ -907,38 +905,11 @@
       <pre><code><span class="comment"># flattened, not the bucket</span>
 <span class="cmd">cp -R</span> <span class="value">&lt;let-it-go&gt;/skills/flow/graph</span> <span class="value">~/.agents/skills/graph</span></code></pre>
 
-      <h3>Option 2 (Optional): Install as a bundle</h3>
-      <pre><code><span class="comment"># Optional — install as a DSH bundle (config-only package)</span>
-<span class="cmd">dsh plugin</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="flag">add</span> <span class="flag">-w</span> <span class="value">github:9Ashwin/let-it-go</span>
-
-<span class="comment"># Pin a commit for production instead of tracking the default branch</span>
-<span class="cmd">dsh plugin</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="flag">add</span> <span class="flag">-w</span> <span class="value">github:9Ashwin/let-it-go#&lt;sha&gt;</span>
-
-<span class="comment"># Verify the bundle is registered in the profile</span>
-<span class="cmd">dsh</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="flag">--dump-config</span> | <span class="cmd">grep</span> <span class="flag">-A3</span> <span class="value">let-it-go</span></code></pre>
-
-      <div class="note">
-        <strong>Bundle install notes:</strong>
-        <ul class="step-list" style="margin-top: 0.5rem;">
-          <li><code class="inline-code">-w</code> is required because the DSH profile is treated as a pnpm workspace root — without it, pnpm 9 refuses to add the dependency and reports <code class="inline-code">ERR_PNPM_ADDING_TO_ROOT</code>.</li>
-          <li>The package's <code class="inline-code">dsh.bundle</code> declaration makes <code class="inline-code">dsh</code> append it to the profile's <code class="inline-code">bundles</code> layer; the skills are then served by a <strong>provider shipped inside the package</strong>, so they do not depend on <code class="inline-code">~/.agents/skills</code> being one of the skill roots. That patch lists <code class="inline-code">skills/flow</code>, <code class="inline-code">skills/bonus</code> and <code class="inline-code">skills/vendor</code> as <strong>three separate skill roots</strong> — a root is scanned one level deep, so a bucket missing from the patch disappears wholesale.</li>
-          <li>The package is a config-only bundle (skills + config, no native build step), so no <code class="inline-code">allowBuilds</code> grant is needed.</li>
-          <li>Pin a commit for production with <code class="inline-code">#&lt;sha&gt;</code> so an update can't shift behavior under you.</li>
-          <li>Verify with <code class="inline-code">dsh --profile web --dump-config | grep -A3 let-it-go</code>.</li>
-          <li>Working from a local checkout: <code class="inline-code">dsh plugin --profile demo add -w /path/to/let-it-go</code>.</li>
-        </ul>
-      </div>
-
-      <div class="note">
-        <strong>Which route to pick:</strong> faces like Web get their skill directory from a <strong>shipped preset</strong>, and <code class="inline-code">~/.agents/skills</code> is already inside its skill roots — so Option 1 is enough when all you want is the skills: the two sources are de-duplicated <strong>nearest-layer-first</strong>, and the <strong>directory copy wins over the plugin-package copy</strong>. Installing both duplicates nothing; on the Web face the bundle simply loses to the directory. The bundle's added value is <strong>shipping a preset with the package</strong> — a preset can decide both which skills an agent mounts and whether its subagents carry the skill directory (<code class="inline-code">toolFilter</code>) and a persona, turning "how this workflow runs" into first-class deployment config. Conversely, on a face with no preset mounted (some minimal profiles), the bundle is what makes the skills visible at all.
-      </div>
-
       <h3>Prerequisites</h3>
       <table>
         <tr><th>Tool</th><th>Purpose</th><th>Install</th></tr>
         <tr><td><code class="inline-code">npx</code></td><td>npm package runner (recommended route)</td><td>Bundled with Node.js</td></tr>
         <tr><td><code class="inline-code">gh</code></td><td>GitHub CLI (Issue/PR operations)</td><td><code class="inline-code">brew install gh && gh auth login</code></td></tr>
-        <tr><td><code class="inline-code">dsh</code></td><td>DeepSeek Harness CLI (Option 2 only)</td><td><code class="inline-code">npm install -g @deepseek-ai/dsh</code></td></tr>
       </table>
 
       <div class="tip">

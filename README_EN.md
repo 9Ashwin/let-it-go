@@ -44,7 +44,7 @@ Skills decide the steps and boundaries. Python scripts with self-tests handle or
 
 ## Quick Start
 
-### Option 1: Install as a skill directory (recommended)
+### Install as a skill directory
 
 ```bash
 # 24 skills, flattened into ~/.agents/skills. Re-running this is the update —
@@ -59,10 +59,6 @@ The skills land in `~/.agents/skills`, and this route changes nothing in any pro
 ```bash
 cp -R <let-it-go>/skills/flow/graph ~/.agents/skills/graph   # flattened, not the bucket
 ```
-
-### Option 2: Install as a DSH bundle (optional)
-
-It can also be installed as **deployment configuration** (a preset that travels with the package, `toolFilter`, persona, commit pinning) — the commands and flags are in the docs: **<https://9ashwin.github.io/let-it-go/#install>**.
 
 > [!TIP]
 > Once installed, describe what you want to do. The agent selects an entry point from the skill descriptions; name a skill when you want a specific step. `/teach` requires manual invocation.
