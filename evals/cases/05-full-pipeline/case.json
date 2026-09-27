@@ -1,0 +1,109 @@
+{
+  "id": "05-full-pipeline",
+  "name": "full-pipeline",
+  "what_it_tests": "**全流程**：prompt 只给一个还没成形的业务诉求，fixture 里没有需求资料、没有 issue 卡、没有 PRD——只有仓库自己的约定（AGENTS.md、requirements/README.md、config/README.md）。看这套流程会不会自己走完 `prd → to-issues → loop-it`，以及最终有没有把事做成。\n\n前面四个用例全部从流水线**中段**进入（需求是我给到手里的），所以规划半边（`prd` → `to-issues`）一次都没被测到。这条补上。",
+  "prompt": "我们要能按仓库配低库存阈值。现在是一个全局值，所有仓库共用，业务要按仓库单独调——没配的仓库还是走原来的默认值。\n\n怎么落地你定，做完让我知道。",
+  "expected_output": "需求资料落在 requirements/<scope>/（含 PRD 与 issue 卡）；阈值真的能按仓库配置；门禁绿；受保护文件未改。",
+  "fixture": "fixture",
+  "tamper_guard": [
+    "Makefile",
+    "inventory/stock_test.go"
+  ],
+  "assertions": [
+    {
+      "kind": "gate",
+      "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+      "command": [
+        "make",
+        "check"
+      ]
+    },
+    {
+      "kind": "probe",
+      "text": "阈值真的能按仓库配置，没配的回退默认值",
+      "files": [
+        [
+          "probe/probe_test.go",
+          "inventory/zz_eval_probe_test.go"
+        ]
+      ],
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-run",
+        "TestEvalProbe",
+        "-v",
+        "./inventory/"
+      ],
+      "extract": "EVAL_PROBE (\\{.*\\})",
+      "config": "config/thresholds.json",
+      "scenarios": [
+        {
+          "thresholds": {
+            "shanghai": 20
+          },
+          "expect": {
+            "shanghai": 20,
+            "beijing": 5,
+            "chengdu": 5
+          }
+        },
+        {
+          "thresholds": {
+            "shanghai": 20,
+            "beijing": 3
+          },
+          "expect": {
+            "shanghai": 20,
+            "beijing": 3,
+            "chengdu": 5
+          }
+        },
+        {
+          "thresholds": null,
+          "expect": {
+            "shanghai": 5,
+            "beijing": 5,
+            "chengdu": 5
+          }
+        }
+      ]
+    },
+    {
+      "kind": "path_glob",
+      "text": "流程自己走了 prd：scope 下产出了 PRD",
+      "glob": "requirements/*/documents/prd-*.md",
+      "min": 1
+    },
+    {
+      "kind": "path_glob",
+      "text": "流程自己走了 to-issues：scope 下产出了 issue 卡",
+      "glob": "requirements/*/issues/issue-*.md",
+      "min": 1
+    },
+    {
+      "kind": "path_glob",
+      "text": "scope 目录本身建起来了（需求资料落在仓库声明的作用域根下）",
+      "glob": "requirements/*/README.md",
+      "min": 1
+    },
+    {
+      "kind": "path_absent",
+      "text": "没有落到技能默认的 tasks/<feature>/ 下",
+      "glob": "tasks"
+    },
+    {
+      "kind": "checkpoint_location",
+      "text": "若产生了 loop 检查点，它必须在 requirements/<scope>/issues/ 下"
+    },
+    {
+      "kind": "tamper_guard",
+      "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）"
+    },
+    {
+      "kind": "workspace_clean",
+      "text": "没有写到 fixture 之外（子代理没有自己的 cwd，越界是这条路的典型失败）"
+    }
+  ]
+}
