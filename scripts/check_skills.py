@@ -44,6 +44,107 @@ VENDOR_BUCKET = "vendor"
 # A skill reference in prose: the DSH prefix `/` followed by a kebab-case name. The trailing
 # lookahead keeps paths out — `/usr/bin` and `https://host/path` are not skill references.
 SKILL_REF = re.compile(r"(?:^|[\s(\[`'\"*>])(/)([a-z0-9]+(?:-[a-z0-9]+)*)(?![a-z0-9/_.-])")
+# 文档里写的计数，与实际的对应。每条是「正则（一个捕获组 = 那个数字）」→「该等于哪个实际值」。
+#
+# **显式列出来是有意的**：这是个守卫，不是解析器。宁可少抓几条，也别报假警——假警会让人把
+# 守卫关掉，那比没有守卫更糟。新加一处计数声明，就在这里加一行。
+#
+# 为什么要有它：技能增删之后，README / 两份 docs 指南 / AGENTS.md 里的「N 个技能」
+# 「flow（…，7 个）」「description 合计 5693 字符」都得手动跟上，而**漏一处没有任何症状**——
+# 直到有人照着文档去数。历史上真的漂过：flow 写成 8、安装提示里写成 `(flow, 8)`、
+# EN 的 picker 条数停在 24、description 总数停在 5423。
+COUNT_PATTERNS = (
+    # 总数用**锚定**写法，不用裸的 `N 个技能` / `N skills`：正文里「这 7 个技能组成五个阶段」
+    # 那类句子说的不是总数，裸模式会把它当成漂移报出来——假警会让人把守卫关掉。
+    ("技能总数", r"合计收录\s*(\d[\d,]*)\s*个技能", "total"),
+    ("技能总数", r"技能集[：:]\s*(\d[\d,]*)\s*个技能", "total"),
+    ("技能总数", r"（(\d[\d,]*)\s*个技能，三桶）", "total"),
+    ("技能总数", r"contains\s+(\d[\d,]*)\s+skills", "total"),
+    ("技能总数", r"the\s+(\d[\d,]*)\s+entries", "total"),
+    ("技能总数", r"across the\s+(\d[\d,]*)\s+skills", "total"),
+    ("技能总数", r"the\s+(\d[\d,]*)\s+skills\s+(?:split|that take)", "total"),
+    ("核心个数", r"核心\s*(\d[\d,]*)\s*个", "flow"),
+    ("核心个数", r"(\d[\d,]*)\s+core\b", "flow"),
+    ("补充个数", r"补充\s*(\d[\d,]*)\s*个", "supplementary"),
+    ("补充个数", r"(\d[\d,]*)\s+supplementary\b", "supplementary"),
+    ("flow 个数", r"\bflow\b[^\n]{0,90}?(\d[\d,]*)\s*(?:个|[),，])", "flow"),
+    ("bonus 个数", r"\bbonus\b[^\n]{0,90}?(\d[\d,]*)\s*(?:个|[),，])", "bonus"),
+    ("vendor 个数", r"\bvendor\b[^\n]{0,90}?(\d[\d,]*)\s*(?:个|[),，])", "vendor"),
+    ("description 合计", r"合计\s*(\d[\d,]*)\s*字符", "chars_total"),
+    ("description 合计", r"total\s*([\d,]+)\s*characters", "chars_total"),
+    ("模型可见", r"模型实际看到\s*(\d[\d,]*)\s*字符", "chars_visible"),
+    ("模型可见", r"actually sees\s*([\d,]+)", "chars_visible"),
+)
+
+# 计数声明会出现在这些文件里。少写一个不会报错，只是那一处的漂移抓不到。
+COUNT_FILES = ("AGENTS.md", "README.md", "README_EN.md", "docs/index_cn.html", "docs/index_en.html")
+
+
+def _doc_text(path: str) -> str:
+    """把一份文档压成纯文本。
+
+    `<style>` / `<script>` 整块先删掉：那里面 `.flow-step`、`.workflow` 之类会命中
+    「flow 后面跟着数字」的形状，而它们不是计数声明。删掉之后剩下的才是给人读的正文。
+
+    markdown 链接的**目标**也要剥掉，只留标签：`[\`/review-it\`](skills/flow/review-it/SKILL.md)`
+    里的 `skills/flow/` 会让「flow 后面跟着数字」命中后面那句「（8 个维度）」——那是评审轴数，
+    不是 flow 桶的个数。
+    """
+    import html as _html
+
+    body = open(path, encoding="utf-8").read()
+    body = re.sub(r"<(style|script)\b.*?</\1>", " ", body, flags=re.S | re.I)
+    body = re.sub(r"\]\([^)]*\)", "]", body)          # markdown 链接目标
+    body = _html.unescape(re.sub(r"<[^>]+>", " ", body))
+    return re.sub(r"\s+", " ", body)
+
+
+def check_stated_counts(repo_root: str, skills: list[tuple[str, str, str]]) -> list[str]:
+    """文档里写的技能计数，必须和实际一致。"""
+    counts = {bucket: sum(1 for b, _, _ in skills if b == bucket) for bucket in BUCKETS}
+    facts = {
+        "total": len(skills),
+        "flow": counts["flow"],
+        "bonus": counts["bonus"],
+        "vendor": counts["vendor"],
+        "supplementary": counts["bonus"] + counts["vendor"],
+    }
+
+    # description 的两个总数与文档里的口径一致：每条先归一化空白、截到目录上限，再求和；
+    # 「模型可见」再扣掉带 disable-model-invocation 的那些（它们不进模型目录）。
+    total_chars = visible_chars = 0
+    for _, _, path in skills:
+        fm = load_frontmatter(path)
+        if isinstance(fm, str):
+            continue
+        text = re.sub(r"\s+", " ", str(fm.get("description") or "")).strip()
+        if len(text) > DESCRIPTION_CAP:
+            text = text[: DESCRIPTION_CAP - 3] + "..."
+        total_chars += len(text)
+        if not fm.get("disable-model-invocation"):
+            visible_chars += len(text)
+    facts["chars_total"] = total_chars
+    facts["chars_visible"] = visible_chars
+
+    problems, seen = [], set()
+    for rel in COUNT_FILES:
+        path = os.path.join(repo_root, rel)
+        if not os.path.exists(path):
+            continue
+        text = _doc_text(path)
+        for label, pattern, key in COUNT_PATTERNS:
+            expected = facts[key]
+            for match in re.finditer(pattern, text):
+                got = int(match.group(1).replace(",", ""))
+                if got == expected or (rel, label, got) in seen:
+                    continue
+                seen.add((rel, label, got))
+                problems.append(
+                    f"{rel}: 「{label}」写成 {got}，实际是 {expected}（文档里的计数要手动跟上技能增删）"
+                )
+    return problems
+
+
 # Things that look like a skill reference but are not skills: host commands the guides
 # legitimately name.
 HOST_COMMANDS = frozenset(
@@ -364,6 +465,7 @@ def main() -> int:
     failures.extend(check_reference_links(repo_root, skills))
     failures.extend(check_script_references(repo_root, skills))
     failures.extend(check_installer_manifest(repo_root, skills))
+    failures.extend(check_stated_counts(repo_root, skills))
 
     warnings: list[str] = []
     for bucket, name, path in skills:
@@ -406,7 +508,8 @@ def main() -> int:
     )
     print(f"ok: {len(skills)} skills valid ({per_bucket}; frontmatter parses, names match, "
           f"descriptions <= {DESCRIPTION_CAP} chars, every /reference resolves, "
-          f"every bucket served by the bundle patch and listed in the installer manifest)")
+          f"every bucket served by the bundle patch and listed in the installer manifest, "
+          f"stated counts match)")
     return 0
 
 

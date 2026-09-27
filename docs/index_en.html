@@ -901,7 +901,7 @@
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">-g</span> <span class="flag">-a</span> <span class="value">universal</span></code></pre>
       <p>Skills land in <code class="inline-code">~/.agents/skills</code>. This is the least-effort route: nothing to change in a profile, and it applies to every profile.</p>
 
-      <p><code class="inline-code">npx skills</code> scans recursively and flattens <code class="inline-code">skills/&lt;bucket&gt;/&lt;skill&gt;</code> into <code class="inline-code">~/.agents/skills/&lt;skill&gt;</code> on install — a skill root is scanned only one level deep, so the flattening is required. The picker groups the <strong>24 entries into Let It Go Flow / Bonus / Vendor</strong> using the root <code class="inline-code">.claude-plugin/marketplace.json</code>; what lands in <code class="inline-code">~/.agents/skills</code> is still flat, so the bucket exists in the repo only.</p>
+      <p><code class="inline-code">npx skills</code> scans recursively and flattens <code class="inline-code">skills/&lt;bucket&gt;/&lt;skill&gt;</code> into <code class="inline-code">~/.agents/skills/&lt;skill&gt;</code> on install — a skill root is scanned only one level deep, so the flattening is required. The picker groups the <strong>25 entries into Let It Go Flow / Bonus / Vendor</strong> using the root <code class="inline-code">.claude-plugin/marketplace.json</code>; what lands in <code class="inline-code">~/.agents/skills</code> is still flat, so the bucket exists in the repo only.</p>
       <h3>Prerequisites</h3>
       <table>
         <tr><th>Tool</th><th>Purpose</th><th>Install</th></tr>
@@ -914,7 +914,7 @@
       </div>
 
       <div class="note">
-        <strong>The model catalog:</strong> across the 25 skills the descriptions total 5,693 characters, of which the model actually sees <strong>5,632</strong> (DSH normalises whitespace and truncates each description at 500). The only skill carrying <code class="inline-code">disable-model-invocation</code> is the vendored <code class="inline-code">/teach</code> (upstream's choice, so it stays out of the model catalog and you must type its name), which saves the fixed cost every session and <strong>every subagent</strong> would otherwise pay.
+        <strong>The model catalog:</strong> across the 25 skills the descriptions total 5,692 characters, of which the model actually sees <strong>5,631</strong> (DSH normalises whitespace and truncates each description at 500). The only skill carrying <code class="inline-code">disable-model-invocation</code> is the vendored <code class="inline-code">/teach</code> (upstream's choice, so it stays out of the model catalog and you must type its name), which saves the fixed cost every session and <strong>every subagent</strong> would otherwise pay.
       </div>
 
       <h3>Set Up Your Repository</h3>
