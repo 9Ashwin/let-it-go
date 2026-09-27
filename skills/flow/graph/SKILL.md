@@ -91,7 +91,15 @@ python3 <SKILL_DIR>/scripts/render_graph_html.py .graph_state.json graph.html
 
 **worktree 故意放在仓库里面。** 在 DSH 的 `workspace-write` 沙箱下，往 session 工作目录之外写会被拒绝，所以放在仓库旁边的 worktree 根（`$(dirname "$ROOT")/…`）会以一个读起来不像路径问题的沙箱拒绝失败。`$ROOT/.graph-worktrees/` 在任何模式下都在沙箱内，这就是上面的忽略规则覆盖它的原因。
 
-这三个模式故意都是通配符，合起来覆盖每一次运行：`nodes*.json` 是规划器输入，`.graph_state*` 是检查点（默认的 `.graph_state.json`、改名前的 `.graph_state`——仍然会被**读取**，所以一张在飞的图能保住进度并在下次写入时迁移——按次运行的 `--state .graph_state-prd015`，以及临时的 `<path>.tmp`），`graph*.html` 是看板。因为它们是通配符，第二次运行不额外花钱：给它 `--state .graph_state-prd015`，把输入输出命名为 `nodes-prd015.json` / `graph-prd015.html`。代价是产物必须保持这三个前缀之一——前缀之外的命名需要自己单独一行，而这些模式存在的意义就是消掉这种反复。第一次写入之后跑 `git status --porcelain` 是"没有东西漏过去"的检查。
+这三个模式故意都是通配符，合起来覆盖每一次运行：
+
+- `nodes*.json` —— 规划器输入
+- `.graph_state*` —— 检查点。默认的 `.graph_state.json`、改名前的 `.graph_state`（**仍然会被读取**，所以一张在飞的图能保住进度并在下次写入时迁移）、按次运行的 `--state .graph_state-prd015`，以及临时的 `<path>.tmp`
+- `graph*.html` —— 看板
+
+因为它们是通配符，第二次运行不额外花钱：给它 `--state .graph_state-prd015`，把输入输出命名为 `nodes-prd015.json` / `graph-prd015.html`。
+
+代价是产物必须保持这三个前缀之一——前缀之外的命名需要自己单独一行，而这些模式存在的意义就是消掉这种反复。第一次写入之后跑 `git status --porcelain` 是"没有东西漏过去"的检查。
 
 把计划给用户看，让他们在任何子代理启动**之前**调整节点、边或并发上限。然后渲染并交付 `graph.html`：
 
