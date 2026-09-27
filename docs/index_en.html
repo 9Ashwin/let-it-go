@@ -901,10 +901,7 @@
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">-g</span> <span class="flag">-a</span> <span class="value">universal</span></code></pre>
       <p>Skills land in <code class="inline-code">~/.agents/skills</code>. This is the least-effort route: nothing to change in a profile, and it applies to every profile.</p>
 
-      <p><code class="inline-code">npx skills</code> scans recursively and flattens <code class="inline-code">skills/&lt;bucket&gt;/&lt;skill&gt;</code> into <code class="inline-code">~/.agents/skills/&lt;skill&gt;</code> on install — a skill root is scanned only one level deep, so the flattening is required. The picker groups the <strong>24 entries into Let It Go Flow / Bonus / Vendor</strong> using the root <code class="inline-code">.claude-plugin/marketplace.json</code>; what lands in <code class="inline-code">~/.agents/skills</code> is still flat, so the bucket exists in the repo only. Copying by hand means doing the flattening step yourself:</p>
-      <pre><code><span class="comment"># flattened, not the bucket</span>
-<span class="cmd">cp -R</span> <span class="value">&lt;let-it-go&gt;/skills/flow/graph</span> <span class="value">~/.agents/skills/graph</span></code></pre>
-
+      <p><code class="inline-code">npx skills</code> scans recursively and flattens <code class="inline-code">skills/&lt;bucket&gt;/&lt;skill&gt;</code> into <code class="inline-code">~/.agents/skills/&lt;skill&gt;</code> on install — a skill root is scanned only one level deep, so the flattening is required. The picker groups the <strong>24 entries into Let It Go Flow / Bonus / Vendor</strong> using the root <code class="inline-code">.claude-plugin/marketplace.json</code>; what lands in <code class="inline-code">~/.agents/skills</code> is still flat, so the bucket exists in the repo only.</p>
       <h3>Prerequisites</h3>
       <table>
         <tr><th>Tool</th><th>Purpose</th><th>Install</th></tr>
@@ -929,18 +926,6 @@
         <tr><td><strong>Acceptance baseline</strong></td><td><strong>A human decides</strong></td><td>Which tests are frozen, and where new tests go. Left undeclared, appending to an existing test file can read as weakening it</td></tr>
         <tr><td><strong>Only touch files in this repo</strong></td><td>Recommended</td><td>Keeps the agent from writing outside the repository</td></tr>
       </table>
-      <p>Put it in <code class="inline-code">AGENTS.md</code> at the repository root — DSH <strong>loads it automatically</strong>, no need to point at it in the prompt:</p>
-      <pre><code><span class="comment"># &lt;repo name&gt; conventions</span>
-
-<span class="cmd">-</span> <span class="value">**The scope root is `requirements/&lt;scope&gt;/`.** How the scope directory is organised inside is up to the flow.</span>
-<span class="cmd">-</span> <span class="value">**The gate is `make check`** (= `make test` + `make lint`). It must stay green after any change.</span>
-<span class="cmd">-</span> <span class="value">**The acceptance baseline is frozen in the existing `*_test.go` files**: byte for byte, do not touch them.</span>
-<span class="value">  New tests go in a **new file** — appending changes its hash too, which reads like weakening it.</span>
-<span class="cmd">-</span> <span class="value">Only touch files in this repository.</span></code></pre>
-      <div class="tip">
-        <strong>Tip:</strong> <strong>It runs without any of this.</strong> With nothing declared the flow falls back to the default scope root <code class="inline-code">tasks/&lt;feature&gt;/</code> and goes looking for the gate itself. Declaring makes the result <strong>deterministic</strong>; it is not what makes the flow <strong>work</strong> — so don't get stuck on writing this file.
-      </div>
-
     </div>
 
     <!-- Section 3: Workflow Overview -->

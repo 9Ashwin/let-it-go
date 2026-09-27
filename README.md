@@ -53,16 +53,12 @@ npx skills add 9Ashwin/let-it-go
 
 技能会落到 `~/.agents/skills`，这条装法不必动任何 profile 依赖。
 
-`npx skills` 递归扫描、安装时把 `skills/<桶>/<技能>` 拍平成 `~/.agents/skills/<技能>`——技能根只扫一层，所以必须拍平。手动拷贝时要自己完成这一步：
-
-```bash
-cp -R <let-it-go>/skills/flow/graph ~/.agents/skills/graph   # 拍平，不要连桶一起拷
-```
+`npx skills` 递归扫描、安装时把 `skills/<桶>/<技能>` 拍平成 `~/.agents/skills/<技能>`——技能根只扫一层，所以必须拍平。
 
 > [!TIP]
-> 安装后，直接描述你要做的事。Agent 会按技能描述选择入口；想指定某一步时，也可以直接写技能名。`/teach` 需要手动调用。
+> 安装后，直接描述你要做的事。Agent 会按技能描述选择入口；想指定某一步时，也可以直接写技能名。
 >
-> 完整使用指南（安装、每一步怎么触发、验收标准、FAQ）在 **<https://9ashwin.github.io/let-it-go/>**，会自动按浏览器语言跳转到中文或英文版；仓库内是 [docs/index_cn.html](docs/index_cn.html) 与 [docs/index_en.html](docs/index_en.html)。
+> 完整使用指南（安装、每一步怎么触发、验收标准、FAQ）在 **<https://9ashwin.github.io/let-it-go/>**。
 
 ## 接入到你的仓库
 
@@ -74,20 +70,6 @@ cp -R <let-it-go>/skills/flow/graph ~/.agents/skills/graph   # 拍平，不要�
 | **门禁** | 扫仓库 | 改动之后必须绿的命令：`make check` · `go build ./... && go test ./...` · `pnpm lint` · `mise run check` |
 | **验收基线** | **人拍板** | 哪些测试是冻结的、新测试写在哪。不声明的话，往现有测试文件里追加也可能被当成「把测试改弱」 |
 | **只改本仓库内的文件** | 建议 | 防止 agent 写到仓库外去 |
-
-写进仓库根的 `AGENTS.md`——DSH 会**自动加载**它，不必在提示词里指认：
-
-```markdown
-# <仓库名> 协作约定
-
-- **作用域根是 `requirements/<scope>/`**。scope 目录里面怎么分，由流程自己定。
-- **门禁是 `make check`**（= `make test` + `make lint`）。改动之后必须它绿。
-- **验收基线冻结在现有的 `*_test.go` 里**：逐字节不许改。新测试写进**新文件**，
-  不要往已有测试文件里追加——追加同样会改哈希，看起来就像把测试改弱了。
-- 只改本仓库内的文件。
-```
-
-**什么都不声明也能跑**：流程会退到默认作用域根 `tasks/<feature>/`，并自己去找门禁。声明的作用是让结果**确定**，不是让流程**能跑**——别为了写这份文件卡住。
 
 ## 它是怎么跑起来的
 
