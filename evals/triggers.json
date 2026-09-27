@@ -1,0 +1,197 @@
+{
+ "suffix": "先加载你打算用的技能；如果不需要技能就直接说明。然后只说明接下来会做什么，不要真的动手。",
+ "note": "每条 prompt 的期望都能在对应技能自己的 description / 正文里找到依据；近邻是共享关键词但该走别的技能（或不该加载）的那种。",
+ "cases": [
+  {
+   "id": "prd-unshaped",
+   "prompt": "我们想让用户能给订单打标签，但具体怎么落我还没想好，你先帮我把需求理清楚。",
+   "expect": [
+    "prd"
+   ],
+   "why": "prd 的触发说明：需求还没成形时走这里"
+  },
+  {
+   "id": "prd-you-decide",
+   "prompt": "做个能缓存的 KV，怎么落地你定。",
+   "expect": [
+    "prd"
+   ],
+   "why": "prd 的触发词里逐字有「落地方式你定」"
+  },
+  {
+   "id": "to-design-cross-service",
+   "prompt": "这次要给计费服务加一个新的对外接口，订单服务也得跟着改，数据模型也要动。动手前先给我一份设计文档，讲清为什么不选另一个方案。",
+   "expect": [
+    "to-design"
+   ],
+   "why": "to-design 的触发条件：跨 2+ 服务、改数据模型"
+  },
+  {
+   "id": "to-design-spec",
+   "prompt": "帮我写一份这个模块的规格说明，重点是接口契约和向后兼容。",
+   "expect": [
+    "to-design"
+   ],
+   "why": "RFC 把 /prd-to-spec 并进了 to-design，规格说明归它（这正是原先与 prd 撞车的那一处）"
+  },
+  {
+   "id": "to-issues-from-prd",
+   "prompt": "PRD 已经写好了，帮我把它拆成一条条能独立做的 issue 卡片，标清依赖关系。",
+   "expect": [
+    "to-issues"
+   ],
+   "why": "to-issues 的动词：拆解、生成卡片"
+  },
+  {
+   "id": "loop-it-batch",
+   "prompt": "这批 issue 互相有依赖，按顺序一条条做完，每条做完跑一遍门禁。",
+   "expect": [
+    "loop-it"
+   ],
+   "why": "loop-it：一批有依赖的 issue 串行循环"
+  },
+  {
+   "id": "loop-it-single",
+   "prompt": "这条 issue 已经拆好了：给订单列表加按标签筛选。把它实现了。",
+   "expect": [
+    "loop-it"
+   ],
+   "why": "loop-it：一个单元就内联做完"
+  },
+  {
+   "id": "graph-parallel",
+   "prompt": "这三块改动互不依赖，能不能并行做、最后一起合？",
+   "expect": [
+    "graph"
+   ],
+   "why": "graph 的触发词：并行实现、真并行"
+  },
+  {
+   "id": "graph-dag",
+   "prompt": "把这件事拆成一张依赖图，能并行的并行跑，每波做完再合。",
+   "expect": [
+    "graph"
+   ],
+   "why": "graph：任务图 / DAG / 波次"
+  },
+  {
+   "id": "review-it",
+   "prompt": "提交前帮我审一下这次改动。",
+   "expect": [
+    "review-it"
+   ],
+   "why": "review-it：提交/交付之前的评审收尾"
+  },
+  {
+   "id": "review-it-branch",
+   "prompt": "review 一下我这个分支相对 main 的 diff。",
+   "expect": [
+    "review-it"
+   ],
+   "why": "review-it 的触发词：review、审查这次改动"
+  },
+  {
+   "id": "ship-it",
+   "prompt": "做完了，提交、开 PR、合入，然后把对应的 issue 关掉。",
+   "expect": [
+    "ship-it"
+   ],
+   "why": "ship-it 的触发词：提交代码、创建PR、合入、关闭issue"
+  },
+  {
+   "id": "near-trivial-function",
+   "prompt": "帮我用 Go 写一个快速排序函数。",
+   "expect": [],
+   "why": "平凡请求，不该加载任何技能"
+  },
+  {
+   "id": "near-to-design-vs-prd",
+   "prompt": "我想给这个功能写份文档，说清为什么选这个方案、放弃了哪些备选。",
+   "expect": [
+    "to-design"
+   ],
+   "why": "近邻：同样说「写文档」，但问的是「为什么」——to-design 的正文划的正是这条线"
+  },
+  {
+   "id": "near-to-issues-vs-prd",
+   "prompt": "把这个需求拆成几条能独立做的任务。",
+   "expect": [
+    "to-issues"
+   ],
+   "why": "近邻：prd 也谈需求，但「拆」是 to-issues 的动词"
+  },
+  {
+   "id": "near-diagnose-vs-review",
+   "prompt": "这个测试偶发失败，大概十次里挂一次，帮我查下原因。",
+   "expect": [
+    "diagnose"
+   ],
+   "why": "近邻：都碰测试，但偶发 flake 是 diagnose 的射程"
+  },
+  {
+   "id": "near-conflict",
+   "prompt": "rebase 的时候一堆冲突，帮我按各方意图解开。",
+   "expect": [
+    "conflict"
+   ],
+   "why": "conflict 的触发词"
+  },
+  {
+   "id": "near-refactor",
+   "prompt": "这个模块越来越乱了，帮我找出里面的坏味道。",
+   "expect": [
+    "refactor"
+   ],
+   "why": "refactor：坏味道 / 反模式"
+  },
+  {
+   "id": "near-modern-go",
+   "prompt": "把仓库里的 Go 代码按新版本的习惯现代化一下。",
+   "expect": [
+    "modern-go"
+   ],
+   "why": "modern-go 的触发词"
+  },
+  {
+   "id": "near-test-first",
+   "prompt": "这个行为还没有测试，我想先写测试再实现。",
+   "expect": [
+    "test-first"
+   ],
+   "why": "test-first 的触发词：先写测试、红绿"
+  },
+  {
+   "id": "near-understand",
+   "prompt": "把这次改动变成一页能审阅的网页，解释每段代码在干什么。",
+   "expect": [
+    "understand"
+   ],
+   "why": "understand：把本次改动变成审阅页"
+  },
+  {
+   "id": "near-triage",
+   "prompt": "外面提了一堆 issue，帮我分诊一下哪些能直接做。",
+   "expect": [
+    "triage"
+   ],
+   "why": "triage：外面进来的条目"
+  },
+  {
+   "id": "near-humanizer",
+   "prompt": "把这段中文润色一下，去掉 AI 味。",
+   "expect": [
+    "humanizer-zh"
+   ],
+   "why": "vendor 技能，flow 不该抢它"
+  },
+  {
+   "id": "near-ship-vs-review",
+   "prompt": "审完没问题就直接合入吧。",
+   "expect": [
+    "review-it",
+    "ship-it"
+   ],
+   "why": "允许串联：两个都在期望里，先加载谁不强制"
+  }
+ ]
+}

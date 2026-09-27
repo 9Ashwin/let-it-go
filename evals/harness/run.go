@@ -245,7 +245,13 @@ const armTimeout = 1800 * time.Second
 // 返回的第三个值是**原始事件流**：超时被砍的时候，前面已经发生的事不能丢——
 // 丢掉的正是「它到底卡在哪一步」这条线索。
 func runHeadless(dsh, workdir, prompt string) (runEvents, string, string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), armTimeout)
+	return runHeadlessFor(dsh, workdir, prompt, armTimeout)
+}
+
+// runHeadlessFor 是带自定义上限的那一份。触发评估只要几十秒，用 armTimeout 的话一个卡住的
+// 会话会占住半小时。
+func runHeadlessFor(dsh, workdir, prompt string, limit time.Duration) (runEvents, string, string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), limit)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, dsh, "--profile", "headless", "--json", prompt)
 	cmd.Dir = workdir
@@ -278,7 +284,7 @@ func runHeadless(dsh, workdir, prompt string) (runEvents, string, string, error)
 	if ctx.Err() != nil {
 		// 超时被砍：已采到的事件照样带回去，它们说明了卡在哪一步。
 		return out, finalText, raw, fmt.Errorf("超过 %s 还没跑完（最后一步是 step %d，已调用 %d 次工具）",
-			armTimeout, out.steps, out.toolCalls)
+			limit, out.steps, out.toolCalls)
 	}
 	if err != nil {
 		// 任务失败也要把已经跑出来的东西带回去，否则没法判断失败在哪一步。

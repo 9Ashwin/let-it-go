@@ -967,6 +967,57 @@ func firstLine(text string) string {
 	return text
 }
 
+// selfcheckTriggers 校验触发用例集。
+//
+// 和 check_skills.py 的 `scripts/` 守卫同一条理由：`expect` 里写错一个技能名，跑出来的
+// 是「这个 prompt 路由错了」，而不是「你把名字拼错了」——一条假的红比没有更糟。
+func selfcheckTriggers() []string {
+	raw, err := os.ReadFile(filepath.Join(evalsDir, "triggers.json"))
+	if err != nil {
+		return []string{"缺 triggers.json（触发用例集）"}
+	}
+	var set triggerSet
+	if err := json.Unmarshal(raw, &set); err != nil {
+		return []string{fmt.Sprintf("triggers.json 不是合法 JSON：%v", err)}
+	}
+	var problems []string
+	if strings.TrimSpace(set.Suffix) == "" {
+		problems = append(problems, "triggers.json 缺 suffix（附加在每条 prompt 后面的那句）")
+	}
+	known := map[string]bool{}
+	for _, bucket := range []string{"flow", "bonus", "vendor"} {
+		entries, err := os.ReadDir(filepath.Join(evalsDir, "..", "skills", bucket))
+		if err != nil {
+			continue
+		}
+		for _, entry := range entries {
+			if entry.IsDir() {
+				known[entry.Name()] = true
+			}
+		}
+	}
+	if len(known) == 0 {
+		problems = append(problems, "读不到 skills/*/ —— 没法校验 expect 里的技能名")
+	}
+	seen := map[string]bool{}
+	for _, c := range set.Cases {
+		if c.ID == "" || strings.TrimSpace(c.Prompt) == "" {
+			problems = append(problems, "triggers.json 有用例缺 id 或 prompt")
+			continue
+		}
+		if seen[c.ID] {
+			problems = append(problems, c.ID+": id 重复")
+		}
+		seen[c.ID] = true
+		for _, name := range c.Expect {
+			if !known[name] {
+				problems = append(problems, fmt.Sprintf("%s: expect 里的 `%s` 不是任何一个桶里的技能", c.ID, name))
+			}
+		}
+	}
+	return problems
+}
+
 func cmdSelfcheck(_ []string) int {
 	var problems []string
 	dirs := caseDirs()
@@ -996,6 +1047,8 @@ func cmdSelfcheck(_ []string) int {
 		}
 	}
 
+	problems = append(problems, selfcheckTriggers()...)
+
 	if len(problems) > 0 {
 		fmt.Fprintf(os.Stderr, "eval 工作区有 %d 处问题：\n", len(problems))
 		for _, problem := range problems {
@@ -1003,7 +1056,7 @@ func cmdSelfcheck(_ []string) int {
 		}
 		return 1
 	}
-	fmt.Printf("ok: %d 个用例结构完好（fixture 无 .git、探针齐、tamper_guard 指得到、两条臂的后缀都在）\n",
+	fmt.Printf("ok: %d 个用例结构完好（fixture 无 .git、探针齐、tamper_guard 指得到、两条臂的后缀都在）；触发用例集完好\n",
 		len(dirs))
 	return 0
 }
@@ -1099,6 +1152,7 @@ func main() {
 			"  assert <case-id> <workdir> --phase preflight|grade [--out FILE] [--json]",
 			"  run <case-id> --arm with_skill|without_skill --out DIR [--dsh PATH] [--keep]",
 			"  bench <iteration-dir> [--skill-name NAME] [--executor-model M]",
+			"  trigger [--out DIR] [--dsh PATH] [--only ID] [--parallel N] [--repeat N]",
 			"  selfcheck",
 			"  list",
 		}, "\n"))
@@ -1114,6 +1168,8 @@ func main() {
 		os.Exit(cmdRun(rest))
 	case "bench":
 		os.Exit(cmdBench(rest))
+	case "trigger":
+		os.Exit(cmdTrigger(rest))
 	case "selfcheck":
 		os.Exit(cmdSelfcheck(rest))
 	case "list":

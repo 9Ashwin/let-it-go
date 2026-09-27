@@ -96,6 +96,41 @@ python ~/.agents/skills/skill-creator/eval-viewer/generate_review.py \
 但不放进每轮：07 一次 `with_skill` 要付三次子代理生命周期（实测 210.8s / 1,568,225 tokens）。
 **改了对应路径就必须跑它们**，这正是它们存在的理由。
 
+## 触发评估：唯一没被测过的那一层
+
+八个用例靠 prompt 后缀**强制加载**技能，所以量的是「技能加载之后行为对不对」。
+**「该加载的技能有没有被加载」一直没测过**——它靠人读 description 判断，而人读到的那一次
+（`规格说明` 同时挂在 `prd` 与 `to-design` 上，RFC 却把 spec 并进了 `to-design`）就是一次真的误路由。
+
+```bash
+go -C evals/harness run . trigger --dsh /tmp/bin/dsh --parallel 6 --repeat 3 --out results/triggers-N
+```
+
+用例在 [`triggers.json`](triggers.json)：每条 prompt 的期望都能在对应技能自己的 description 或
+正文里找到依据；近邻是**共享关键词但该走别的技能**（或根本不该加载）的那种。自检会校验
+`expect` 里的名字确实是某个桶里的技能——写错名字跑出来是「路由错了」，那是假红。
+
+**判定只看第一个加载的技能**，不看之后的串联。第一版要求「加载的都在期望里」，跑出来 20/24，
+而四条失败里三条是**误判**：技能是串联的，模型会照着技能自己的话把下游一并加载——`loop-it`
+正文写着批末走 `/review-it` → `/ship-it`，它的单单元模式又写着「需要先把行为定下来时用
+`/test-first`」。那不是误路由，是照做。串联属于编排质量，由那八个用例量。
+
+**必须跑多次。** 同一个 prompt 三次跑出来的链不一样（实测 `graph-parallel` 三次分别是 `graph`、
+`graph+loop-it`、`graph+review-it+ship-it`），所以只有**触发率**有意义，「一次通过」没有。
+`--repeat 1` 只是为了快，下结论用 3。
+
+### 第一次结果（24 条 × 3 次，2 分 48 秒）
+
+**23/24**。十二个 flow 技能场景**全部 3/3**，十二个近邻里十一个 3/3。
+
+唯一没过的**不是 flow 技能**：「帮我用 Go 写一个快速排序函数」这条平凡请求，三次里有**一次**
+加载了 `modern-go`——`bonus` 桶里那条 description 对「Go」这个词有点贪。
+
+顺带看到一件用例设计没打算测的事：一次 `near-conflict` 的链路是
+`conflict → conflict → use-git-worktree`，而**`use-git-worktree` 不是任何桶里的技能**——
+模型编了一个听起来合理的名字去调 `skill` 工具。只记录不处理：它不在首位，所以不影响判定，
+但它说明目录边界在「谁负责 worktree」这件事上不够显眼（那是 `graph` 的活）。
+
 ## 已知限制
 
 - **方差**：`bench` 支持一条臂跑多次（目录名带 `-runN`、传 `--run N`，它归到同一个

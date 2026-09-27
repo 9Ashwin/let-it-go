@@ -76,6 +76,22 @@ preflight 不合格之类的早退）都会清；但进程被 `SIGKILL`（比如
 臂能读 `$TMPDIR`，留着的根里有它上一次的 `work/` 与 seed。（这两处泄漏都真实发生过：
 iteration-9 有一条臂就是这么翻到上一次运行的 seed、再顺着找到用例定义的。）
 
+### 触发评估：另一条命令，另一层
+
+上面那些量的是「技能加载之后行为对不对」。**「该加载的技能有没有被加载」是另一层**，
+用 `trigger` 跑，用例在 `evals/triggers.json`：
+
+```bash
+go -C evals/harness run . trigger --dsh /path/to/dsh --parallel 6 --repeat 3 --out results/triggers-N
+```
+
+它在一个**私有临时目录**里跑每条 prompt（cwd 不留在仓库里，模型即使动手也碰不到真东西），
+然后从 `dsh --json` 的事件流里取 `skill` 工具调用——**不看模型的自述**：实测一条会话明确说
+「暂不加载、不动手」，自述有、工具调用没有。
+
+判定只看**第一个**加载的技能；后面的串联不算数（技能本来就互相点名下游阶段）。
+`--repeat` 默认 1，但**结论要用 3**：同一个 prompt 三次的链可以不一样。
+
 ### 给人看：skill-creator 的 eval viewer
 
 `run` 会为每条臂写 `eval_metadata.json`（prompt）与 `outputs/交付件.md`（任务 + 改了什么 +
