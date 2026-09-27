@@ -104,7 +104,7 @@ Status: Draft | Under review | Accepted | Rejected
 
 **PRD → 设计文档**：Problem → Background（找真实痛点并量化）；Goals → Abstract + Background（提炼"最重要的承诺"）；User Stories → Design（渐进式示例）；Technical Considerations → Design + Rationale（约束 → 决策 + 取舍）；Non-Goals → Rationale（"我们没做 X，因为 Y"）；Risks → Compatibility + Implementation（风险 → 兼容代价 + 迁移方案）；隐含的备选方案 → Rationale（显式列出并解释为何不选）。
 
-**评审与保存**：把反馈引到关键章节——Rationale（被放弃的方案站得住吗、有无遗漏备选）、Compatibility（破坏性与代价说清了吗、迁移路径可行吗）、Background（痛点是否具体）、文风（标题是否结论、有无被动腔）。回复 OK 后保存到 `<scope>/documents/design-<feature>.md`（紧挨 PRD），自定义路径亦可。
+**评审与保存**：把反馈引到关键章节——Rationale（被放弃的方案站得住吗、有无遗漏备选）、Compatibility（破坏性与代价说清了吗、迁移路径可行吗）、Background（痛点是否具体）、文风（标题是否结论、有无被动腔）。保存到 `<scope>/documents/design-<feature>.md`（紧挨 PRD），自定义路径亦可。**落盘即视为可用，不等「回复 OK」**——与 `/prd` 同一条理由：闸门把澄清切成瀑布，而真实的澄清是 `理解 → 做 → 观察 → 追问 → 调整`。用户后来的反馈一律当修订，直接应用并重存。
 
 ---
 
