@@ -1,6 +1,6 @@
 ---
 name: loop-it
-description: "Serial GitHub issue loop with checkpoint/resume: order open issues by dependency, implement each on its own branch, then review and ship the batch once. Triggers on: loop-it, issue loop, 批量实现, 循环实现, 恢复循环, resume loop."
+description: "串行 issue 循环，带检查点与恢复：按依赖给 open issue 排序，逐个在自己的分支上内联实现，最后整批评审、交付一次。Triggers on: loop-it, issue loop, 批量实现, 循环实现, 恢复循环, resume loop."
 
 ---
 

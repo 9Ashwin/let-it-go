@@ -1,157 +1,149 @@
 ---
 name: walkthrough
-description: "Write the walkthrough artifact before merging: what changed, the commands you actually ran and what they printed, visual proof of the demo path, and a review gate with the diff stat, the high-risk notes and the manual-acceptance status. Proof, not a diff dump. Triggers: walkthrough, 走查, 生成走查文档, 交付前走查, write the walkthrough."
+description: "合入前写走查产物：改了什么、你实际跑了哪些命令、它们打印出什么、演示路径的可视化证明，以及带 diff stat、高风险说明与人工验收状态的评审门禁。是证明，不是 diff 倾倒。Triggers: walkthrough, 走查, 生成走查文档, 交付前走查, write the walkthrough."
 ---
 
-# walkthrough — prove the change before it merges
+# walkthrough — 合入之前证明这次改动
 
-Once implementation and its verification pass are done, write one Markdown file that lets a reader
-who has not seen the work catch up on **what changed** and **what is proven to work**, and
-staging-check the diff before merging.
+实现和它的验证一过，就写一份 Markdown 文件，让没看过这段工作的读者追上**改了什么**与
+**证明了什么能用**，并在合入前对 diff 做一次提交前检查。
 
-The point is evidence, not assertion. A diff says what the code looks like; a walkthrough says what
-you ran, what it printed, and what you saw.
+重点在 evidence，不在断言。diff 说的是代码长什么样；走查件说的是你跑了什么、它打印出什么、
+你看到了什么。
 
-## When to use
+## 何时用
 
-**Scope: one walkthrough per batch or per wave — the same scope as the review and the ship, never
-per issue.** A per-issue walkthrough proves a diff that may not survive integration and costs a
-screenshot round each — and a batch or a wave has exactly one PR. Per-issue *rationale* ships once
-in the ship-it comment; a per-issue notes file is an opt-in repo convention, not a default step.
+**范围：每批或每波一份走查件——与评审、交付同一个范围，绝不逐 issue 一份。** 逐 issue 的走查
+证明的是一份可能活不过集成的 diff，而且每个都要付一轮截图——而一批或一波只有一个 PR。
+逐 issue 的**理由**由 ship-it 的评论一次性交付；逐 issue 的笔记文件是仓库自选的约定，不是默认步骤。
 
-- After implementation and its verification pass are complete — an implementation skill ran, the
-  project's gates are green, and **review-it** has had its pass.
-- Before **ship-it**, as the last checkpoint before commit/PR/merge.
-- The user says "walkthrough", "走查", "生成走查文档", "交付前走查", "write the walkthrough".
+- 实现与它的验证一过——某个实现技能跑完了、项目门禁是绿的，且 **review-it** 已经过了一遍。
+- **ship-it** 之前，作为 commit/PR/合入前的最后一个检查点。
+- 用户说 "walkthrough"、"走查"、"生成走查文档"、"交付前走查"、"write the walkthrough"。
 
-## When not to use
+## 何时不用
 
-- **A one-line or purely mechanical change.** The artifact costs screenshots and a verification
-  transcript; if there is no demo path and nothing to catch up on, hand the diff over instead.
-- **Before review.** A walkthrough of code that is about to change is a walkthrough you rewrite.
-- **As a substitute for the project's gates.** It records gate output; it does not replace running
-  them.
+- **一行改动或纯机械改动。** 这份产物要花截图和一份验证记录；如果没有演示路径、也没有可追的东西，
+  直接把 diff 递过去。
+- **评审之前。** 给一份马上要改的代码写走查，等于写一份还得重写的走查。
+- **当作项目门禁的替代品。** 它记录门禁输出；它不替代跑门禁。
 
-## The job
+## 要做的事
 
-1. **Fix the scope** — which feature / issue / branch is being walked through.
-2. **Write the change summary** — read the diff and describe it in human terms.
-3. **Run and record the verification steps** — execute the tests and commands, capture real output.
-4. **Capture visual proof** — screenshot or record the demo path you verified.
-5. **Build the review gate** — diff stat, high-risk notes, and the manual-acceptance status.
-6. **Save and hand over** — write the file, summarize it for the user.
+1. **定范围**——走查的是哪个功能 / issue / 分支。
+2. **写变更摘要**——读 diff，用人话描述它。
+3. **跑并记录验证步骤**——执行测试与命令，抓真实输出。
+4. **抓可视化证明**——给你验证过的演示路径截图或录屏。
+5. **搭评审门禁**——diff stat、高风险说明、人工验收状态。
+6. **保存并交付**——写文件，向用户概述它。
 
-## Section by section
+## 逐节说明
 
-### 1. Change summary
+### 1. 变更摘要
 
-For someone who has not seen the work.
+写给没看过这段工作的人。
 
-- Read the diff (`git diff`, `git log`) and the issue/PRD it serves.
-- 3–6 bullets: what was built, refactored, added or removed.
-- Name the key files and components, and the shape of what is new (modules, endpoints, data
-  structures).
-- State the requirement it satisfies and link the issue / PRD.
+- 读 diff（`git diff`、`git log`）以及它服务的 issue/PRD。
+- 3–6 条：建了什么、重构了什么、加了什么、删了什么。
+- 点名关键文件与组件，以及新增部分的形态（模块、端点、数据结构）。
+- 说明它满足哪条需求，并链上 issue / PRD。
 
-### 2. Verification steps
+### 2. 验证步骤
 
-What you ran and what it printed.
+你跑了什么，它打印了什么。
 
-- **Commands and tests.** Run the project's gates (or the targeted subset), then paste the exact
-  command and its real output — truncate noise, keep pass counts.
+- **命令与测试。** 跑项目门禁（或其针对性子集），然后贴出准确的命令与真实输出——噪声可以截掉，
+  通过数要留。
   ```bash
   go test ./...
   ```
   ```
   ok  	github.com/example/app	0.042s
   ```
-- **UI scenarios.** If the change has a surface, drive the demo path and record each step as
-  action → observed result → pass/fail:
+- **UI 场景。** 改动有界面就驱动演示路径，把每一步记成 动作 → 观察到的结果 → 通过/失败：
   ```
-  Scenario: a user sets a task's priority
-    1. open /tasks — list renders
-    2. pick "High" on task #3
-    3. reload — task still shows High  ✓
+  场景：用户设置某个任务的优先级
+    1. 打开 /tasks — 列表渲染出来
+    2. 在任务 #3 上选 "High"
+    3. 刷新 — 任务仍显示 High  ✓
   ```
-- A skipped step is stated, never hidden. No tests in the repo, no UI to drive — say so. **Never
-  turn an unverified claim into a checked box.**
+- 跳过的步骤要明说，绝不藏起来。仓库里没有测试、没有 UI 可驱动——就直说。**绝不把未验证的断言
+  变成一个勾选框。**
 
-### 3. Visual proof
+### 3. 可视化证明
 
-Screenshots or a short recording of the demo path, so a reader sees the behaviour rather than
-trusting a sentence about it.
+演示路径的截图或一段短录屏，让读者看到行为，而不是相信一句关于它的话。
 
-- Capture during the walkthrough above. On macOS, `screencapture` grabs a window; for a web page,
-  browser automation is better (`npx playwright screenshot <url> tasks/shot.png`).
-- **Default to relative paths** — `![caption](tasks/shot-priority.png)` — and commit the images
-  alongside. The file stays small and the diff stays reviewable.
-- **Use base64 data URIs only when the artifact must survive on its own** (a file pasted into a
-  chat, an issue comment, anywhere the images will not travel with it):
+- 在上面的走查过程中抓取。macOS 上用 `screencapture` 抓窗口；网页则用浏览器自动化更好
+  （`npx playwright screenshot <url> tasks/shot.png`）。
+- **默认用相对路径**——`![caption](tasks/shot-priority.png)`——并把图片一起 commit。文件保持小，
+  diff 保持可评审。
+- **只有产物必须独立存活时才用 base64 data URI**（粘进聊天里的文件、issue 评论，或任何图片不会
+  跟着走的地方）：
   ```markdown
-  ![Task priority — set to High](data:image/png;base64,<base64>)
+  ![任务优先级 — 设为 High](data:image/png;base64,<base64>)
   ```
-  Say which mode you used; a base64 walkthrough is megabytes and should be a deliberate choice.
-- Prefer 2–4 shots that prove the path (before → action → after) over a screenshot dump.
-- No visual surface? Write "None — backend/CLI only" rather than forcing one.
+  说明你用了哪种方式；base64 的走查件有若干 MB，应当是一个刻意的选择。
+- 宁可要 2–4 张能证明路径的图（前 → 动作 → 后），不要一堆截图倾倒。
+- 没有可视界面？写 "None — backend/CLI only"，不要硬凑一个。
 
-### 4. Review gate
+### 4. 评审门禁
 
-What a reader checks before merging.
+读者在合入前要核对的东西。
 
-- **Diff stat and file list**: `git status`, `git diff --stat HEAD`, `git diff --name-status`.
-- **High-risk notes**: force-pushed history, migrations, config changes, wide refactors.
-- **Manual-acceptance status**, stated honestly. `尚未人工验收` is a valid answer; writing
-  unverified work as verified is not.
+- **diff stat 与文件清单**：`git status`、`git diff --stat HEAD`、`git diff --name-status`。
+- **高风险说明**：force-push 过的历史、迁移、配置改动、大范围重构。
+- **人工验收状态**，如实写。`尚未人工验收` 是有效答案；把未验证的工作写成已验证则不是。
 
 **PR body 与合并清单不在这里产出。** 它们是 **ship-it** 的产物——提交、开 PR、合入都是它做的，由它写一次即可；本技能再写一份就是同一份内容维护两处。走查件只负责证明：命令、真实输出、可视化、风险点、人工验收状态。ship-it 直接采用这份证据，不另写摘要。
 
-## Output
+## 输出
 
-- **Format:** Markdown, one file.
-- **Location:** `tasks/` by default (the collection's default for working artifacts).
-- **Filename:** `tasks/walkthrough-<feature>.md`, kebab-case.
+- **格式：** Markdown，单文件。
+- **位置：** 默认 `tasks/`（本技能集对工作产物的默认位置）。
+- **文件名：** `tasks/walkthrough-<feature>.md`，kebab-case。
 
-## Template
+## 模板
 
 ````markdown
-# Walkthrough — {feature / issue title}
+# 走查 — {功能 / issue 标题}
 
-> generated {date} · branch {branch} · {commit range}
+> 生成于 {date} · 分支 {branch} · {commit 区间}
 
-## Change summary
+## 变更摘要
 
-{2–4 sentences for a reader who has not seen this}
+{2–4 句话，写给没看过这份改动的人}
 
-- {what was built / refactored / added / removed}
-- {key files, components, endpoints, data structures}
-- {the requirement it satisfies — link the issue / PRD}
+- {建了什么 / 重构了什么 / 加了什么 / 删了什么}
+- {关键文件、组件、端点、数据结构}
+- {它满足的需求——链上 issue / PRD}
 
-## Verification steps
+## 验证步骤
 
-### Commands and tests
+### 命令与测试
 
 ```bash
-{exact command}
+{准确命令}
 ```
 ```
-{real output — pass counts, ok lines}
+{真实输出——通过数、ok 行}
 ```
 
-### UI scenarios
+### UI 场景
 
-| # | Scenario | Action | Observed result | Status |
+| # | 场景 | 动作 | 观察到的结果 | 状态 |
 |---|----------|--------|-----------------|--------|
-| 1 | {demo step} | {clicks / inputs} | {what happened} | ✅ / ❌ |
+| 1 | {演示步骤} | {点击 / 输入} | {发生了什么} | ✅ / ❌ |
 
-_{or: N/A — no UI surface}_
+_{或：N/A——没有 UI 界面}_
 
-## Visual proof
+## 可视化证明
 
 ![{caption}](tasks/{shot}.png)
 
-_{or: None — backend/CLI only}_
+_{或：None——仅 backend/CLI}_
 
-## Review gate
+## 评审门禁
 
 ```bash
 git status
@@ -159,64 +151,62 @@ git diff --stat HEAD
 git diff --name-status
 ```
 ```
-{output}
+{输出}
 ```
 
-### High-risk notes
+### 高风险说明
 
-{force-pushed history / migrations / config changes / wide refactors — or None}
+{force-push 过的历史 / 迁移 / 配置改动 / 大范围重构——或 None}
 
-### Manual acceptance
+### 人工验收
 
-{已人工验收 by whom, or 尚未人工验收 — never claim verified without a check}
+{由谁已人工验收，或 尚未人工验收——没有核对过就绝不声称已验证}
 ````
 
-## Determining the feature name
+## 确定功能名
 
-1. The user gave one (`walkthrough user-auth`) — use it.
-2. The branch is `feat/issue-42-*` or `fix/issue-42-*` — derive it from the branch, dropping the
-   prefix and issue number.
-3. A PRD/SPEC exists in `tasks/` (`prd-*.md`, `spec-*.md`) — reuse its feature name.
-4. Otherwise ask.
+1. 用户给了名字（`walkthrough user-auth`）——用它。
+2. 分支是 `feat/issue-42-*` 或 `fix/issue-42-*`——从分支名推导，去掉前缀与 issue 编号。
+3. `tasks/` 里有 PRD/SPEC（`prd-*.md`、`spec-*.md`）——复用它里面的功能名。
+4. 否则就问。
 
-## Edge cases
+## 边界情况
 
-| Scenario | Handling |
+| 场景 | 处理方式 |
 |---|---|
-| Nothing changed (`git diff` empty) | Say so plainly; do not fabricate a walkthrough |
-| No automated tests | Note "no automated tests in repo" and lean on the manual/UI evidence |
-| No UI surface | Visual proof = "None — backend/CLI only"; the UI table = N/A |
-| Image cannot be embedded | Fall back to relative paths and list the files to commit alongside |
-| `tasks/` does not exist | Create it |
-| A walkthrough already exists for this feature | Ask: update in place or overwrite; default overwrite (a fresh snapshot) |
-| Verification could not be completed | Record it as a blocker in the review gate — never mark unverified work as proven |
+| 什么都没改（`git diff` 为空） | 直说；不要编一份走查件出来 |
+| 没有自动化测试 | 注明 "no automated tests in repo"，靠人工 / UI 证据 |
+| 没有 UI 界面 | 可视化证明 = "None — backend/CLI only"；UI 表 = N/A |
+| 图片无法内嵌 | 退回相对路径，并列出要一起 commit 的文件 |
+| `tasks/` 不存在 | 创建它 |
+| 这个功能已经有走查件 | 问：就地更新还是覆盖；默认覆盖（一份新的快照） |
+| 验证没能完成 | 在评审门禁里记成 blocker——绝不把未验证的工作标成已证明 |
 
-## Relationship to other skills
+## 与其他技能的关系
 
 ```
-per issue / per node:   implement ──► commit on its own branch
+每条 issue / 每个节点:   implement ──► commit 到自己的分支
 
-batch end / wave fan-in, once:
+批末 / 波级 fan-in，只做一次:
                         review-it ──► walkthrough ──► ship-it
                             │             │              │
-                         find/fix     proven +       commit + PR
-                                      review gate
+                         查找修复     已证明 +       commit + PR
+                                      评审门禁
 ```
 
-- **review-it** fixes what it finds; a walkthrough assumes that pass already happened.
-- Design rationale goes out once in the ship-it comment, and becomes a per-issue file only when a
-  repo asks for one. A walkthrough records proof; it does not restate rationale.
-- **understand** explains what the new code does; a walkthrough is the artifact you hand to a
-  reviewer.
-- **ship-it** consumes it: the evidence, risk notes and manual-acceptance status feed straight into
-  the PR body. The PR body and the merge checklist are ship-it's output, not this skill's.
+- **review-it** 修掉它找到的问题；走查件假定那一遍已经发生过。
+- 设计理由由 ship-it 的评论一次性发出，只有仓库要求时才变成逐 issue 的文件。走查件记录证明；
+  它不复述理由。
+- **understand** 解释新代码做了什么；走查件是你交给评审者的产物。
+- **ship-it** 消费它：evidence、风险说明与人工验收状态直接喂进 PR body。PR body 与合并清单是
+  ship-it 的产物，不是本技能的。
 
-## Checklist
+## 检查清单
 
-- [ ] The change summary reads for a fresh reader, not as a diff dump
-- [ ] Every verification step shows the actual command and its actual output
-- [ ] UI scenarios carry pass/fail outcomes wherever a UI exists
-- [ ] Visual proof is attached (relative paths by default) or explicitly "None"
-- [ ] The review gate carries the diff stat, the high-risk notes and the manual-acceptance status
-- [ ] Nothing unverified is written as verified
-- [ ] Saved to `tasks/walkthrough-<feature>.md`
+- [ ] 变更摘要读起来是给新读者的，不是一份 diff 倾倒
+- [ ] 每个验证步骤都给出实际命令与实际输出
+- [ ] 有 UI 的地方，UI 场景都带通过/失败结果
+- [ ] 可视化证明已附上（默认相对路径）或明确写 "None"
+- [ ] 评审门禁带上了 diff stat、高风险说明与人工验收状态
+- [ ] 没有任何未验证的东西被写成已验证
+- [ ] 已保存到 `tasks/walkthrough-<feature>.md`

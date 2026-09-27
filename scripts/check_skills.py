@@ -119,7 +119,7 @@ def load_frontmatter(path: str) -> dict | str:
     try:
         import yaml
     except ImportError:  # pragma: no cover - dependency is optional
-        return "PyYAML is not installed (pip install pyyaml)"
+        return "PyYAML is not installed — run `python3 -m pip install -r requirements.txt`"
     try:
         data = yaml.safe_load(parts[1])
     except Exception as exc:  # noqa: BLE001 - report whatever the parser said

@@ -1,30 +1,30 @@
-# PRD Generator Skill
+# PRD 生成技能
 
-Generate structured Product Requirements Documents (PRD) for new features. Focused solely on producing a clear, implementable PRD — Issue decomposition is handled by `/to-issues`.
+为新功能生成结构化的产品需求文档（PRD）。只专注产出一份清晰、可实现的 PRD——issue 拆解由 `/to-issues` 负责。
 
-## Features
+## 特性
 
-- Asks 3-5 clarifying questions with lettered options for quick iteration
-- Generates a well-structured PRD with user stories, numbered functional requirements, non-goals, success metrics, and more
-- Enforces verifiable acceptance criteria (observable / testable / verifiable)
-- Supports user review and adjustment before saving
-- Saves output to `tasks/prd-[feature-name].md`
-- Bilingual (Chinese & English) edge case handling
+- 提出 3-5 个带字母选项的澄清问题，方便快速作答迭代
+- 生成结构良好的 PRD：用户故事、编号的功能需求、非目标、成功指标等
+- 强制验收条件可验证（可观测 / 可测试 / 可校验）
+- 保存前支持用户评审与调整
+- 产物保存到 `tasks/prd-[feature-name].md`
+- 边界情况支持中英双语处理
 
-## Workflow
+## 工作流
 
-The PRD skill is the first step in a two-stage pipeline:
+PRD 技能是两段式流水线的第一步：
 
-| Stage | Skill | Purpose |
+| 阶段 | 技能 | 目的 |
 |-------|-------|---------|
-| 1. Requirements | `/prd` (this skill) | Define *what* to build |
-| 2. Decomposition | `/to-issues` | Break into implementable tickets, each carrying its own contract block (GitHub / Local) |
+| 1. 需求 | `/prd`（本技能） | 定义要建*什么* |
+| 2. 拆解 | `/to-issues` | 拆成可实现的卡片，每张自带契约字段块（GitHub / 本地） |
 
-After a PRD is confirmed, run `/to-issues`. There is no separate technical-design document: each Issue body carries goal, non-goals, acceptance criteria, required evidence, external boundary, definition of done and open questions.
+PRD 确认后，跑 `/to-issues`。没有单独的技术设计文档：每条 issue 正文自带目标、非目标、验收条件、必须收集的证据、外部边界、完成定义和未决问题。
 
-## Usage
+## 用法
 
-Trigger with prompts like:
+用这类提示词触发：
 
 - "create a prd for..."
 - "write prd for..."
@@ -32,7 +32,7 @@ Trigger with prompts like:
 - "需求文档"
 - "需求分析"
 
-## Files
+## 文件
 
-- `SKILL.md` — Skill definition and instructions
-- `evals/evals.json` — Test prompts with the expectations a run is graded against
+- `SKILL.md` — 技能定义与指令
+- `evals/evals.json` — 测试提示词，以及一次运行据以评分的期望

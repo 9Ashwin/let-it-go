@@ -1,33 +1,30 @@
-# DSH runtime notes for to-issues
+# to-issues 的 DSH 运行时说明
 
-Read this when publishing Issues under DeepSeek Harness, or when the body's
-"fresh child" wording needs a tool name. The decomposition itself and the
-`gh issue create` path are harness-independent — only discovery, invocation and
-the dispatch rows below are DSH-specific.
+在 DeepSeek Harness 下发布 issue 时读这份，或者当正文里的"全新子代理"
+措辞需要落到一个工具名时读它。拆解本身与 `gh issue create` 这条路
+和宿主无关——只有发现、调用和下面的派发行是 DSH 专有的。
 
-## Loading and invoking this skill
+## 加载与调用这个技能
 
-DSH discovers a skill at `<root>/<name>/SKILL.md` one level below a scanned root,
-so the nested `skills/flow/to-issues/` layout must be flattened on install (the
-bundle lists each bucket as its own root; a copied `~/.agents/skills/to-issues`
-is already flat). `disable-model-invocation` is the catalog opt-out, and this
-skill does not set it. The `skill` tool loads by exact name and returns the body
-in a canonical `<skill_content>` block with a `<skill_resources>` resource block
-whose directory form reads `Base directory for this skill: <path>` — that
-absolute path is what `<SKILL_DIR>` resolves from, though this skill ships no
-scripts. Typing `/to-issues` is the human entry point.
+DSH 在扫描根的下一层、按 `<root>/<name>/SKILL.md` 发现技能，
+所以嵌套的 `skills/flow/to-issues/` 布局必须在安装时拍平（bundle 把
+每个 bucket 列为自己的根；拷到 `~/.agents/skills/to-issues` 时本来就是平的）。
+`disable-model-invocation` 是目录级的退出开关，本技能不设它。`skill`
+工具按精确名字加载，把正文放进规范的 `<skill_content>` 块，并带一个
+`<skill_resources>` 资源块，其目录形式读作 `Base directory for this skill: <path>`——
+`<SKILL_DIR>` 解析出的就是这个绝对路径，尽管本技能没有附带脚本。
+人类入口是敲 `/to-issues`。
 
-## Dispatch mapping
+## 派发映射
 
-The body's "how to run it" table tells the user how to consume the Issues. Two
-body phrasings map to a DSH tool:
+正文里那张"怎么跑"的表告诉用户如何消费这些 issue。正文有两种措辞
+对应到一个 DSH 工具：
 
-| Body wording | DSH |
+| 正文措辞 | DSH |
 |---|---|
-| a **fresh child** with the Issue body as a self-contained prompt | `subagent` |
-| a **forked child** that inherits context | `subagent_fork` |
+| 把 issue 正文当自包含提示词交给一个**全新子代理** | `subagent` |
+| 继承上下文的 **fork 出来的子代理** | `subagent_fork` |
 
-The GitHub-CLI publishing path needs no mapping: `gh` runs the same way on every
-host. The other rows are already neutral — `/loop-it` and `/graph` are DSH skills,
-and a long-running objective is the human's `/goal`, not something the model
-starts.
+GitHub CLI 发布这条路不需要映射：`gh` 在任何宿主上跑法都一样。其余几行
+本来就是中立的——`/loop-it` 与 `/graph` 是 DSH 技能，长跑目标则是人自己敲的
+`/goal`，不是模型能起的东西。

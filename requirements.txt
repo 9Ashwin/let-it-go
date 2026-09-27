@@ -1,0 +1,10 @@
+# The repository's own tooling — not the skills.
+#
+# The skills themselves run on the Python standard library alone; this file exists so the
+# checkers are reproducible. `scripts/check_skills.py` parses YAML frontmatter, and without
+# PyYAML it cannot validate anything, which turns the whole gate into a no-op.
+#
+# Install: python3 -m pip install -r requirements.txt
+# Python: 3.9 or newer (`from __future__ import annotations` plus `X | None` in signatures).
+
+PyYAML>=6.0

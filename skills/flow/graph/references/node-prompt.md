@@ -1,104 +1,92 @@
-# Node prompt template
+# 节点提示词模板
 
-Paste this into each wave's child dispatch, substituting every `{…}` placeholder. It is
-self-contained on purpose: a fresh child sees none of the orchestrator's conversation, so
-anything it needs must be in the prompt.
+把它粘进每个波的子代理派发里，替换每一个 `{…}` 占位符。它刻意是自包含的：全新子代理看不到编排器的任何对话，所以它需要的东西都必须在这份提示词里。
 
-Keep it this short. A node's own context is where its tokens go, and the three numbered steps
-are the whole contract — implement, prove, commit. Review and shipping happen once per wave,
-so they must not appear here.
+就保持这么短。节点的 token 花在它自己的上下文上，而三个编号步骤就是全部契约——实现、自证、commit。评审与交付每波只发生一次，所以不能出现在这里。
 
 ```markdown
-You are implementing ONE node of a task graph, working in an ISOLATED git worktree.
+你在实现一张任务图里的一个节点，工作在一个隔离的 git worktree 里。
 
-Worktree (ABSOLUTE path — use it verbatim): {WT}
-Branch:    {branch}   ({branch_state})
-Node #{N}: {title}
-Type:      {type}
-Scope:     {scope_hint}  — stay within these files; do not touch other nodes' scope
+Worktree（绝对路径——原样使用）：{WT}
+分支：   {branch}   ({branch_state})
+节点 #{N}：{title}
+类型：   {type}
+作用域： {scope_hint}  —— 留在这个文件范围内；不要碰其它节点的作用域
 
-WORKING-DIRECTORY DISCIPLINE (read this twice — getting it wrong corrupts other nodes):
-- Your file tools resolve RELATIVE paths against the ORCHESTRATOR's checkout, NOT this
-  worktree. ALWAYS pass absolute paths: `{WT}/internal/foo.go`, never `internal/foo.go`.
-- Every bash call starts a FRESH shell; `cd` does NOT persist between calls.
-  Pass `workdir={WT}` if your shell tool takes a working directory, or prefix
-  `cd {WT} && …` in the same command.
-- Never run a bare `go test ./...` / `npm test` / `cargo test` without one of those,
-  or you will build and test the main checkout while a sibling node edits it.
-- Sanity check before you finish: `git -C {WT} status --short` must list your own edits.
+工作目录纪律（读两遍——搞错了会毁掉其它节点）：
+- 你的文件工具把相对路径解析到编排器的检出，不是这个 worktree。永远传绝对路径：
+  `{WT}/internal/foo.go`，绝不要 `internal/foo.go`。
+- 每次 bash 调用都启动一个全新 shell；`cd` 不会跨调用保留。如果你的 shell 工具接受
+  工作目录就传 `workdir={WT}`，否则在同一条命令里加前缀 `cd {WT} && …`。
+- 永远不要裸跑 `go test ./...` / `npm test` / `cargo test`，否则你会在兄弟节点正在编辑的
+  主检出上构建和测试。
+- 收尾前自查：`git -C {WT} status --short` 必须列出你自己的改动。
 
-Acceptance criteria (all must pass):
+验收条件（必须全部通过）：
 - [ ] {criterion 1}
 - [ ] {criterion 2}
 
-Context (dependency nodes are already merged into the default branch):
-{summaries of dependency nodes' outputs, or the referenced PRD/SPEC excerpt}
+上下文（依赖节点已经并入默认分支）：
+{dependency_summaries}
 
-Your job — implement, prove, commit. Nothing else:
-1. IMPLEMENT (inline — you write the code): read the node + any referenced PRD/SPEC,
-   read adjacent code, implement to satisfy EVERY acceptance criterion.
-2. PROVE IT: run the project's own gates inside the worktree and iterate until green
-   (e.g. `cd {WT} && go build ./... && go vet ./... && go test ./...`). Add or update
-   the tests the criteria imply — a criterion you did not test is not satisfied.
-3. COMMIT on your branch: `git -C {WT} add -A`, then commit with a message that names
-   the node (`feat(node-{N}): {title}`). Check `git -C {WT} status --short` first and
-   keep build junk out of the commit.
-   Do NOT push, do NOT open a PR, do NOT merge, and do NOT run the **review-it**,
-   **ship-it** or **implement** skills — the orchestrator reviews and ships the whole wave
-   once, after integration. Reviewing here would only be you re-reading your own work.
-   Those three numbered steps above ARE your whole contract.
+你的工作——实现、自证、commit。没有别的：
+1. 实现（内联——代码由你写）：读这个节点和任何被引用的 PRD/SPEC，读相邻代码，
+   实现到满足每一条验收条件。
+2. 自证：在 worktree 里跑项目自己的门禁并迭代到全绿
+   （例如 `cd {WT} && go build ./... && go vet ./... && go test ./...`）。补上或更新
+   验收条件隐含的测试——你没测过的验收条件不算满足。
+3. 在你的分支上 commit：`git -C {WT} add -A`，然后用一条点名该节点的消息 commit
+   （`feat(node-{N}): {title}`）。先看 `git -C {WT} status --short`，
+   别把构建垃圾带进 commit。
+   不要 push、不要开 PR、不要 merge，也不要跑 **review-it**、**ship-it** 或
+   **implement** 技能——编排器会在集成之后对整个波评审与交付一次。在这里评审
+   只是你重读自己的东西。上面那三个编号步骤就是你的全部契约。
 
-Constraints:
-- Work ONLY inside your worktree. Do NOT edit files outside {scope_hint}.
-- "implement" means YOU write the code — there is no command that does it for you.
-- Do NOT dispatch your own child agents: this node is a leaf.
-- If you cannot satisfy a criterion, STOP and report what's blocking — don't fake it. A
-  clean FAIL with a precise reason is worth more than a green claim the gates contradict.
+约束：
+- 只在你自己的 worktree 里工作。不要编辑 {scope_hint} 之外的文件。
+- "implement" 意味着代码由你写——没有任何命令替你完成。
+- 不要派发你自己的子代理：这个节点是叶子。
+- 如果某条验收条件无法满足，停下并报告卡在哪——不要假装。一次干净的 FAIL
+  加上精确的理由，比一句被门禁打脸的绿灯声明更值钱。
 
-Your report goes through the `structured_output` tool, not through prose.
+你的报告走 `structured_output` 工具，不走散文。
 
-The runtime hands you that tool and tells you to finish with it; **that call is the report**. Call
-it exactly once, when the work is done, with these keys and nothing else — the orchestrator reads
-the object, not your prose:
+运行时会把这个工具交给你，并让你用它收尾；**那次调用就是报告**。在工作完成时恰好调用
+一次，只带下面这些键——编排器读的是那个对象，不是你的散文：
 
-| Key | Value |
+| 键 | 值 |
 |---|---|
-| `node` | your node id |
-| `status` | `"shipped"` if every acceptance criterion is met and the gates are green; `"failed"` if not; `"blocked"` if you could not finish because an input you depend on is missing |
-| `commit` | the commit sha on your branch, or `""` if you did not commit |
-| `files` | every file you changed, as repo-relative paths |
-| `gates` | the exact commands you ran and their exit codes, as one string: `python3 -m unittest discover -s tests -q -> exit 0` |
-| `new_work` | work you found that the graph does not capture, as one short line; `"none"` is the normal answer — do not invent entries to look thorough |
-| `summary` | what you did, anything that surprised you, and anything the orchestrator needs that the keys above cannot carry. This is the prose channel; a report without it is unreadable to the human |
+| `node` | 你的节点 id |
+| `status` | 每条验收条件都满足且门禁全绿时是 `"shipped"`；否则 `"failed"`；如果因为你依赖的某个输入缺失而无法完成，是 `"blocked"` |
+| `commit` | 你分支上的 commit sha；没 commit 就是 `""` |
+| `files` | 你改过的每个文件，用仓库相对路径 |
+| `gates` | 你实际跑的命令及其退出码，写成一条字符串：`python3 -m unittest discover -s tests -q -> exit 0` |
+| `new_work` | 你发现的、图没有捕获的工作，一行短句；`"none"` 是正常答案——不要为了显得周全而编造条目 |
+| `summary` | 你做了什么、有什么让你意外，以及编排器需要而上面这些键承载不了的东西。这是散文通道；没有它的报告对人来说读不了 |
 
-A `"failed"` or `"blocked"` status is a real answer, not a failure of the exercise: a clean FAIL
-with a precise reason is worth more than a green claim the gates contradict.
+`"failed"` 或 `"blocked"` 状态是真实答案，不是这次练习的失败：一次干净的 FAIL
+加上精确的理由，比一句被门禁打脸的绿灯声明更值钱。
 ```
 
-## Filling the placeholders
+## 怎么填占位符
 
-- `{WT}` — the absolute worktree path. Never a relative path.
-- `{branch}` / `{branch_state}` — the branch this node lives on. The checkpoint's recorded
-  `branch` wins; only when nothing is recorded does the renderer derive a name from the title,
-  and then the header says so and `{branch_state}` says the branch does not exist yet. Run the
-  `git worktree add` line the header prints before dispatching — the child cannot create its own
-  worktree without stepping outside its scope.
-- `{scope_hint}` — the node's `scope` from the plan, as a human-readable list. It is a promise
-  about which files merge cleanly; a node that needs to leave it should say so in its report
-  instead of silently editing elsewhere.
-- `{summaries …}` — one or two lines per dependency: what it added, where, and anything the
-  node must know. The child cannot read the earlier nodes' conversations, so this is the only
-  channel the graph has. Keep it factual; the integration diff is not a substitute.
-- `{criterion …}` — copy the criteria verbatim from the plan. Vague criteria produce vague
-  reports, and the wave review is where that becomes visible.
+- `{WT}` —— worktree 的绝对路径。永远不要相对路径。
+- `{branch}` / `{branch_state}` —— 这个节点所在的分支。检查点记录的 `branch` 优先；
+  只有在什么都没记录时，渲染器才从标题派生一个名字，这时头部会说明这一点，
+  `{branch_state}` 会说该分支还不存在。派发之前先跑头部打印的 `git worktree add`
+  那一行——子代理无法在不越出自己作用域的前提下创建自己的 worktree。
+- `{scope_hint}` —— 计划里该节点的 `scope`，写成人类可读的清单。它是对哪些文件能干净
+  合并的承诺；需要越出它的节点应该在报告里说明，而不是静默改到别处。
+- `{dependency_summaries}` —— 每个依赖一到两行：它加了什么、加在哪、以及该节点必须知道的事。
+  子代理读不到更早节点的对话，所以这是图唯一的通道。保持事实性；集成 diff 不能替代它。
+- `{criterion …}` —— 从计划里原样抄验收条件。模糊的验收条件产生模糊的报告，
+  而波级评审正是这件事变得可见的地方。
 
-## Reading the report
+## 怎么读报告
 
-A node report is evidence, not a verdict. Before merging: the gate command it names should be
-the project's real gate, the leak check should be clean, and `new_work` drives the re-plan. If a
-node reports `"shipped"` while the integrated gates fail, treat the integration as the truth — the
-node tested its worktree, not the combination.
+节点报告是 evidence，不是判决。合并之前：它点名的门禁命令应该是项目真正的门禁，
+泄漏检查应该是干净的，而 `new_work` 驱动重规划。如果一个节点报告 `"shipped"` 而集成
+后的门禁失败，以集成为准——该节点测的是它的 worktree，不是组合。
 
-A node that came back as `null` produced no valid object at all: it failed, or it finished without
-calling `structured_output`. Both need the same handling — retry it in place, or mark it `failed`
-and block its dependents.
+以 `null` 回来的节点根本没有产出有效对象：它失败了，或者没调用 `structured_output`
+就结束了。两者需要同样的处理——原地重试，或标成 `failed` 并阻塞它的依赖者。

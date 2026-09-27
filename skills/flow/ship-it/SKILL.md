@@ -1,6 +1,6 @@
 ---
 name: ship-it
-description: "Ship finished work through the GitHub CLI: commit, push, open the PR, merge, close the issue, then comment the implementation summary. Triggers: 提交代码, 创建PR, 合入, 关闭issue, ship-it, commit and merge."
+description: "用 GitHub CLI 交付已完成的工作：提交、推送、开 PR、合入、关闭 issue，再补一条实现总结评论。Triggers: 提交代码, 创建PR, 合入, 关闭issue, ship-it, commit and merge."
 ---
 
 # After-Goal: 代码提交、PR 合入、Issue 关闭工作流（GitHub）

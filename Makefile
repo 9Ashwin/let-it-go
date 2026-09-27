@@ -10,11 +10,14 @@ SHELL := /bin/bash
 PY ?= python3
 
 .DEFAULT_GOAL := help
-.PHONY: help check test vendor vendor-check vendor-update vendor-list vendor-add
+.PHONY: help deps check test vendor vendor-check vendor-update vendor-list vendor-add
 
 help:  ## List every target
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
+
+deps:  ## Install the checkers' own dependencies (the skills need none)
+	$(PY) -m pip install -r requirements.txt
 
 check:  ## Validate the skill set: layout, frontmatter, cross-references, patch, installer manifest
 	$(PY) scripts/check_skills.py

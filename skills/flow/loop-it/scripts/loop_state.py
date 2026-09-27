@@ -1,64 +1,53 @@
 #!/usr/bin/env python3
-"""Order and checkpoint a /loop-it issue batch.
+"""为 /loop-it 的 issue 批次排序并做检查点。
 
-Dependency parsing, cycle breaking, topological ordering, the "next actionable
-issue" decision and the resume merge are deterministic. Deriving them in prose
-on every run is slower and less reliable, so they live here: the skill runs a
-subcommand and reads the printed summary.
+依赖解析、破环、拓扑排序、"下一个可执行 issue"的判定以及恢复时的合并都是确定性的。
+每次运行都用散文重新推导既慢又不可靠，所以它们放在这里：技能跑一个子命令，读打印出来的
+摘要。
 
-Subcommands (all accept `--state <path>`, default `.loop-state.json`):
+子命令（都接受 `--state <path>`，默认 `.loop-state.json`）：
 
   scan [--issues <path>] [--repo owner/name]
-      Read `gh issue list --state open --json number,title,labels,body` output
-      from a file or stdin, parse dependency edges, break cycles by lowest
-      issue number, topologically order the batch, merge into the existing
-      checkpoint (a recorded status is never lost; a corrupt checkpoint is a
-      hard error and is never overwritten), write the checkpoint, and print the
-      order, the next actionable issue and the blocked/skipped ones.
+      从文件或 stdin 读取 `gh issue list --state open --json number,title,labels,body`
+      的输出，解析依赖边，按最小 issue 编号破环，对这批 issue 做拓扑排序，合并进已有的
+      检查点（已记录的状态永不丢失；损坏的检查点是硬错误，永不覆盖），写入检查点，并
+      打印顺序、下一个可执行 issue 以及被阻塞/跳过的那些。
 
   set --issue N --status <pending|in_progress|shipped|failed|skipped|blocked>
       [--error-class X] [--error TEXT] [--branch B] [--phase P]
-      Record one transition, stamp times, increment `attempts` when an attempt
-      starts, write the checkpoint, and print what to do next. Marking an issue
-      `shipped` warns when it still has no `decisions` / `verification` / `open`
-      recorded, and when it has no structured `evidence` — a shipped row without
-      them says a thing happened, not what proved it.
+      记录一次状态转移，打上时间戳，在一次尝试开始时递增 `attempts`，写入检查点，并打印
+      下一步该做什么。把 issue 标成 `shipped` 时，若它仍没记录 `decisions` /
+      `verification` / `open`，或没有结构化的 `evidence`，会给出告警——一条缺了这些的
+      shipped 记录只说明有事发生过，说明不了是什么证明了它。
 
   note --issue N [--progress TEXT] [--decisions TEXT] [--verification TEXT]
        [--open TEXT]
-      Record the four things a checkpoint must not lose, appended verbatim
-      rather than summarized: what happened, what was decided and why, what was
-      run and what it proved, and what is still open. These are what make a
-      finished batch auditable months later.
+      记录检查点绝不能丢的四件事，逐字追加而非概括：发生了什么、决定了什么以及为什么、
+      跑了什么以及它证明了什么、还有什么没结。正是这些让一批做完的工作几个月后仍可审计。
 
   evidence add --issue N --kind <test|runtime|database|external|human>
                --command TEXT --result <pass|fail|deferred>
                [--artifact PATH] [--observed-at TIME]
   evidence list --issue N
-      The structured half of verification: one observation per acceptance
-      criterion, appended and never rewritten. `note --verification` says what a
-      run proved as a whole; this says which observation backs which claim, with
-      the command that produced it, so a reader can re-run it. `--observed-at`
-      defaults to now.
+      验证的结构化那一半：每条验收标准一条观察，只追加、永不改写。
+      `note --verification` 说的是整次运行证明了什么；这里说的是哪条观察支撑哪个论断，
+      连同产生它的命令，好让读者能重跑一遍。`--observed-at` 默认是当前时间。
 
   followup add --from-issue N --title TEXT [--why TEXT] [--evidence TEXT]
   followup list [--all]
   followup resolve --id ID --status <promoted|dropped> [--issue N] [--why TEXT]
-      The campaign's own task queue. A supervisor verdict of `follow-up` means
-      the issue passes but something new must not be lost: it is recorded here,
-      versioned with the checkpoint and printed by `summary`, never left in the
-      conversation. `promoted` records the issue number it became, and the next
-      `scan` picks that issue up — which is how a batch extends itself.
+      这轮工作自己的任务队列。supervisor 给出 `follow-up` 判定，意味着 issue 通过了，但
+      有件新事不能丢：它记录在这里，随检查点一起版本化，并由 `summary` 打印，绝不留在
+      对话里。`promoted` 记录它变成了哪个 issue 编号，下一次 `scan` 会把这个 issue 捡进
+      来——一批工作就是这样自我延伸的。
 
   next
-      Print the next actionable issue (all deps shipped) and why the others
-      are waiting.
+      打印下一个可执行 issue（所有依赖都已 shipped），以及其余的在等什么。
 
   summary
-      Print the progress table.
+      打印进度表。
 
-Checkpoint schema — unchanged from the heredoc-era skill so an old file
-resumes:
+检查点 schema —— 与 heredoc 时代的技能保持一致，好让旧文件能恢复：
 
   {
     "version": 1, "started_at": ..., "updated_at": ..., "repo": "owner/repo",
@@ -75,22 +64,18 @@ resumes:
                                    "observed_at": ...}]}}
   }
 
-`title` and `deps` are additive per-issue fields written by `scan` so `next`
-and `summary` can explain what is waiting without re-reading GitHub. `notes`,
-`evidence` and `followups` are additive too — written by the `note`, `evidence`
-and `followup` subcommands, absent until something is recorded, and preserved
-verbatim by a re-`scan`. An old file that lacks any of them still resumes; it
-only loses titles, waiting reasons, notes, evidence and follow-ups until the
-next write.
+`title` 与 `deps` 是 `scan` 写入的按 issue 追加字段，好让 `next` 和 `summary` 不必重读
+GitHub 就能说明在等什么。`notes`、`evidence` 与 `followups` 同样是追加的——由 `note`、
+`evidence` 与 `followup` 子命令写入，没记录之前不存在，重新 `scan` 时逐字保留。缺少其中
+任何一项的旧文件仍能恢复；它只是在下次写入之前少了标题、等待原因、notes、evidence 和
+follow-up。
 
-Ordering: repeatedly take the lowest-numbered issue whose in-batch deps are all
-placed (lexicographically smallest topological order). When that stalls, the
-remaining nodes form a cycle: the lowest-numbered one has its dependency edges
-ignored, with a warning naming the cycle.
+排序：反复取编号最小、且批内依赖都已放置的 issue（字典序最小的拓扑序）。这一步卡住时，
+剩下的节点构成一个环：编号最小的那个忽略其依赖边，并给出指名该环的告警。
 
-Readiness: a dependency is satisfied only when its status is `shipped`. A dep
-that is `skipped`, `failed`, `blocked` or `in_progress`, or that is not tracked
-at all (the issue is no longer open), leaves the dependent waiting.
+就绪判定：依赖只有状态为 `shipped` 才算满足。状态是 `skipped`、`failed`、`blocked` 或
+`in_progress` 的依赖，或根本没被跟踪的依赖（该 issue 已不再 open），都会让依赖它的 issue
+继续等待。
 """
 
 from __future__ import annotations
@@ -108,25 +93,21 @@ DONE = ("shipped", "skipped")
 RUNNABLE = ("pending", "in_progress")
 DEFAULT_STATE = ".loop-state.json"
 
-# The four things a checkpoint must not lose, kept verbatim rather than summarized. They are
-# why a finished batch can still be audited months later: a status says a thing shipped, not
-# what was decided, what proved it, or what was left open. `progress` is not enforced because
-# the status and timestamps already carry it; the other three are, because a `shipped` row
-# without them is an assertion with no trail.
+# 检查点绝不能丢的四件事，逐字保留而非概括。它们是一批做完的工作几个月后仍可审计的
+# 原因：状态只说明某件事 shipped 了，说不清决定了什么、什么证明了它、留下了什么没结。
+# `progress` 不做强制，因为状态和时间戳已经承载了它；另外三类强制，因为一条缺了它们的
+# `shipped` 记录是没有痕迹的断言。
 NOTE_CATEGORIES = ("progress", "decisions", "verification", "open")
 REQUIRED_NOTES = ("decisions", "verification", "open")
 
-# The structured half of verification: what was actually observed, with the command that
-# produced it. `kind` is the nature of the observation, not its strength — which kinds gate
-# which status is the workspace's call, not this script's. `result` is deliberately
-# three-valued: `deferred` is the honest answer for a check that was skipped, and it must
-# never be able to masquerade as `pass`.
+# 验证的结构化那一半：实际观察到了什么，以及产生它的命令。`kind` 是观察的性质，不是它
+# 的强度——哪类观察给哪个状态设门禁是工作区自己的决定，不是本脚本的。`result` 刻意是三值
+# 的：对一项被跳过的检查，`deferred` 是诚实的答案，它绝不能被伪装成 `pass`。
 EVIDENCE_KINDS = ("test", "runtime", "database", "external", "human")
 EVIDENCE_RESULTS = ("pass", "fail", "deferred")
 
-# A follow-up is a task, not a note: it has a lifecycle and can be promoted into a real
-# issue, which is how a batch grows while it runs instead of being frozen at plan time.
-# `open` is the only non-terminal state, so only the two resolutions are ever passed in.
+# follow-up 是任务，不是笔记：它有生命周期，可以被提升成真正的 issue，一批工作因此在运行
+# 中生长，而不是在计划时就冻住。`open` 是唯一的非终态，所以传进来的只有两种解决方式。
 FOLLOWUP_OPEN = "open"
 FOLLOWUP_RESOLUTIONS = ("promoted", "dropped")
 
@@ -149,15 +130,14 @@ def ref(number: int) -> str:
 
 
 # --------------------------------------------------------------------------
-# dependency parsing
+# 依赖解析
 # --------------------------------------------------------------------------
 
 def parse_deps(body: str, number: int | None = None) -> list[int]:
-    """Parse dependency edges from one issue body.
+    """从一个 issue 正文里解析依赖边。
 
-    Supported forms: `Dependencies: #3, #5`, `Depends on: #3`, `depends on #3`,
-    `requires #3`, plus `and`-joined lists. Refs after the first non-reference
-    token are not treated as dependencies.
+    支持的形式：`Dependencies: #3, #5`、`Depends on: #3`、`depends on #3`、
+    `requires #3`，以及用 `and` 连接的列表。第一个非引用 token 之后的引用不再当作依赖。
     """
     deps: set[int] = set()
     if not body:
@@ -182,11 +162,11 @@ def parse_deps(body: str, number: int | None = None) -> list[int]:
 
 
 # --------------------------------------------------------------------------
-# graph
+# 图
 # --------------------------------------------------------------------------
 
 def cycle_path(start: int, deps: dict[int, set[int]], remaining: set[int]) -> list[int]:
-    """Walk lowest-numbered edges from `start` until a node repeats."""
+    """从 `start` 出发沿编号最小的边前进，直到某个节点重复出现。"""
     path: list[int] = []
     seen: dict[int, int] = {}
     node = start
@@ -203,7 +183,7 @@ def cycle_path(start: int, deps: dict[int, set[int]], remaining: set[int]) -> li
 
 
 def topology(numbers: list[int], deps: dict[int, set[int]]) -> tuple[list[int], list[str]]:
-    """Lexicographically smallest topological order, breaking cycles by number."""
+    """字典序最小的拓扑序，按编号破环。"""
     remaining = set(numbers)
     edges = {n: {d for d in deps.get(n, set()) if d != n} for n in numbers}
     order: list[int] = []
@@ -215,7 +195,7 @@ def topology(numbers: list[int], deps: dict[int, set[int]]) -> tuple[list[int], 
             blockers = sorted(edges[victim] & remaining)
             cycle = cycle_path(victim, edges, remaining)
             chain = " → ".join(ref(n) for n in cycle) if cycle else ref(victim)
-            dropped = ", ".join(ref(b) for b in blockers) or "(none)"
+            dropped = ", ".join(ref(b) for b in blockers) or "（无）"
             warnings.append(
                 f"⚠️ 循环依赖检测到: {chain}，按编号顺序打破（忽略 {ref(victim)} 的依赖 {dropped}）"
             )
@@ -249,7 +229,7 @@ def order_of(state: dict) -> list[int]:
 
 
 def waiting_on(state: dict, number: int) -> list[str]:
-    """Human-readable list of the unsatisfied dependencies of `number`."""
+    """`number` 那些未满足依赖的可读列表。"""
     entry = state["issues"].get(str(number)) or {}
     reasons: list[str] = []
     for dep in entry.get("deps") or []:
@@ -276,7 +256,7 @@ def next_actionable(state: dict) -> int | None:
 
 
 # --------------------------------------------------------------------------
-# checkpoint
+# 检查点
 # --------------------------------------------------------------------------
 
 def blank_issue(title: str = "", deps: list[int] | None = None) -> dict:
@@ -291,25 +271,25 @@ def blank_issue(title: str = "", deps: list[int] | None = None) -> dict:
 def load_state(path: str, required: bool = False) -> dict | None:
     if not os.path.exists(path):
         if required:
-            die(f"checkpoint not found: {path} — run the `scan` subcommand first")
+            die(f"找不到检查点：{path} —— 先跑 `scan` 子命令")
         return None
     try:
         with open(path, encoding="utf-8") as handle:
             raw = json.load(handle)
     except json.JSONDecodeError as exc:
-        die(f"checkpoint {path} is corrupt (invalid JSON: {exc}) — fix or delete it; refusing to overwrite")
+        die(f"检查点 {path} 已损坏（JSON 无效：{exc}）—— 修好或删掉它；拒绝覆盖")
     except OSError as exc:
-        die(f"checkpoint {path} cannot be read: {exc}")
+        die(f"检查点 {path} 无法读取：{exc}")
     if not isinstance(raw, dict):
-        die(f"checkpoint {path} is corrupt (top level is not an object) — fix or delete it; refusing to overwrite")
+        die(f"检查点 {path} 已损坏（顶层不是对象）—— 修好或删掉它；拒绝覆盖")
     issues = raw.get("issues")
     if not isinstance(issues, dict):
-        die(f"checkpoint {path} is corrupt (no `issues` object) — fix or delete it; refusing to overwrite")
+        die(f"检查点 {path} 已损坏（没有 `issues` 对象）—— 修好或删掉它；拒绝覆盖")
     for key, entry in issues.items():
         if not isinstance(entry, dict) or not isinstance(entry.get("status"), str):
-            die(f"checkpoint {path} is corrupt (issue {key} has no status) — fix or delete it; refusing to overwrite")
+            die(f"检查点 {path} 已损坏（issue {key} 没有 status）—— 修好或删掉它；拒绝覆盖")
     if raw.get("version") != 1:
-        print(f"⚠️  checkpoint version is {raw.get('version')!r}, expected 1 — continuing", file=sys.stderr)
+        print(f"⚠️  检查点版本是 {raw.get('version')!r}，期望 1 —— 继续", file=sys.stderr)
     return raw
 
 
@@ -346,27 +326,27 @@ def read_issues(path: str | None) -> list:
             with open(path, encoding="utf-8") as handle:
                 text = handle.read()
     except OSError as exc:
-        die(f"cannot read issues from {path}: {exc}")
+        die(f"无法从 {path} 读取 issue：{exc}")
     if not text.strip():
-        die("no issue JSON given — expected `gh issue list --state open --json number,title,labels,body` output")
+        die("没有给出 issue JSON —— 期望 `gh issue list --state open --json number,title,labels,body` 的输出")
     try:
         data = json.loads(text)
     except json.JSONDecodeError as exc:
-        die(f"issue JSON is invalid: {exc}")
+        die(f"issue JSON 无效：{exc}")
     if isinstance(data, dict) and isinstance(data.get("issues"), list):
         data = data["issues"]
     if not isinstance(data, list):
-        die("issue JSON must be a list of issue objects")
+        die("issue JSON 必须是 issue 对象的列表")
     return data
 
 
 def normalize_issue(item: dict) -> tuple[int, str, str, list[str]]:
     if not isinstance(item, dict):
-        die(f"issue entry is not an object: {item!r}")
+        die(f"issue 条目不是对象：{item!r}")
     try:
         number = int(item.get("number"))
     except (TypeError, ValueError):
-        die(f"issue without a usable number: {item!r}")
+        die(f"issue 没有可用的编号：{item!r}")
     title = str(item.get("title") or "").strip() or f"issue #{number}"
     body = item.get("body") or ""
     labels: list[str] = []
@@ -378,7 +358,7 @@ def normalize_issue(item: dict) -> tuple[int, str, str, list[str]]:
 
 
 # --------------------------------------------------------------------------
-# rendering
+# 渲染
 # --------------------------------------------------------------------------
 
 def dep_note(deps: list[int]) -> str:
@@ -416,7 +396,7 @@ def render_next(state: dict) -> str:
         if status in DONE or candidate == number:
             continue
         if status == "failed":
-            detail = entry.get("error_class") or "unknown"
+            detail = entry.get("error_class") or "未知"
             waiting.append(f"  - {ref(candidate)}: 上次失败（{detail}，{entry.get('attempts', 0)} attempts）— 需决定重试或跳过")
         elif status == "blocked":
             reasons = waiting_on(state, candidate)
@@ -446,7 +426,7 @@ def render_summary(state: dict) -> str:
     percent = int(done * 100 / total) if total else 0
     lines = [
         "━" * 52,
-        f"📊 loop-it: {done}/{total} done ({percent}%)  repo={state.get('repo') or '?'}  "
+        f"📊 loop-it: {done}/{total} 完成 ({percent}%)  repo={state.get('repo') or '?'}  "
         f"tracked={state.get('total_issues', total)}",
         "━" * 52,
         f"  ✅ shipped:    {len(buckets.get('shipped', []))}  "
@@ -461,7 +441,7 @@ def render_summary(state: dict) -> str:
         f"{ref(n)}({', '.join(waiting_on(state, n)) or 'blocked'})" for n in blocked))
     failed = buckets.get("failed", [])
     lines.append(f"  ❌ failed:     {len(failed)}  " + ", ".join(
-        f"{ref(n)}({issues[str(n)].get('error_class') or 'unknown'}, "
+        f"{ref(n)}({issues[str(n)].get('error_class') or '未知'}, "
         f"{issues[str(n)].get('attempts', 0)} attempts"
         + (f", {issues[str(n)].get('last_error')}" if issues[str(n)].get("last_error") else "")
         + ")" for n in failed))
@@ -475,14 +455,14 @@ def render_summary(state: dict) -> str:
                  + ", ".join(f"{item['id']}({clip(item.get('title'))})" for item in pending))
     no_evidence = [n for n in buckets.get("shipped", []) if missing_evidence(issues[str(n)])]
     if no_evidence:
-        lines.append(f"  ⚠️  shipped w/o evidence: {len(no_evidence)}  "
+        lines.append(f"  ⚠️  无 evidence 的 shipped: {len(no_evidence)}  "
                      + ", ".join(ref(n) for n in no_evidence))
     lines.append("━" * 52)
     return "\n".join(lines)
 
 
 # --------------------------------------------------------------------------
-# subcommands
+# 子命令
 # --------------------------------------------------------------------------
 
 def cmd_scan(args: argparse.Namespace) -> int:
@@ -494,14 +474,14 @@ def cmd_scan(args: argparse.Namespace) -> int:
     for item in raw:
         number, title, body, labels = normalize_issue(item)
         if number in fetched:
-            warnings.append(f"⚠️  issue {ref(number)} appears more than once in the input; keeping the last one")
+            warnings.append(f"⚠️  issue {ref(number)} 在输入里出现多次；保留最后一条")
         deps = parse_deps(body, number)
         if number in parse_deps(body):
-            warnings.append(f"⚠️  {ref(number)} depends on itself; edge dropped")
+            warnings.append(f"⚠️  {ref(number)} 依赖自己；该边已丢弃")
         fetched[number] = {"title": title, "deps": deps, "labels": labels}
 
     if not fetched:
-        print("✅ No open issues found. Nothing to do.")
+        print("✅ 没有找到 open 的 issue。无事可做。")
         if existing is not None:
             print(render_summary(existing))
         return 0
@@ -544,7 +524,7 @@ def cmd_scan(args: argparse.Namespace) -> int:
 
     order = order_of(state)
     batch_order = [n for n in order if n in fetched]
-    print(f"📋 Found {len(fetched)} open issue(s) (topological sort):")
+    print(f"📋 找到 {len(fetched)} 个 open issue（拓扑排序）：")
     print(render_order(state, batch_order))
     _, topo_warnings = topology(*state_edges(state))
     for warning in topo_warnings + warnings:
@@ -562,8 +542,8 @@ def cmd_scan(args: argparse.Namespace) -> int:
         print("⏭️  skipped: " + ", ".join(ref(n) for n in skipped))
     if failed:
         print("❌ failed:  " + ", ".join(
-            f"{ref(n)}({issues[str(n)].get('error_class') or 'unknown'})" for n in failed))
-    print(f"\ncheckpoint: {args.state}  (add it to .gitignore, then commit that rule)")
+            f"{ref(n)}({issues[str(n)].get('error_class') or '未知'})" for n in failed))
+    print(f"\ncheckpoint: {args.state}  (把它加进 .gitignore，然后提交这条规则)")
     return 0
 
 
@@ -603,17 +583,17 @@ def cmd_set(args: argparse.Namespace) -> int:
         missing = missing_notes(entry)
         if missing:
             print(
-                f"  ! no {', '.join(missing)} recorded for {ref(args.issue)} — a shipped row "
-                f"without them says a thing happened, not what proved it. Record it with "
-                f"`note --issue {args.issue} …`.",
+                f"  ! {ref(args.issue)} 没有记录 {', '.join(missing)} —— 缺了这些的 shipped "
+                f"记录只说明有事发生过，说明不了是什么证明了它。用 "
+                f"`note --issue {args.issue} …` 记录。",
                 file=sys.stderr,
             )
         if missing_evidence(entry):
             print(
-                f"  ! no evidence recorded for {ref(args.issue)} — a shipped row with no "
-                f"observation behind it cannot be audited later. Record one with "
+                f"  ! {ref(args.issue)} 没有记录 evidence —— 背后没有观察的 shipped 记录"
+                f"以后无法审计。用 "
                 f"`evidence add --issue {args.issue} --kind <test|runtime|database|external|"
-                f"human> --command '…' --result <pass|fail|deferred>`.",
+                f"human> --command '…' --result <pass|fail|deferred>` 记一条。",
                 file=sys.stderr,
             )
     print(render_next(state))
@@ -635,21 +615,21 @@ def cmd_next(args: argparse.Namespace) -> int:
 
 
 def missing_notes(entry: dict) -> list[str]:
-    """Which required category this issue has nothing recorded for."""
+    """这个 issue 有哪些必填类别一条都没记录。"""
     notes = entry.get("notes") or {}
     return [category for category in REQUIRED_NOTES if not notes.get(category)]
 
 
 def missing_evidence(entry: dict) -> bool:
-    """True when a shipped issue has no structured observation behind it."""
+    """shipped 的 issue 背后没有任何结构化观察时为真。"""
     return not entry.get("evidence")
 
 
 def require_issue(state: dict, number: int, path: str) -> dict:
-    """The tracked entry for `number`, or a hard stop explaining how to get one."""
+    """`number` 的跟踪条目；没有就硬停，并说明如何取得一个。"""
     key = str(number)
     if key not in state["issues"]:
-        die(f"{ref(number)} is not tracked in {path} — run the `scan` subcommand first")
+        die(f"{path} 里没有跟踪 {ref(number)} —— 先跑 `scan` 子命令")
     return state["issues"][key]
 
 
@@ -658,7 +638,7 @@ def open_followups(state: dict) -> list[dict]:
 
 
 def next_followup_id(state: dict) -> str:
-    """Monotonic `f<n>` ids, so a resolved one is never reused by a later follow-up."""
+    """单调递增的 `f<n>` id，已解决的 id 绝不会被后续 follow-up 复用。"""
     highest = 0
     for item in state.get("followups") or []:
         match = re.fullmatch(r"f(\d+)", str(item.get("id", "")))
@@ -679,9 +659,9 @@ def cmd_evidence(args: argparse.Namespace) -> int:
     if args.action == "list":
         records = entry.get("evidence") or []
         if not records:
-            print(f"{ref(args.issue)}: no evidence recorded")
+            print(f"{ref(args.issue)}: 没有记录 evidence")
             return 0
-        print(f"{ref(args.issue)}: {len(records)} evidence record(s)")
+        print(f"{ref(args.issue)}: {len(records)} 条 evidence 记录")
         for record in records:
             artifact = f"   artifact={record['artifact']}" if record.get("artifact") else ""
             print(f"  [{record.get('kind')}] {record.get('result')}  {record.get('observed_at')}{artifact}")
@@ -696,14 +676,14 @@ def cmd_evidence(args: argparse.Namespace) -> int:
     }
     if args.artifact:
         record["artifact"] = args.artifact
-    # Append, never rewrite. An observation that later turns out to be wrong is itself part
-    # of the trail; overwriting it is exactly the loss this record exists to prevent.
+    # 只追加，永不改写。事后发现是错的观察本身也是痕迹的一部分；覆盖它正是这条记录
+    # 要防止的丢失。
     entry.setdefault("evidence", []).append(record)
     entry["updated_at"] = now()
     save_state(state, args.state)
     print(
-        f"{ref(args.issue)}: recorded {args.kind}/{args.result} evidence "
-        f"({len(entry['evidence'])} total)"
+        f"{ref(args.issue)}: 已记录 {args.kind}/{args.result} evidence "
+        f"（共 {len(entry['evidence'])} 条）"
     )
     return 0
 
@@ -727,21 +707,21 @@ def cmd_followup(args: argparse.Namespace) -> int:
             item["evidence"] = args.evidence
         followups.append(item)
         save_state(state, args.state)
-        print(f"🔀 {item['id']}: follow-up from {ref(args.from_issue)} — {args.title}")
+        print(f"🔀 {item['id']}: 来自 {ref(args.from_issue)} 的 follow-up —— {args.title}")
         print(
-            f"  {len(open_followups(state))} open; `summary` lists them, "
-            f"`followup resolve --id {item['id']} --status promoted --issue N` closes one."
+            f"  {len(open_followups(state))} 条 open；`summary` 会列出它们，"
+            f"`followup resolve --id {item['id']} --status promoted --issue N` 关闭一条。"
         )
         return 0
 
     if args.action == "list":
         if not followups:
-            print("🔀 no follow-ups recorded")
+            print("🔀 没有记录 follow-up")
             return 0
         pending = open_followups(state)
-        print(f"🔀 follow-ups: {len(pending)} open, {len(followups) - len(pending)} resolved")
+        print(f"🔀 follow-ups: {len(pending)} open, {len(followups) - len(pending)} 已解决")
         for item in pending:
-            print(f"  {item['id']}  (from {ref(item.get('from_issue', 0))})  {item.get('title')}")
+            print(f"  {item['id']}  (来自 {ref(item.get('from_issue', 0))})  {item.get('title')}")
             if item.get("why"):
                 print(f"      why: {item['why']}")
             if item.get("evidence"):
@@ -756,11 +736,11 @@ def cmd_followup(args: argparse.Namespace) -> int:
 
     item = next((candidate for candidate in followups if candidate.get("id") == args.id), None)
     if item is None:
-        die(f"no follow-up {args.id!r} in {args.state} — see `followup list`")
+        die(f"{args.state} 里没有 follow-up {args.id!r} —— 见 `followup list`")
     if item.get("status") != "open":
-        die(f"{args.id} is already {item.get('status')}; a resolved follow-up is not reopened")
+        die(f"{args.id} 已经是 {item.get('status')}；已解决的 follow-up 不会重新打开")
     if args.status == "promoted" and not args.issue:
-        die("--status promoted needs --issue N — the issue this follow-up became")
+        die("--status promoted 需要 --issue N —— 即这个 follow-up 变成了哪个 issue")
     item["status"] = args.status
     item["resolved_at"] = now()
     if args.issue:
@@ -771,7 +751,7 @@ def cmd_followup(args: argparse.Namespace) -> int:
     target = f" → {ref(args.issue)}" if args.issue else ""
     print(f"🔀 {args.id}: open → {args.status}{target}  {item.get('title')}")
     if args.status == "promoted":
-        print("  re-run `scan` to pull the new issue into the batch.")
+        print("  重新跑 `scan` 把新 issue 拉进这批。")
     return 0
 
 
@@ -786,17 +766,17 @@ def cmd_note(args: argparse.Namespace) -> int:
         text = getattr(args, category)
         if not text:
             continue
-        # Append rather than replace: a decision taken early is exactly what a later step
-        # tends to overwrite, and losing it is the failure this field exists to prevent.
+        # 追加而非替换：早期做出的决定恰恰是后续步骤容易覆盖的，丢掉它正是这个字段
+        # 要防止的失败。
         notes.setdefault(category, []).append({"at": stamp, "text": text})
         written.append(category)
 
     if not written:
-        die("nothing to record — pass at least one of "
+        die("没有可记录的内容 —— 至少传一个 "
             + ", ".join(f"--{category}" for category in NOTE_CATEGORIES))
     entry["updated_at"] = stamp
     save_state(state, args.state)
-    print(f"{ref(args.issue)}: recorded {', '.join(written)}")
+    print(f"{ref(args.issue)}: 已记录 {', '.join(written)}")
     return 0
 
 
@@ -812,13 +792,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
-    scan = sub.add_parser("scan", help="parse deps, order the batch, write the checkpoint")
-    scan.add_argument("--issues", help="path to `gh issue list --json ...` output (default: stdin)")
-    scan.add_argument("--repo", help="owner/name to record (default: keep, else git origin)")
+    scan = sub.add_parser("scan", help="解析依赖、给这批 issue 排序、写入检查点")
+    scan.add_argument("--issues", help="`gh issue list --json ...` 输出的路径（默认：stdin）")
+    scan.add_argument("--repo", help="要记录的 owner/name（默认：保留原值，否则用 git origin）")
     scan.add_argument("--state", default=DEFAULT_STATE)
     scan.set_defaults(func=cmd_scan)
 
-    setter = sub.add_parser("set", help="record one issue transition")
+    setter = sub.add_parser("set", help="记录一次 issue 状态转移")
     setter.add_argument("--issue", type=int, required=True)
     setter.add_argument("--status", required=True, choices=STATUSES)
     setter.add_argument("--error-class", dest="error_class")
@@ -828,57 +808,57 @@ def main(argv: list[str] | None = None) -> int:
     setter.add_argument("--state", default=DEFAULT_STATE)
     setter.set_defaults(func=cmd_set)
 
-    nxt = sub.add_parser("next", help="print the next actionable issue")
+    nxt = sub.add_parser("next", help="打印下一个可执行 issue")
     nxt.add_argument("--state", default=DEFAULT_STATE)
     nxt.set_defaults(func=cmd_next)
 
-    note = sub.add_parser("note", help="record the four things the checkpoint must not lose")
+    note = sub.add_parser("note", help="记录检查点绝不能丢的四件事")
     note.add_argument("--issue", type=int, required=True)
-    note.add_argument("--progress", help="what happened")
-    note.add_argument("--decisions", help="what was decided, and why")
-    note.add_argument("--verification", help="what was run, and what it proved")
-    note.add_argument("--open", help="what is still open")
+    note.add_argument("--progress", help="发生了什么")
+    note.add_argument("--decisions", help="决定了什么，以及为什么")
+    note.add_argument("--verification", help="跑了什么，以及它证明了什么")
+    note.add_argument("--open", help="还有什么没结")
     note.add_argument("--state", default=DEFAULT_STATE)
     note.set_defaults(func=cmd_note)
 
-    evidence = sub.add_parser("evidence", help="record or list structured verification evidence")
+    evidence = sub.add_parser("evidence", help="记录或列出结构化的验证 evidence")
     evidence_sub = evidence.add_subparsers(dest="action", required=True)
-    evidence_add = evidence_sub.add_parser("add", help="append one observation")
+    evidence_add = evidence_sub.add_parser("add", help="追加一条观察")
     evidence_add.add_argument("--issue", type=int, required=True)
     evidence_add.add_argument("--kind", required=True, choices=EVIDENCE_KINDS)
-    evidence_add.add_argument("--command", required=True, help="the command that produced it")
+    evidence_add.add_argument("--command", required=True, help="产生它的命令")
     evidence_add.add_argument("--result", required=True, choices=EVIDENCE_RESULTS)
-    evidence_add.add_argument("--artifact", help="path to the output worth keeping")
-    evidence_add.add_argument("--observed-at", help="when it was observed (default: now)")
+    evidence_add.add_argument("--artifact", help="值得留存的输出路径")
+    evidence_add.add_argument("--observed-at", help="观察到的时间（默认：当前时间）")
     evidence_add.add_argument("--state", default=DEFAULT_STATE)
     evidence_add.set_defaults(func=cmd_evidence)
-    evidence_list = evidence_sub.add_parser("list", help="print one issue's observations")
+    evidence_list = evidence_sub.add_parser("list", help="打印某个 issue 的观察记录")
     evidence_list.add_argument("--issue", type=int, required=True)
     evidence_list.add_argument("--state", default=DEFAULT_STATE)
     evidence_list.set_defaults(func=cmd_evidence)
 
-    followup = sub.add_parser("followup", help="record, list or resolve follow-up tasks")
+    followup = sub.add_parser("followup", help="记录、列出或解决 follow-up 任务")
     followup_sub = followup.add_subparsers(dest="action", required=True)
-    followup_add = followup_sub.add_parser("add", help="record what the supervisor found")
+    followup_add = followup_sub.add_parser("add", help="记录 supervisor 发现了什么")
     followup_add.add_argument("--from-issue", type=int, required=True)
     followup_add.add_argument("--title", required=True)
-    followup_add.add_argument("--why", help="what was observed, and why it is not this issue's job")
-    followup_add.add_argument("--evidence", help="the evidence that made it visible")
+    followup_add.add_argument("--why", help="观察到了什么，以及为什么这不是本 issue 的活")
+    followup_add.add_argument("--evidence", help="让它暴露出来的 evidence")
     followup_add.add_argument("--state", default=DEFAULT_STATE)
     followup_add.set_defaults(func=cmd_followup)
-    followup_list = followup_sub.add_parser("list", help="print open follow-ups")
-    followup_list.add_argument("--all", action="store_true", help="also show resolved ones")
+    followup_list = followup_sub.add_parser("list", help="打印 open 的 follow-up")
+    followup_list.add_argument("--all", action="store_true", help="同时显示已解决的")
     followup_list.add_argument("--state", default=DEFAULT_STATE)
     followup_list.set_defaults(func=cmd_followup)
-    followup_resolve = followup_sub.add_parser("resolve", help="close one follow-up")
+    followup_resolve = followup_sub.add_parser("resolve", help="关闭一条 follow-up")
     followup_resolve.add_argument("--id", required=True)
     followup_resolve.add_argument("--status", required=True, choices=FOLLOWUP_RESOLUTIONS)
-    followup_resolve.add_argument("--issue", type=int, help="the issue it became (required for promoted)")
-    followup_resolve.add_argument("--why", help="why it was dropped, or what changed")
+    followup_resolve.add_argument("--issue", type=int, help="它变成了哪个 issue（promoted 时必填）")
+    followup_resolve.add_argument("--why", help="为什么丢弃它，或者什么变了")
     followup_resolve.add_argument("--state", default=DEFAULT_STATE)
     followup_resolve.set_defaults(func=cmd_followup)
 
-    summary = sub.add_parser("summary", help="print the progress table")
+    summary = sub.add_parser("summary", help="打印进度表")
     summary.add_argument("--state", default=DEFAULT_STATE)
     summary.set_defaults(func=cmd_summary)
 

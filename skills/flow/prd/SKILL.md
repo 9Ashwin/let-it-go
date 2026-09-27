@@ -1,302 +1,302 @@
 ---
 name: prd
-description: "Write a PRD for a new feature: clarify first, then state requirements as verifiable acceptance criteria. Hands off to /to-issues, which turns it into contract-carrying Issues. Triggers: 写PRD, 需求文档, 需求分析, 规格说明, plan this feature."
+description: "为新功能写 PRD：先澄清，再把需求写成可验证的验收条件。之后交给 /to-issues，由它把 PRD 拆成带契约的 issue。Triggers: 写PRD, 需求文档, 需求分析, 规格说明, plan this feature."
 
 ---
 
-# PRD Generator
+# PRD 生成器
 
-Create detailed Product Requirements Documents that are clear, actionable, and suitable for implementation. After the PRD is confirmed, use `/to-issues` to decompose it into Issues — each Issue body carries its own contract block, so there is no separate technical-design document to write first.
-
----
-
-## The Job
-
-1. Receive a feature description from the user
-2. Ask clarifying questions to cover key ambiguities — scale the count to complexity, not a fixed number (see Step 1)
-3. Generate a structured PRD based on answers
-4. **Present PRD to user for review** — ask "Please review the PRD. Let me know if any adjustments are needed, or reply OK to confirm."
-5. Apply any adjustments, then save to `tasks/prd-[feature-name].md`
-6. **Suggest next steps** (see Step 3)
-
-**Important:** Do NOT start implementing. Just create the PRD.
+产出详细的产品需求文档：清晰、可执行、适合直接实现。PRD 确认后，用 `/to-issues` 把它拆成 issue——每条 issue 正文自带契约字段块，所以不必先另写一份技术设计文档。
 
 ---
 
-## Step 1: Clarifying Questions
+## 要做的事
 
-Ask only critical questions where the initial prompt is ambiguous. **Scale the number of questions to the feature's complexity — the goal is covering key ambiguities, not hitting a fixed count:**
+1. 从用户那里接住功能描述
+2. 提出澄清问题，覆盖关键歧义——问题数量随复杂度伸缩，不是固定条数（见第 1 步）
+3. 基于回答生成结构化的 PRD
+4. **把 PRD 交给用户评审** —— 问"请评审这份 PRD。需要调整就告诉我，没问题回复 OK 确认。"
+5. 应用调整，然后保存到 `tasks/prd-[feature-name].md`
+6. **建议下一步**（见第 3 步）
 
-- **Simple, well-scoped feature:** 2-3 questions
-- **Typical feature:** 3-5 questions
-- **Complex feature** (multiple user roles, cross-system integration, significant ambiguity): 6-8 questions
+**重要：** 不要开始实现。只产出 PRD。
 
-If a dimension is already unambiguous from the user's input, skip it — don't ask filler questions just to reach a number. Focus on:
+---
 
-- **Problem/Goal:** What problem does this solve?
-- **Core Functionality:** What are the key actions?
-- **Scope/Boundaries:** What should it NOT do?
-- **Success Criteria:** How do we know it's done?
+## 第 1 步：澄清问题
 
-### Format Questions Like This:
+只在初始提示有歧义的地方问关键问题。**问题数量随功能复杂度伸缩——目标是覆盖关键歧义，不是凑够固定条数：**
+
+- **简单、作用域清楚的功能：** 2-3 个问题
+- **典型功能：** 3-5 个问题
+- **复杂功能**（多种用户角色、跨系统集成、歧义明显）：6-8 个问题
+
+某个维度从用户的输入里已经很清楚就跳过——不要为了凑数问填充问题。聚焦：
+
+- **问题/目标：** 这解决什么问题？
+- **核心功能：** 关键动作有哪些？
+- **作用域/边界：** 它不该做什么？
+- **成功判据：** 怎么知道做完了？
+
+### 按这个格式提问：
 
 ```
-1. What is the primary goal of this feature?
-   A. Improve user onboarding experience
-   B. Increase user retention
-   C. Reduce support burden
-   D. Other: [please specify]
+1. 这个功能的首要目标是什么？
+   A. 改善新用户上手体验
+   B. 提高用户留存
+   C. 减轻支持负担
+   D. 其它：[请说明]
 
-2. Who is the target user?
-   A. New users only
-   B. Existing users only
-   C. All users
-   D. Admin users only
+2. 目标用户是谁？
+   A. 仅新用户
+   B. 仅既有用户
+   C. 所有用户
+   D. 仅管理员
 
-3. What is the scope?
-   A. Minimal viable version
-   B. Full-featured implementation
-   C. Just the backend/API
-   D. Just the UI
+3. 作用域是什么？
+   A. 最小可用版本
+   B. 完整功能实现
+   C. 只做后端/API
+   D. 只做 UI
 ```
 
-This lets users respond with "1A, 2C, 3B" for quick iteration. Remember to indent the options.
+这样用户可以回"1A, 2C, 3B"来快速迭代。记得把选项缩进。
 
 ---
 
-## Edge Cases & Fallback
+## 边界情况与兜底
 
-| Scenario | Handling |
+| 场景 | 处理 |
 |----------|----------|
-| User skips clarifying questions (e.g., replies "whatever", "just write it") | Fill with reasonable defaults, mark with `[Assumption]` in PRD, prompt user to confirm during review |
-| User input is too vague (e.g., "add a feature") | Ask once for specifics; if still vague, infer from project context and mark assumptions |
-| `tasks/` directory does not exist | Auto-create `tasks/` directory |
-| feature-name is hard to extract from input | Ask the user directly: "Suggested PRD filename is prd-XXX.md, please confirm or modify" |
-| User requests PRD changes after review | Apply changes and re-save without re-running the clarification flow |
-| PRD content exceeds 500 lines | Suggest the user consider splitting into multiple sub-feature PRDs |
-| User declines to proceed | Just save the PRD, user can run `/to-issues` later |
-| Issue creation needed later | Suggest running `/to-issues` with the saved PRD file |
+| 用户跳过澄清问题（例如回"随便"、"你直接写"） | 用合理的默认值填上，在 PRD 里标 `[Assumption]`，评审时让用户确认 |
+| 用户输入太含糊（例如"加个功能"） | 问一次具体信息；还是含糊就从项目上下文推断并标出假设 |
+| `tasks/` 目录不存在 | 自动创建 `tasks/` 目录 |
+| 从输入里很难提取 feature-name | 直接问用户："建议的 PRD 文件名是 prd-XXX.md，请确认或修改" |
+| 用户评审后要求改 PRD | 应用修改并重新保存，不用重跑澄清流程 |
+| PRD 内容超过 500 行 | 建议用户考虑拆成多个子功能的 PRD |
+| 用户不愿继续 | 只保存 PRD，用户之后可以自己跑 `/to-issues` |
+| 之后才需要创建 issue | 建议用保存好的 PRD 文件跑 `/to-issues` |
 
 ---
 
-## Step 2: PRD Structure
+## 第 2 步：PRD 结构
 
-Generate the PRD with these sections:
+按这些章节生成 PRD：
 
-### 1. Introduction/Overview
-Brief description of the feature and the problem it solves. Use plain language — avoid jargon or explain it. Assume the reader may be a junior developer or AI agent.
+### 1. 简介/概述
+简要描述这个功能与它解决的问题。用平实的语言——避开术语，或者解释清楚。假定读者可能是初级开发者或 AI agent。
 
-### 2. Goals
-Specific, measurable objectives (bullet list).
+### 2. 目标
+具体、可度量的目标（项目符号列表）。
 
-### 3. User Stories
-Each story needs:
-- **Title:** Short descriptive name
-- **Description:** "As a [user], I want [feature] so that [benefit]"
-- **Acceptance Criteria:** Verifiable checklist of what "done" means
+### 3. 用户故事
+每个故事需要：
+- **Title:** 简短的描述性名字
+- **Description:** "作为 [用户]，我想要 [功能]，以便 [收益]"
+- **Acceptance Criteria:** 说明"做完"指什么的可验证清单
 
-**Numbering rule:** US-001, US-002, US-003... (three digits, starting from 001). Each US should be independently implementable and small enough to complete within one focused agent session.
+**编号规则：** US-001、US-002、US-003……（三位数，从 001 开始）。每个 US 都应能独立实现，且小到能在一个专注的 agent 会话里完成。
 
-**Mandatory E2E test story:** Every PRD MUST include one end-to-end (E2E) test user story as the **last** user story. It validates the complete feature flow across the whole stack — from user action through UI, API, and data layer — not an isolated unit. Its acceptance criteria describe the full happy-path journey a real user takes to accomplish the feature's core goal, plus at least one critical edge/failure path, all asserted through an automated E2E test (e.g., Playwright/Cypress for UI, or an API-level integration test for backend-only features). This story depends on all others and confirms the feature works as a whole.
+**强制 E2E 测试故事：** 每份 PRD 都必须包含一个端到端（E2E）测试用户故事，放在**最后**。它验证横跨整个技术栈的完整功能流程——从用户操作穿过 UI、API 和数据层——而不是一个孤立的单元。它的验收条件描述真实用户达成该功能核心目标的完整顺利路径，外加至少一条关键的边界/失败路径，全部通过自动化 E2E 测试断言（UI 用 Playwright/Cypress 之类，纯后端功能用 API 级集成测试）。这个故事依赖其它所有故事，确认功能作为整体能跑通。
 
-**Acceptance criteria self-check template:** Each criterion must satisfy at least one of the following, otherwise it is considered "vague" and must be rewritten:
-- Observable: describes a specific UI state or API response (e.g., "button shows confirmation dialog")
-- Testable: has clear input/output pairs (e.g., "entering an empty email shows a red warning")
-- Verifiable: can be checked by tools (e.g., "Typecheck/lint passes")
-- ❌ Bad example: "works correctly", "good user experience", "excellent performance" → these are unverifiable
+**验收条件自检模板：** 每条验收条件至少满足下列之一，否则视为"含糊"，必须重写：
+- 可观测：描述具体的 UI 状态或 API 响应（例如"按钮弹出确认对话框"）
+- 可测试：有清晰的输入/输出对（例如"输入空邮箱显示红色警告"）
+- 可校验：能用工具检查（例如"Typecheck/lint 通过"）
+- ❌ 反面例子："工作正常"、"用户体验良好"、"性能优秀" → 这些都无法验证
 
-**Format:**
+**格式：**
 ```markdown
-### US-001: [Title]
-**Description:** As a [user], I want [feature] so that [benefit].
+### US-001: [标题]
+**Description:** 作为 [用户]，我想要 [功能]，以便 [收益]。
 
 **Acceptance Criteria:**
-- [ ] Specific verifiable criterion
-- [ ] Another criterion
-- [ ] Typecheck/lint passes
-- [ ] **[UI stories only]** Verify in a browser (e.g., via the `run` skill)
+- [ ] 具体、可验证的验收条件
+- [ ] 另一条验收条件
+- [ ] Typecheck/lint 通过
+- [ ] **[仅 UI 故事]** 在浏览器里验证（例如通过 `run` 技能）
 ```
 
-**E2E story format:**
+**E2E 故事格式：**
 ```markdown
-### US-NNN: End-to-end test of [feature] flow
-**Description:** As a QA engineer, I want an automated end-to-end test covering the full [feature] journey so that we catch regressions across the entire stack.
+### US-NNN: [功能] 流程的端到端测试
+**Description:** 作为 QA 工程师，我想要一个覆盖完整 [功能] 旅程的自动化端到端测试，以便接住整个技术栈上的回归。
 
 **Acceptance Criteria:**
-- [ ] Automated E2E test simulates the full happy path (user action → UI → API → data → visible result)
-- [ ] Covers at least one critical edge/failure path (e.g., invalid input, empty state, permission denied)
-- [ ] Test runs in CI and passes
-- [ ] Test is independent and repeatable (sets up and tears down its own data)
+- [ ] 自动化 E2E 测试模拟完整的顺利路径（用户操作 → UI → API → 数据 → 可见结果）
+- [ ] 覆盖至少一条关键的边界/失败路径（例如非法输入、空状态、无权限）
+- [ ] 测试在 CI 里跑且通过
+- [ ] 测试独立且可重复（自己搭数据、自己清理）
 ```
 
-**Important:** 
-- Acceptance criteria must be verifiable, not vague. "Works correctly" is bad. "Button shows confirmation dialog before deleting" is good.
-- **For any story with UI changes:** Always include "Verify in a browser" as acceptance criteria (e.g., via the `run` skill). This ensures visual verification of frontend work.
+**重要：** 
+- 验收条件必须可验证，不能含糊。"工作正常"是差的。"删除前按钮弹出确认对话框"是好的。
+- **任何带 UI 改动的故事：** 一律把"在浏览器里验证"写进验收条件（例如通过 `run` 技能）。这保证前端工作有视觉验证。
 
-### 4. Functional Requirements
-Numbered list of specific functionalities:
-- "FR-1: The system must allow users to..."
-- "FR-2: When a user clicks X, the system must..."
+### 4. 功能需求
+具体功能点的编号清单：
+- "FR-1: 系统必须允许用户……"
+- "FR-2: 用户点击 X 时，系统必须……"
 
-**FR specification:** Each FR starts with `FR-N:` (N increments from 1), uses "system must / system shall" phrasing, and describes **one** specific behavior. Avoid combining multiple "and"-linked behaviors in a single FR.
+**FR 规范：** 每条 FR 以 `FR-N:` 开头（N 从 1 递增），用"系统必须 / 系统应"的措辞，只描述**一个**具体行为。避免在单条 FR 里用"和"串起多个行为。
 
-### 5. Non-Goals (Out of Scope)
-What this feature will NOT include. Critical for managing scope.
+### 5. 非目标（作用域之外）
+这个功能**不**包含什么。管理作用域的关键。
 
-### 6. Design Considerations (Optional)
-- UI/UX requirements
-- Link to mockups if available
-- Relevant existing components to reuse
+### 6. 设计考量（可选）
+- UI/UX 要求
+- 有原型稿就附链接
+- 可复用的相关既有组件
 
-### 7. Technical Considerations (Optional)
-- Known constraints or dependencies
-- Integration points with existing systems
-- Performance requirements
+### 7. 技术考量（可选）
+- 已知约束或依赖
+- 与既有系统的集成点
+- 性能要求
 
-### 8. Success Metrics
-How will success be measured?
-- "Reduce time to complete X by 50%"
-- "Increase conversion rate by 10%"
+### 8. 成功指标
+成功怎么度量？
+- "把完成 X 的时间缩短 50%"
+- "把转化率提高 10%"
 
-### 9. Open Questions
-Remaining questions or areas needing clarification.
+### 9. 未决问题
+剩下待澄清的问题或领域。
 
 ---
 
-## Output
+## 输出
 
-- **Format:** Markdown (`.md`)
+- **Format:** Markdown（`.md`）
 - **Location:** `tasks/`
-- **Filename:** `prd-[feature-name].md` (kebab-case)
+- **Filename:** `prd-[feature-name].md`（kebab-case）
 
 ---
 
-## Step 3: Next Steps
+## 第 3 步：下一步
 
-After the PRD is saved, suggest the user:
+PRD 保存后，向用户建议：
 
 ```
-✅ PRD saved to tasks/prd-[feature-name].md
+✅ PRD 已保存到 tasks/prd-[feature-name].md
 
-Next steps:
-  /to-issues    →  Decompose into Issues (each carries its own contract block)
+下一步：
+  /to-issues    →  拆成 issue（每条自带契约字段块）
 
-Or go straight to implementation:
-  /to-issues    →  Create Issues, then /implement (or /loop-it for a whole batch)
+或者直接进实现：
+  /to-issues    →  创建 issue，然后 /implement（整批则用 /loop-it）
 ```
 
-If the user wants to proceed, invoke the corresponding skill.
+用户想往下走就调用对应的技能。
 
 ---
 
-## Example PRD
+## 示例 PRD
 
 ```markdown
-# PRD: Task Priority System
+# PRD: 任务优先级系统
 
-## Introduction
+## 简介
 
-Add priority levels to tasks so users can focus on what matters most. Tasks can be marked as high, medium, or low priority, with visual indicators and filtering to help users manage their workload effectively.
+给任务加上优先级，让用户能聚焦最重要的事。任务可以标为高、中、低优先级，配以视觉标识和过滤，帮用户有效管理手头的工作。
 
-## Goals
+## 目标
 
-- Allow assigning priority (high/medium/low) to any task
-- Provide clear visual differentiation between priority levels
-- Enable filtering and sorting by priority
-- Default new tasks to medium priority
+- 允许给任意任务指定优先级（high/medium/low）
+- 让不同优先级之间有清晰的视觉区分
+- 支持按优先级过滤与排序
+- 新任务默认中优先级
 
-## User Stories
+## 用户故事
 
-### US-001: Add priority field to database
-**Description:** As a developer, I need to store task priority so it persists across sessions.
-
-**Acceptance Criteria:**
-- [ ] Add priority column to tasks table: 'high' | 'medium' | 'low' (default 'medium')
-- [ ] Generate and run migration successfully
-- [ ] Typecheck passes
-
-### US-002: Display priority indicator on task cards
-**Description:** As a user, I want to see task priority at a glance so I know what needs attention first.
+### US-001: 给数据库加优先级字段
+**Description:** 作为开发者，我需要把任务优先级存下来，让它在会话之间持久化。
 
 **Acceptance Criteria:**
-- [ ] Each task card shows colored priority badge (red=high, yellow=medium, gray=low)
-- [ ] Priority visible without hovering or clicking
-- [ ] Typecheck passes
-- [ ] Verify in a browser (e.g., via the `run` skill)
+- [ ] 给 tasks 表加 priority 列：'high' | 'medium' | 'low'（默认 'medium'）
+- [ ] 成功生成并运行迁移
+- [ ] Typecheck 通过
 
-### US-003: Add priority selector to task edit
-**Description:** As a user, I want to change a task's priority when editing it.
-
-**Acceptance Criteria:**
-- [ ] Priority dropdown in task edit modal
-- [ ] Shows current priority as selected
-- [ ] Saves immediately on selection change
-- [ ] Typecheck passes
-- [ ] Verify in a browser (e.g., via the `run` skill)
-
-### US-004: Filter tasks by priority
-**Description:** As a user, I want to filter the task list to see only high-priority items when I'm focused.
+### US-002: 在任务卡片上显示优先级标识
+**Description:** 作为用户，我想一眼看到任务优先级，好知道该先关注什么。
 
 **Acceptance Criteria:**
-- [ ] Filter dropdown with options: All | High | Medium | Low
-- [ ] Filter persists in URL params
-- [ ] Empty state message when no tasks match filter
-- [ ] Typecheck passes
-- [ ] Verify in a browser (e.g., via the `run` skill)
+- [ ] 每张任务卡片显示带颜色的优先级徽标（红=高、黄=中、灰=低）
+- [ ] 不用悬停或点击就能看到优先级
+- [ ] Typecheck 通过
+- [ ] 在浏览器里验证（例如通过 `run` 技能）
 
-### US-005: End-to-end test of task priority flow
-**Description:** As a QA engineer, I want an automated end-to-end test covering the full priority journey so that we catch regressions across the entire stack.
+### US-003: 在任务编辑里加优先级选择器
+**Description:** 作为用户，我想在编辑任务时改它的优先级。
 
 **Acceptance Criteria:**
-- [ ] E2E test creates a task, sets its priority via the edit modal, and asserts the badge color updates on the card
-- [ ] Test applies a priority filter and asserts only matching tasks remain visible
-- [ ] Covers edge case: filtering to a priority with no tasks shows the empty state message
-- [ ] Test runs in CI and passes
-- [ ] Test sets up and tears down its own task data
+- [ ] 任务编辑弹窗里有优先级下拉框
+- [ ] 当前优先级显示为选中态
+- [ ] 选项一变就立即保存
+- [ ] Typecheck 通过
+- [ ] 在浏览器里验证（例如通过 `run` 技能）
 
-## Functional Requirements
+### US-004: 按优先级过滤任务
+**Description:** 作为用户，我想在专注时把任务列表过滤成只看高优先级项。
 
-- FR-1: Add `priority` field to tasks table ('high' | 'medium' | 'low', default 'medium')
-- FR-2: Display colored priority badge on each task card
-- FR-3: Include priority selector in task edit modal
-- FR-4: Add priority filter dropdown to task list header
-- FR-5: Sort by priority within each status column (high to medium to low)
+**Acceptance Criteria:**
+- [ ] 过滤下拉框的选项：All | High | Medium | Low
+- [ ] 过滤状态保留在 URL 参数里
+- [ ] 没有任务匹配过滤时显示空状态提示
+- [ ] Typecheck 通过
+- [ ] 在浏览器里验证（例如通过 `run` 技能）
 
-## Non-Goals
+### US-005: 任务优先级流程的端到端测试
+**Description:** 作为 QA 工程师，我想要一个覆盖完整优先级旅程的自动化端到端测试，以便接住整个技术栈上的回归。
 
-- No priority-based notifications or reminders
-- No automatic priority assignment based on due date
-- No priority inheritance for subtasks
+**Acceptance Criteria:**
+- [ ] E2E 测试创建任务、通过编辑弹窗设置优先级，并断言卡片上的徽标颜色随之更新
+- [ ] 测试应用优先级过滤，并断言只剩匹配的任务可见
+- [ ] 覆盖边界情况：过滤到一个没有任务的优先级时显示空状态提示
+- [ ] 测试在 CI 里跑且通过
+- [ ] 测试自己搭建并清理任务数据
 
-## Technical Considerations
+## 功能需求
 
-- Reuse existing badge component with color variants
-- Filter state managed via URL search params
-- Priority stored in database, not computed
+- FR-1: 给 tasks 表加 `priority` 字段（'high' | 'medium' | 'low'，默认 'medium'）
+- FR-2: 在每张任务卡片上显示带颜色的优先级徽标
+- FR-3: 在任务编辑弹窗里加入优先级选择器
+- FR-4: 在任务列表头部加优先级过滤下拉框
+- FR-5: 在每个状态列内按优先级排序（高到中到低）
 
-## Success Metrics
+## 非目标
 
-- Users can change priority in under 2 clicks
-- High-priority tasks immediately visible at top of lists
-- No regression in task list performance
+- 不做基于优先级的通知或提醒
+- 不按截止日期自动指定优先级
+- 子任务不继承优先级
 
-## Open Questions
+## 技术考量
 
-- Should priority affect task ordering within a column?
-- Should we add keyboard shortcuts for priority changes?
+- 复用既有的徽标组件及其颜色变体
+- 过滤状态通过 URL 查询参数管理
+- 优先级存在数据库里，不靠计算
+
+## 成功指标
+
+- 用户能在 2 次点击内改完优先级
+- 高优先级任务立刻出现在列表顶部
+- 任务列表性能没有回归
+
+## 未决问题
+
+- 优先级应该影响列内的任务排序吗？
+- 要不要给优先级变更加快捷键？
 ```
 
 ---
 
-## Checklist
+## 检查清单
 
-Before saving the PRD:
+保存 PRD 之前：
 
-- [ ] Asked clarifying questions with lettered options
-- [ ] Incorporated user's answers
-- [ ] User stories are small and specific
-- [ ] Included a mandatory end-to-end (E2E) test story as the last user story
-- [ ] Functional requirements are numbered and unambiguous
-- [ ] Non-goals section defines clear boundaries
-- [ ] Saved to `tasks/prd-[feature-name].md`
-- [ ] Suggested next step: `/to-issues`
+- [ ] 用带字母的选项提了澄清问题
+- [ ] 采纳了用户的回答
+- [ ] 用户故事小而具体
+- [ ] 把强制的端到端（E2E）测试故事作为最后一个用户故事
+- [ ] 功能需求有编号且不含糊
+- [ ] 非目标章节划出了清晰的边界
+- [ ] 保存到 `tasks/prd-[feature-name].md`
+- [ ] 建议了下一步：`/to-issues`

@@ -1,219 +1,219 @@
 ---
 name: to-issues
-description: "Decompose a PRD/SPEC into vertically-sliced Issues with real blocking edges, then create them on GitHub or locally. Triggers: 创建issue, 拆解issue, 生成卡片, create issues, issues from spec."
+description: "把 PRD/SPEC 拆成垂直切片、写清真实阻塞边的 issue，再创建到 GitHub 或本地。Triggers: 创建issue, 拆解issue, 生成卡片, create issues, issues from spec."
 
 ---
 
-# to-issues — PRD/SPEC to Issues
+# to-issues — PRD/SPEC 到 issue
 
-Decompose a PRD and/or technical SPEC into small, **independently demoable** Issues, each sized to fit a single fresh context window, then create them in your chosen platform. Works standalone — you don't need to have run `/prd` first.
+把 PRD 和/或技术 SPEC 拆成小的、**可独立演示**的 issue，每个都控制在单个全新上下文窗口装得下，然后在选定的平台上创建它们。可以单独使用——不必先跑过 `/prd`。
 
-Every Issue this skill produces is **agent-ready by construction**: a fresh session that has never seen your PRD/SPEC can pick it up and finish it.
-
----
-
-## Core principle: tracer bullets, not layers
-
-This is the rule that matters most, and the one models break most often.
-
-- A **horizontal** slice ships one layer of the change (all the schema in one ticket, all the API in another, all the UI in a third). Nothing works until every layer lands, and each ticket's acceptance criteria have to reach into work another ticket owns. This is the default the model falls into — **avoid it.**
-- A **vertical** slice — the *tracer bullet* — ships one thin but complete path through every layer at once (schema + API + UI + tests for a single narrow behaviour). It is verifiable alone the moment it lands, and it owns everything it grades.
-
-**The test for every Issue: "What can I demo when this is done?"** If the answer is a layer ("the database has a priority column") rather than a behaviour ("a user can set a task's priority and see it persist"), it is a horizontal slice — re-slice it.
-
-**Sizing floor:** if the whole change fits in one context window, you don't need Issues at all. Say so and implement it directly — starting a long-running autonomous objective is something only the human can do, so either do the work inline or tell the user to start that objective themselves.
-
-**Consumption contract:** a **fresh child** does NOT see this conversation, so an Issue body must be self-contained. That is the "agent-ready by construction" rule above, now enforced by the runtime instead of by convention. A **forked child** inherits context — use it only for follow-ups, never as a substitute for a well-written Issue.
-
-> **The Issue body is the contract.** There is no separate SPEC document to keep in context: goal, non-goals, acceptance criteria, external boundary, required evidence, definition of done and open questions all live in the body, so a fresh child can act on it without this conversation. Keep those fields honest — a criterion with no observation that would prove it is not a criterion.
+本技能产出的每条 issue 都**天生 agent-ready**：一个从没见过你的 PRD/SPEC 的全新会话拿起来就能做完。
 
 ---
 
-## The Job
+## 核心原则：曳光弹，不是分层
 
-1. **Locate input** — find a PRD or SPEC file (auto-detect or user-specified)
-2. **Find prefactoring** — surface "make the change easy, then make the easy change" work and order it first
-3. **Decompose into vertical Issues** — break behaviour into tracer-bullet tickets with blocking edges
-4. **Quiz the user** — present the numbered list and push on granularity, edges, and demo paths before publishing
-5. **Choose platform** — GitHub / Local
-6. **Create Issues** — blockers first, with native blocking links, then print summary
+这是最重要的一条规则，也是模型最常违反的一条。
+
+- **横向**切片只交付改动的一层（所有 schema 一张卡片、所有 API 另一张、所有 UI 第三张）。每一层都落地之前什么都跑不起来，而且每张卡片的验收条件都得伸手到别的卡片负责的活里。这是模型默认会掉进去的坑——**避开它。**
+- **垂直**切片——也就是*曳光弹*——一次交付一条穿过每一层的窄而完整的路径（针对单个窄行为的一套 schema + API + UI + 测试）。它一落地就能单独验证，而且它评判的东西全归它自己拥有。
+
+**对每条 issue 的检验是："做完这个我能演示什么？"** 如果答案是一层（"数据库多了个 priority 列"）而不是一个行为（"用户能设置任务优先级并看到它持久化"），那它就是横向切片——重新切。
+
+**规模下限：** 如果整个改动一个上下文窗口就装得下，你根本不需要 issue。直接说明，然后就地实现——启动一个长跑的自主目标只有人能做，所以要么内联把活干完，要么让用户自己去启动那个目标。
+
+**消费契约：** **全新子代理**看不到这段对话，所以 issue 正文必须自包含。这就是上面那条"天生 agent-ready"，只是现在由运行时强制，而不是靠约定。**fork 出来的子代理**会继承上下文——只在跟进时用它，绝不用它替代一条写得好的 issue。
+
+> **issue 正文就是契约。** 没有另一份要放在上下文里的 SPEC 文档：目标、非目标、验收条件、外部边界、必须收集的证据、完成定义和未决问题全在正文里，所以全新子代理不靠这段对话也能照它行事。让这些字段保持诚实——一条没有观测能证明的验收条件不算验收条件。
 
 ---
 
-## Step 1: Locate Input
+## 要做的事
 
-Find the input document:
+1. **定位输入** —— 找到 PRD 或 SPEC 文件（自动探测或用户指定）
+2. **先找 prefactoring** —— 浮现"先把改动变容易，再做容易的改动"这类活，并把它排在前面
+3. **拆成垂直 issue** —— 把行为拆成带阻塞边的曳光弹卡片
+4. **盘问用户** —— 发布前把编号清单摆出来，就粒度、边和演示路径追问
+5. **选平台** —— GitHub / 本地
+6. **创建 issue** —— 先建阻塞方，带原生阻塞链接，然后打印摘要
+
+---
+
+## 第 1 步：定位输入
+
+找到输入文档：
 
 ```
-What should I base the Issues on?
+这些 issue 要基于什么？
 
-A. Auto-detect: scan tasks/ for recent PRDs and SPECs
-B. Specific PRD file (e.g., tasks/prd-priority-system.md)
-C. Specific SPEC file (e.g., tasks/spec-priority-system.md)
-D. Both PRD and SPEC (best: PRD for requirements, SPEC for technical contracts)
-E. Paste requirements directly
+A. 自动探测：扫 tasks/ 里近期的 PRD 和 SPEC
+B. 指定 PRD 文件（例如 tasks/prd-priority-system.md）
+C. 指定 SPEC 文件（例如 tasks/spec-priority-system.md）
+D. PRD 和 SPEC 都要（最好：PRD 给需求，SPEC 给技术契约）
+E. 直接粘贴需求
 ```
 
-If auto-detecting, list available files and let the user choose.
+自动探测时，列出可用文件让用户选。
 
-If both PRD and SPEC are available, use the SPEC's Section 10.2 (Issue Mapping) as the primary guide, supplemented by PRD's User Stories. If only PRD is available, generate Issues directly from User Stories.
-
----
-
-## Step 2: Find Prefactoring First
-
-Before slicing features, look for **prefactoring**: mechanical groundwork that makes the feature Issues small and safe — extracting a shared helper, widening a type, adding a seam, moving a file. Order this work **first**, as its own Issue(s), so the feature tickets that depend on it stay thin.
-
-If you find none, skip this step. Don't invent busywork.
+PRD 和 SPEC 都有时，以 SPEC 的 Section 10.2（Issue Mapping）为主要依据，用 PRD 的 User Stories 补充。只有 PRD 时，直接从 User Stories 生成 issue。
 
 ---
 
-## Step 3: Decompose into Vertical Issues
+## 第 2 步：先找 prefactoring
 
-Generate the Issue list. Rules:
+切功能之前，先找 **prefactoring**：让功能 issue 变小、变安全的机械性铺垫——抽出共用辅助函数、放宽一个类型、加一个接缝、挪一个文件。把这部分活**排在最前**，作为它自己的 issue，好让依赖它的功能卡片保持单薄。
 
-- **Each Issue is a tracer bullet** — a narrow, complete, demoable path through every layer it touches. Not "the backend for X"; rather "X, end to end, for one case."
-- **Each Issue fits one fresh context window** — a single agent session completes it without needing you in the room.
-- **Split by behaviour, not by layer** — if a User Story is large, split it into 2-3 *narrower behaviours*, each still vertical, with explicit blocking edges. Never split it into a backend ticket and a frontend ticket.
-- **Merge tiny stories** — 1-2 trivial criteria that don't stand alone as a demo should merge into a related Issue.
-- **Declare blocking edges explicitly** — every Issue lists what must finish before it can start. These edges are the point of the artifact.
-- **Number Issues in dependency order** — blockers first, so an implementer (or the tracker) always has a valid frontier to start from.
-- **If SPEC is available** — enrich each Issue with SPEC references (API contracts, data model sections, error handling). But keep file paths and line numbers *out* of the body — they rot; describe behaviour and contracts instead.
+什么都没找到就跳过这一步。不要凭空造活。
 
-**Falsifiable acceptance criteria.** For each criterion, name the observation that would show it *false*, and confirm it would fail at the commit the implementer starts from. Reject three shapes: a criterion already true at the base commit, one that can only be satisfied by work another Issue owns, and one that merely restates the request. A vertical slice delivers behaviour that didn't exist before, so it should be red at the base commit by construction.
+---
 
-**Issue format:**
+## 第 3 步：拆成垂直 issue
+
+生成 issue 清单。规则：
+
+- **每条 issue 都是一颗曳光弹** —— 一条穿过它触及的每一层的窄、完整、可演示的路径。不是"X 的后端"，而是"X，端到端，只做一种情况"。
+- **每条 issue 一个全新上下文窗口装得下** —— 单个 agent 会话就能做完，不需要你在旁边。
+- **按行为切，不按层切** —— 一个 User Story 太大就切成 2-3 个*更窄的行为*，每个仍然垂直，并写明阻塞边。绝不要把它切成一张后端卡片加一张前端卡片。
+- **合并琐碎故事** —— 1-2 条单独拿不出演示的琐碎验收条件，并进相关的 issue。
+- **显式声明阻塞边** —— 每条 issue 都列出必须先完成什么才能开始。这些边才是这份产物的重点。
+- **按依赖顺序编号** —— 阻塞方在前，这样实现者（或跟踪器）总有一个可用的前沿可以起手。
+- **有 SPEC 时** —— 用 SPEC 引用给每条 issue 加料（API 契约、数据模型章节、错误处理）。但把文件路径和行号*挡在*正文之外——它们会烂；改为描述行为和契约。
+
+**可证伪的验收条件。** 每条验收条件都要点出能证明它*为假*的观测，并确认它在实现者起手的那个 commit 上会失败。拒绝三种形态：在基线 commit 上已经为真的；只有靠别的 issue 负责的活才能满足的；以及只是把请求换个说法重述一遍的。垂直切片交付的是以前不存在的行为，所以它在基线 commit 上按构造就该是红的。
+
+**issue 格式：**
 
 ```
-Issue #N: [Title — a behaviour, not a layer]
+issue #N: [标题——一个行为，不是一层]
 ---
-Goal: [What behaviour this delivers, end to end, and why]
-Non-goals: [What this explicitly does not do — the scope fence]
-Demo path: [The one thing you can show working when this lands]
+Goal: [这次端到端交付的是什么行为，以及为什么]
+Non-goals: [明确不做什么——作用域围栏]
+Demo path: [它落地后你能演示的那一件事]
 Acceptance Criteria:
-- [ ] [Falsifiable — names an observation that fails at the base commit]
+- [ ] [可证伪——点出一个在基线 commit 上会失败的观测]
 - [ ] ...
-Evidence required: [For each criterion, the observation that proves it — test name, command, page, query. Never "tests pass".]
-External boundary: [What must be real for this to count — running service, database, third-party API, human check. "None" if the change is local.]
-Definition of done: [Gates green + every criterion carries evidence + the demo path was actually run]
-Open questions: [Unresolved items that must not be silently guessed — or None]
-Blocked by: [None / Issue #X, #Y]
+Evidence required: [每条验收条件对应哪个能证明它的观测——测试名、命令、页面、查询。绝不写"测试通过"。]
+External boundary: [要让这条算数，什么必须是真的——跑着的服务、数据库、第三方 API、人工检查。改动是纯本地的就写 "None"。]
+Definition of done: [门禁全绿 + 每条验收条件都带着证据 + 演示路径真的跑过]
+Open questions: [不许悄悄猜的未决项——或者 None]
+Blocked by: [None / issue #X, #Y]
 Priority: [high / medium / low]
 ```
 
-**Contract quality checks** — run these before publishing anything:
+**契约质量检查** —— 发布任何东西之前先跑这些：
 
-- [ ] Every acceptance criterion maps to an **observable** piece of evidence, not "tests pass"
-- [ ] No `TBD` / `TODO` left — resolve it now or move it to Open questions
-- [ ] Failure paths have a place in the criteria; not only the happy path
-- [ ] Non-goals are stated, or the implementation will expand scope on its own
-- [ ] The external boundary says what must be *real* to count — a local fake only proves the local contract
-- [ ] Definition of done includes "the demo path was actually run", not "the code looks right"
+- [ ] 每条验收条件都对应一份**可观测**的证据，而不是"测试通过"
+- [ ] 没有留下 `TBD` / `TODO` —— 现在就解决，或挪进 Open questions
+- [ ] 失败路径在验收条件里有位置，不只是顺利路径
+- [ ] 非目标写清楚了，否则实现会自己扩作用域
+- [ ] 外部边界说清了要让这条算数什么必须*为真*——本地假实现只证明得了本地契约
+- [ ] 完成定义包含"演示路径真的跑过"，而不是"代码看起来对"
 
-Anti-patterns: restating the request in different words as a criterion; writing an algorithm section for CRUD with no special logic; choosing technology without reading what the project already uses; listing behaviour that is already true at the base commit.
-
----
-
-## Step 4: Quiz the User (do not skip)
-
-Present the breakdown as a numbered list and **quiz** the user before publishing anything. Over-decomposition and accidental horizontal slicing are the two most common failures — this step catches both.
-
-```
-📋 Generated N Issues from [PRD/SPEC], in dependency order:
-
-#1: Extract task-mutation helper (prefactoring) — Blocked by: none
-#2: A user can set a task's priority and see it persist — Blocked by: #1
-    demo: open a task, pick High, reload, still High
-#3: A user can filter the task list to one priority — Blocked by: #2
-    demo: select High, list shows only High tasks
-#4: A user can sort the task list by priority — Blocked by: #2
-    demo: click Sort, tasks reorder High→Low
-
-Review before I create anything:
-- Granularity: too fine? "merge #3 and #4". Too coarse? "split #2".
-- Demo path: any Issue whose demo is a layer, not a behaviour, is mis-sliced — tell me.
-- Edges: are the "Blocked by" links real? Any missing or spurious?
-- Adjust: "change #2 priority to high", "add an issue for a priority badge"
-- Confirm: reply OK to proceed
-```
-
-Wait for confirmation before creating any Issues.
+反模式：把请求换种说法当成一条验收条件；为没有特殊逻辑的 CRUD 写算法章节；不看项目已经在用什么就选技术；列出在基线 commit 上已经为真的行为。
 
 ---
 
-## Step 5: Choose Creation Mode
+## 第 4 步：盘问用户（不要跳过）
+
+发布任何东西之前，把拆解结果作为编号清单摆出来并**盘问**用户。拆得太碎和无意中切成横向切片是最常见的两种失败——这一步能把两者都接住。
 
 ```
-Choose where to create these Issues:
+📋 已从 [PRD/SPEC] 生成 N 条 issue，按依赖顺序：
 
-A. GitHub (via gh CLI, with native blocking links and optional sub-issues)
-B. Local (one markdown file per Issue, dependency-ordered)
+#1: 抽出 task-mutation 辅助函数（prefactoring）— Blocked by: none
+#2: 用户能设置任务优先级并看到它持久化 — Blocked by: #1
+    demo: 打开一个任务，选 High，刷新，仍是 High
+#3: 用户能把任务列表过滤到某个优先级 — Blocked by: #2
+    demo: 选 High，列表只剩 High 任务
+#4: 用户能按优先级给任务列表排序 — Blocked by: #2
+    demo: 点排序，任务按 High→Low 重排
 
-Your choice:
+创建之前请先过一遍：
+- 粒度：太细？"把 #3 和 #4 合并"。太粗？"拆开 #2"。
+- 演示路径：哪条 issue 的 demo 是一层而不是一个行为，就是切错了——告诉我。
+- 边：这些 "Blocked by" 链接是真的吗？有没有漏的或多余的？
+- 调整："把 #2 的 priority 改成 high"，"给优先级徽标加一条 issue"
+- 确认：回复 OK 就往下走
+```
+
+创建任何 issue 之前先等确认。
+
+---
+
+## 第 5 步：选创建模式
+
+```
+选择把这些 issue 创建到哪里：
+
+A. GitHub（走 gh CLI，带原生阻塞链接，可选子 issue）
+B. 本地（每条 issue 一个 markdown 文件，按依赖排序）
+
+你的选择：
 ```
 
 ---
 
-## Step 6: Mode-Specific Creation
+## 第 6 步：按模式创建
 
-### Mode A: GitHub
+### 模式 A：GitHub
 
-**Prerequisites:** `gh` CLI installed and authenticated, v2.94+ for `--parent` / `--blocked-by`.
+**前置条件：** `gh` CLI 已安装并登录，v2.94+ 才支持 `--parent` / `--blocked-by`。
 
-**Create blockers first** so their Issue numbers exist before any Issue that depends on them. Capture each returned number.
+**先创建阻塞方**，好让它们的 issue 编号在依赖它们的 issue 之前就存在。记下每个返回的编号。
 
-**Actions:**
-1. For each Issue, in dependency order:
+**动作：**
+1. 按依赖顺序，对每条 issue：
    ```bash
    gh issue create \
-     --title "[Title]" \
+     --title "[标题]" \
      --body "[Goal + Non-goals + Demo path + Acceptance Criteria + Evidence required + External boundary + Definition of done + Open questions]" \
      --label "priority: [priority]" \
-     --blocked-by [comma-separated blocker numbers, if any] \
-     --parent [spec issue number, if creating as sub-issues]
+     --blocked-by [逗号分隔的阻塞编号，若有] \
+     --parent [spec issue 编号，若作为子 issue 创建]
    ```
-   - Use native `--blocked-by` for edges. Only fall back to a "Blocked by #X" line in the body if the tracker rejects the flag.
-   - If the SPEC lives in a GitHub issue, pass `--parent <spec_issue>` so these become sub-issues of it. To wire a parent after the fact: `gh issue edit <parent> --add-sub-issue <n>`.
-2. If labels don't exist, create them first or skip the `--label` flag.
-3. Report created Issue numbers and URLs.
+   - 边用原生的 `--blocked-by`。只有跟踪器拒绝这个 flag 时，才退回在正文里写一行 "Blocked by #X"。
+   - SPEC 放在 GitHub issue 里时，传 `--parent <spec_issue>`，让这些成为它的子 issue。事后补父级：`gh issue edit <parent> --add-sub-issue <n>`。
+2. 标签不存在就先创建，或者跳过 `--label` flag。
+3. 报告创建出的 issue 编号与 URL。
 
-### Mode B: Local
+### 模式 B：本地
 
-**Ask user:**
+**问用户：**
 ```
-Where should I save the Issue files? (default: .autoresearch/issues/[feature-slug])
+issue 文件保存到哪里？（默认：.autoresearch/issues/[feature-slug]）
 ```
 
-**Actions:**
-1. Create the feature folder with `mkdir -p` if it doesn't exist. One folder per feature keeps parallel agents from racing on a shared file.
-2. For each Issue, in **dependency order**, save `NN-[slug].md` (zero-padded, `NN` is a real ticket ID so a dispatcher can name it when handing the Issue to a fresh child or a worktree branch):
+**动作：**
+1. 功能目录不存在就用 `mkdir -p` 建出来。每个功能一个目录，能避免并行 agent 抢同一个文件。
+2. 按**依赖顺序**，对每条 issue 保存 `NN-[slug].md`（左侧补零，`NN` 是真实的卡片 ID，派发器把它交给全新子代理或 worktree 分支时能报出这个名字）：
    ```markdown
-   # [Title — a behaviour]
+   # [标题——一个行为]
 
    ## Goal
-   [What behaviour this delivers, end to end, and why]
+   [这次端到端交付的是什么行为，以及为什么]
 
    ## Non-goals
-   [What this explicitly does not do]
+   [明确不做什么]
 
    ## Demo path
-   [The one thing you can show working when this lands]
+   [它落地后你能演示的那一件事]
 
    ## Acceptance Criteria
-   - [ ] [Falsifiable criterion 1]
-   - [ ] [Falsifiable criterion 2]
+   - [ ] [可证伪的验收条件 1]
+   - [ ] [可证伪的验收条件 2]
 
    ## Evidence required
-   [Per criterion: the observation that proves it — test name, command, page, query]
+   [每条验收条件对应：能证明它的观测——测试名、命令、页面、查询]
 
    ## External boundary
-   [What must be real for this to count; "None" if local]
+   [要让这条算数，什么必须为真；纯本地的就写 "None"]
 
    ## Definition of done
-   [Gates green + every criterion carries evidence + the demo path was run]
+   [门禁全绿 + 每条验收条件都带着证据 + 演示路径跑过]
 
    ## Open questions
-   [Unresolved items — or None]
+   [未决项——或者 None]
 
    ## Blocked by
    [None / #NN, #NN]
@@ -221,104 +221,104 @@ Where should I save the Issue files? (default: .autoresearch/issues/[feature-slu
    ## Priority
    [high / medium / low]
    ```
-3. Report created file paths in dependency order.
+3. 按依赖顺序报告创建出的文件路径。
 
 ---
 
-## The wide-refactor exception
+## 大范围重构的例外
 
-One shape breaks the tracer-bullet rule: a **wide refactor** — a single mechanical change (rename a column, retype a shared symbol) whose blast radius fans across the whole codebase, so one edit breaks thousands of call sites and no vertical slice can land green.
+有一种形态会打破曳光弹规则：**大范围重构**——一次机械性改动（重命名一列、改一个共享符号的类型），其影响面铺满整个代码库，一次编辑就打碎成千上万个调用点，任何垂直切片都落不了绿。
 
-Sequence it as **expand → migrate → contract** instead:
+改为按 **expand → migrate → contract** 排序：
 
-- **Expand** — add the new form beside the old, so nothing breaks. One Issue.
-- **Migrate** — move call sites over in batches sized by blast radius (per package, per directory), one Issue per batch, each **blocked by** the expand. CI stays green because the old form still exists.
-- **Contract** — delete the old form once no caller remains, in an Issue **blocked by every migrate batch**.
+- **Expand** —— 在旧形式旁边加上新形式，什么都不坏。一条 issue。
+- **Migrate** —— 按影响面定批次（每个包、每个目录）把调用点迁过去，一批一条 issue，每条都**被** expand **阻塞**。CI 保持绿，因为旧形式还在。
+- **Contract** —— 没有调用方之后再删掉旧形式，放在一条**被所有 migrate 批次阻塞**的 issue 里。
 
-Where even the batches can't stay green alone, have them share an integration branch and all block a final **integrate-and-verify** Issue; green is promised only there.
+如果连这些批次自己都保不住绿，就让它们共用一个集成分支，并全部阻塞最后一条 **integrate-and-verify** issue；只在它那里承诺绿。
 
 ---
 
-## Step 7: Summary Report
+## 第 7 步：摘要报告
 
 ```
-✅ Issue creation complete!
+✅ issue 创建完成！
 
-Source: [PRD/SPEC path]
-Mode: [GitHub / Local]
-Issues created: N (in dependency order)
+来源：[PRD/SPEC 路径]
+模式：[GitHub / 本地]
+创建 issue 数：N（按依赖顺序）
 
-#  | Title (behaviour)                        | Blocked by | Identifier
+#  | 标题（行为）                             | Blocked by | 标识
 ---|------------------------------------------|------------|------------
-1  | Extract task-mutation helper             | —          | #42 / 01-*.md
-2  | Set & persist task priority              | #1         | #43 / 02-*.md
-3  | Filter task list by priority             | #2         | #44 / 03-*.md
-4  | Sort task list by priority               | #2         | #45 / 04-*.md
+1  | 抽出 task-mutation 辅助函数              | —          | #42 / 01-*.md
+2  | 设置并持久化任务优先级                   | #1         | #43 / 02-*.md
+3  | 按优先级过滤任务列表                     | #2         | #44 / 03-*.md
+4  | 按优先级排序任务列表                     | #2         | #45 / 04-*.md
 
-Frontier (no open blockers, start now): #1
+前沿（没有未决阻塞，现在就能开始）：#1
 ```
 
-Then tell the user **how to dispatch** — the dependency shape decides it:
+然后告诉用户**怎么派发**——由依赖形态决定：
 
-| Shape | How to run it |
+| 形态 | 怎么跑 |
 |-------|---------------|
-| One Issue, right now | a **fresh child** with the Issue body as a self-contained prompt — or just implement it inline |
-| Sequential batch | `/loop-it` — checkpointed, one Issue at a time |
-| Genuinely parallel frontier (no shared file scope) | `/graph` — DAG → waves → one worktree per node, fan-in barrier between waves |
-| One long objective that should keep running on its own | the **human** starts the objective in their client; the model cannot start it for them |
-| Large model-driven orchestration | only when the user explicitly asks for it |
+| 现在就一条 issue | 把 issue 正文当自包含提示词交给一个**全新子代理**——或者直接内联实现 |
+| 串行批次 | `/loop-it` —— 带检查点，一次一条 issue |
+| 真正并行的前沿（不共享文件作用域） | `/graph` —— DAG → 波 → 每节点一个 worktree，波间有 fan-in 屏障 |
+| 一个该自己一直跑下去的长目标 | **人**在自己的客户端里启动这个目标；模型不能替他启动 |
+| 大规模模型驱动的编排 | 只在用户明确要求时用 |
 
-Two caveats to state out loud:
+两条要明说出来的注意事项：
 
-- A long-running objective may not auto-close the ticket — update its state yourself when done.
-- Parallel dispatch is only safe when the frontier's Issues do **not** edit the same files. `/graph` enforces that with one worktree per node plus a fan-in barrier; if scopes overlap, run those Issues sequentially instead.
+- 长跑目标可能不会自动关闭卡片——做完自己更新它的状态。
+- 只有前沿这些 issue **不**改同一批文件时，并行派发才安全。`/graph` 用每节点一个 worktree 加一道 fan-in 屏障来强制这一点；作用域重叠就改为串行跑这些 issue。
 
-DSH tool names for the "One Issue, right now" row, and how DSH discovers and invokes this skill, are in [`references/dsh-runtime.md`](references/dsh-runtime.md).
-
----
-
-## It's working if
-
-- Every Issue answers "what can I demo when this is done?" — and the answer is a behaviour, not a layer.
-- The list came back numbered with a real "Blocked by" line on each, before anything was published.
-- The Issue at the top has no blockers and can be started immediately.
-- No Issue body carries a file path or line number (except a snippet a prototype produced).
-- Each Issue reads like something a fresh session could finish without you in the room.
-- Prefactoring, where any was found, sits at the front of the order — not mixed into feature Issues.
-- Every acceptance criterion names an observation that fails at the base commit.
+「现在就一条 issue」那一行对应的 DSH 工具名，以及 DSH 如何发现和调用本技能，都在 [`references/dsh-runtime.md`](references/dsh-runtime.md)。
 
 ---
 
-## Edge Cases & Fallback
+## 什么情况算它在起作用
 
-| Scenario | Handling |
+- 每条 issue 都回答得出"做完这个我能演示什么？"——而且答案是一个行为，不是一层。
+- 发布任何东西之前，清单就是编号的，每条都带一行真实的 "Blocked by"。
+- 排在最前的那条 issue 没有阻塞，立刻能开始。
+- 没有哪条 issue 正文带着文件路径或行号（原型产出的片段除外）。
+- 每条 issue 读起来都像一个全新会话不需要你在旁边就能做完的东西。
+- prefactoring（如果找到了）排在顺序最前——不和功能 issue 混在一起。
+- 每条验收条件都点出一个在基线 commit 上会失败的观测。
+
+---
+
+## 边界情况与兜底
+
+| 场景 | 处理 |
 |----------|----------|
-| Whole change fits one context window | Say so; skip Issues, implement it inline (or have the human start a long-running objective) |
-| No PRD/SPEC found in tasks/ | Ask user to provide file path or paste requirements |
-| PRD has no User Stories | Derive Issues from Functional Requirements instead |
-| SPEC has Issue Mapping (Section 10.2) | Use it as primary source, cross-reference with PRD |
-| Model produced one-per-layer Issues | Catch at the quiz: any Issue whose demo is a layer gets re-sliced vertically |
-| Model over-decomposed (12 tickets for a 3-line change) | Quiz step: ask to merge; if the whole thing fits one window, skip Issues |
-| Wide mechanical refactor | Use the expand → migrate → contract sequence above |
-| `gh` too old for `--blocked-by` / `--parent` | Fall back to "Blocked by" body line; suggest upgrading gh to v2.94+ |
-| `gh` CLI not authenticated for GitHub mode | Show error, suggest `gh auth login`, offer to switch to Local mode |
-| Issue folder does not exist for Local mode | Auto-create per-feature folder |
-| Issue frontier is genuinely parallel | Recommend `/graph` (worktree per node + fan-in barrier); keep `/loop-it` for serial safety |
-| User declines Issue creation | Print the dependency-ordered list as a text summary for manual creation later |
+| 整个改动一个上下文窗口装得下 | 直接说明；跳过 issue，内联实现（或让人启动一个长跑目标） |
+| tasks/ 里找不到 PRD/SPEC | 让用户给文件路径或粘贴需求 |
+| PRD 没有 User Stories | 改从 Functional Requirements 推导 issue |
+| SPEC 有 Issue Mapping（Section 10.2） | 以它为主要来源，与 PRD 交叉参照 |
+| 模型产出的是每层一条 issue | 在盘问环节拦住：demo 是一层的 issue 全部重新垂直切 |
+| 模型拆得太碎（3 行改动 12 张卡片） | 盘问环节：要求合并；整件事一个窗口装得下就跳过 issue |
+| 大范围机械重构 | 用上面的 expand → migrate → contract 顺序 |
+| `gh` 太旧，不支持 `--blocked-by` / `--parent` | 退回正文里写 "Blocked by" 行；建议把 gh 升到 v2.94+ |
+| GitHub 模式下 `gh` CLI 未登录 | 显示错误，建议 `gh auth login`，并提出可切到本地模式 |
+| 本地模式下 issue 目录不存在 | 自动创建按功能分的目录 |
+| issue 前沿确实是并行的 | 推荐 `/graph`（每节点一个 worktree + fan-in 屏障）；串行安全仍留给 `/loop-it` |
+| 用户拒绝创建 issue | 把按依赖排序的清单作为文本摘要打印出来，方便之后手工创建 |
 
 ---
 
-## Relationship to Other Skills
+## 与其它技能的关系
 
 ```
-/prd  →  /to-issues ─┬─→ /loop-it  (serial: one Issue at a time)
- │            │        └─→ /graph    (parallel: whole wave at once)
- │ Requirements│  Vertical        │
- │  (what)     │  tickets         │  Implementation (code)
+/prd  →  /to-issues ─┬─→ /loop-it  (串行：一次一条 issue)
+ │            │        └─→ /graph    (并行：整波一起)
+ │ 需求        │  垂直            │
+ │  （做什么） │  卡片            │  实现（代码）
 ```
 
-- **/prd** — produces the PRD (input to this skill); optional for a small change that is already well specified
-- **/to-issues** — produces the vertically-sliced Issues, each carrying its own contract block (this skill)
-- **/loop-it** — implements Issues sequentially with checkpoint/resume
-- **/graph** — implements the dependency graph in parallel waves, one worktree per node
-- **/goal** — a human-facing client command for a persisted objective with autonomous rounds. Its gate is authority, not wording: `create_goal` runs only in a direct top-level human turn, so a subagent cannot mint one — but when the human hands over a long-running batch, creating the goal is the designed behaviour and is what keeps the session working between turns
+- **/prd** — 产出 PRD（本技能的输入）；改动很小且已经写得够清楚时可以跳过
+- **/to-issues** — 产出垂直切片的 issue，每条自带契约字段块（本技能）
+- **/loop-it** — 带检查点/恢复地串行实现 issue
+- **/graph** — 按并行波实现依赖图，每节点一个 worktree
+- **/goal** — 面向人的客户端命令，用于带自主轮次的长久目标。它的门禁是权限，不是措辞：`create_goal` 只在直接的人类顶层回合里运行，所以子代理不能凭空造一个——但当人交来一批长跑的活时，创建这个目标就是设计好的行为，也是让会话在轮次之间继续工作的东西

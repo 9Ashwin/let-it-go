@@ -1,52 +1,44 @@
 #!/usr/bin/env python3
-"""Plan and checkpoint a /graph task graph.
+"""为 /graph 任务图做规划与检查点。
 
-Dependency cycles, dangling edges, scope collisions, wave layering and the
-checkpoint transitions are deterministic. Deriving them in prose every wave is
-slower and less reliable, so they live here and the skill says "run this and
-read the summary".
+依赖环、悬空边、作用域冲突、波分层以及检查点的状态流转都是确定性的。
+每一波都用散文重新推导它们更慢也更不可靠，所以它们放在这里，
+技能只需要说“跑这个，读摘要”。
 
-Subcommands:
+子命令：
 
   plan [--nodes <file>] [--state .graph_state.json] [--max-parallel N] [--keep-shipped] [--only-pending]
-      Read a nodes file, validate it, layer it into waves, write the checkpoint,
-      and print the plan (human summary + Mermaid + the wave-0 dispatch list).
-      Without --nodes the graph is rebuilt from the checkpoint itself, which holds
-      every declarative field a plan reads; the nodes file is then needed only when
-      the graph changes (a new node, a moved dependency). The first plan of a graph
-      still needs --nodes, because there is no checkpoint to re-layer from yet.
-      With --keep-shipped, an existing checkpoint's per-node outcome is carried
-      over for every id that survives, so a re-plan does not reset what shipped.
-      With --only-pending, nodes a previous checkpoint already settled (shipped
-      or skipped) stop reserving their scope, so remaining work may share a wave
-      with them. Their files are already on the branch; only a node still running
-      can collide with them. Nodes the checkpoint has in_progress keep their
-      scope and are layered ahead of pending work that shares it, so a re-plan
-      never dispatches a child into files another child is editing right now.
-      Pair it with --keep-shipped, which is what puts the settled outcomes in
-      place to read.
-      The cap is persisted: omitting --max-parallel on a later plan reuses the
-      recorded one instead of silently re-layering the waves.
+      读取 nodes 文件，校验它，分层成波，写检查点，并打印计划
+      （人类可读摘要 + Mermaid + 第 0 波派发清单）。
+      不给 --nodes 时，图从检查点本身重建——检查点持有 plan 会读的每个声明式字段；
+      于是只有在图发生变化（新增节点、移动依赖）时才需要 nodes 文件。
+      一张图的首次 plan 仍然需要 --nodes，因为此时还没有检查点可供重新分层。
+      带 --keep-shipped 时，现有检查点里每个存活 id 的节点结果会被沿用，
+      重新规划不会重置已交付的内容。
+      带 --only-pending 时，上一个检查点已经结算（已交付或已跳过）的节点不再占用
+      其作用域，于是剩余工作可以和它们共享同一波。它们的文件已经在分支上；
+      只有仍在运行的节点才可能与它们冲突。检查点里处于 in_progress 的节点保留
+      其作用域，并被排在共享该作用域的待办工作之前，所以重新规划绝不会把子节点
+      派发到另一个子节点此刻正在编辑的文件里。把它和 --keep-shipped 配对使用，
+      后者才会把已结算的结果放进检查点供读取。
+      上限会被持久化：后续 plan 省略 --max-parallel 时会复用记录下来的值，
+      而不是悄悄重新分层。
 
   set --state .graph_state.json --node N --status <s> [--commit SHA] [--branch NAME] [--error TEXT]
-      Record one node's outcome, and optionally the branch it actually lives on.
-      Pass --status pending to clear a retry. Prints what the orchestrator should
-      do next.
+      记录一个节点的结果，以及它实际所在的分支（可选）。
+      传 --status pending 可清除一次重试。打印编排者接下来该做什么。
 
   show --state .graph_state.json [--json]
-      Print the current plan and per-node status.
+      打印当前计划与每个节点的状态。
 
   prompt --node N [--state .graph_state.json] [--worktrees DIR]
-      Render the node prompt for one node from references/node-prompt.md, with
-      the worktree path, branch, title, type, scope and acceptance criteria
-      filled in from the checkpoint. A `branch` recorded by `plan` or `set` is
-      used verbatim; only an unrecorded node gets a name derived from its title,
-      and then the header says so. The worktree command printed first matches
-      what the prompt claims about the branch — including whether it exists.
-      The dependency summaries are left as a marked gap — only the orchestrator
-      knows them.
+      按 references/node-prompt.md 渲染一个节点的提示词，其中的 worktree 路径、
+      分支、标题、类型、作用域和验收条件都从检查点填入。`plan` 或 `set` 记录过的
+      `branch` 会原样使用；只有未记录的节点才会得到一个由标题推导出来的名字，
+      此时头部会说明这一点。最先打印的 worktree 命令与提示词中关于分支的说法一致
+      ——包括该分支是否存在。依赖摘要是留出的标记缺口——只有编排者知道它们。
 
-Nodes file format:
+nodes 文件格式：
 
   {
     "task": "Add user auth",
@@ -61,35 +53,29 @@ Nodes file format:
     ]
   }
 
-`criteria` is the node's acceptance checklist, copied into the child's prompt
-verbatim. `context` is the orchestrator's briefing for the child: one or two
-lines per dependency — what it added, where, and anything the node must know.
-Both may also be written straight into the checkpoint. A re-plan keeps the
-checkpoint's value only for a field the nodes file does not mention; an explicit
-empty list/string in the nodes file clears it (presence decides, not truthiness).
+`criteria` 是节点的验收清单，会原样复制进子节点的提示词。`context` 是编排者给
+子节点的简报：每个依赖一到两行——它新增了什么、加在哪里，以及该节点必须知道的
+任何事。两者也可以直接写进检查点。重新规划时，只有 nodes 文件未提及的字段才
+保留检查点的值；nodes 文件里显式的空列表/空字符串会清空它（由字段是否存在决定，
+而非真假值）。
 
-`scope` is a comma-separated list of files/directories a node expects to touch.
-Two nodes with no dependency edge but overlapping scope are not independent:
-the planner serializes the higher id into a later wave.
+`scope` 是节点预计会改动的文件/目录的逗号分隔列表。两个没有依赖边但作用域重叠的
+节点并不独立：规划器会把 id 较大的那个串行到更晚的波。
 
-`hot_files` is the opposite list: shared wiring files (a router, a `main`, a
-route table, a DI container, a type union) that the node *will* touch but that
-must stay out of `scope`, because listing them there would serialize the whole
-graph into a chain. The planner does not serialize on them — it warns when two
-nodes in one wave declare the same hot file, because that is the shape that
-conflicts: "append-only edits merge cleanly" only holds while each node edits
-its own region. Two nodes appending to one import block, or writing one route
-table, are not append-only and will conflict at integration.
+`hot_files` 是相反的列表：共享接线文件（一个 router、一个 `main`、一张路由表、
+一个 DI 容器、一个类型联合），节点*会*改动它们，但它们必须留在 `scope` 之外，
+因为把它们列进去会把整张图串行成一条链。规划器不会因它们串行——它只会在同一波的
+两个节点声明了同一个 hot file 时告警，因为那正是会冲突的形状：“只追加的编辑能
+干净合并”只在每个节点各自编辑自己的区域时成立。两个节点往同一个 import 块里追加，
+或者写同一张路由表，就不是只追加，集成时必然冲突。
 
-`branch` (optional, per node) is the branch the node actually lives on. When it
-is absent the checkpoint records none and `prompt` derives a name from the
-title, disclosing that it did; a node whose real branch differs from the derived
-name should have it recorded, or `prompt` will hand the child a name that does
-not exist.
+`branch`（可选，按节点）是节点实际所在的分支。缺省时检查点不记录任何分支，
+`prompt` 会从标题推导一个名字并说明它是推导出来的；实际分支与推导名不同的节点
+应当把分支记录下来，否则 `prompt` 会把一个并不存在的名字交给子节点。
 
-Statuses: pending | in_progress | shipped | failed | blocked | skipped
-(`shipped` and `skipped` are complete; `failed` and `blocked` stall their
-dependents but do not hold a wave open forever — the orchestrator decides.)
+状态：pending | in_progress | shipped | failed | blocked | skipped
+（`shipped` 和 `skipped` 是完成；`failed` 和 `blocked` 会拖住它们的下游，
+但不会永远占住一波——由编排者决定。）
 """
 
 from __future__ import annotations
@@ -105,12 +91,11 @@ from datetime import datetime, timezone
 STATUSES = ("pending", "in_progress", "shipped", "failed", "blocked", "skipped")
 WAVE_DONE = {"shipped", "skipped", "failed", "blocked"}
 
-# The checkpoint was called `.graph_state` (no extension) before it was renamed
-# to match the sibling `.loop-state.json`. The old name is still read so a graph
-# that is already running does not lose its progress; it is never written.
+# 检查点以前叫 `.graph_state`（没有扩展名），后来为了和同级的 `.loop-state.json`
+# 保持一致而改名。旧名字仍然会被读取，好让已经在运行的图不丢进度；但绝不写它。
 STATE_DEFAULT = ".graph_state.json"
 LEGACY_STATE = ".graph_state"
-# The rendered board lives beside the checkpoint and is refreshed by every write.
+# 渲染出来的看板与检查点放在一起，每次写入都会刷新它。
 BOARD_NAME = "graph.html"
 
 
@@ -128,57 +113,54 @@ def load_json(path: str, what: str) -> dict:
         with open(path, encoding="utf-8") as handle:
             return json.load(handle)
     except FileNotFoundError:
-        die(f"{what} not found: {path}")
+        die(f"{what}不存在：{path}")
     except json.JSONDecodeError as exc:
-        die(f"{what} is not valid JSON ({path}): {exc}")
+        die(f"{what}不是合法 JSON（{path}）：{exc}")
 
 
 def legacy_path_for(requested: str) -> str:
-    """The pre-rename checkpoint that sits beside `requested`.
+    """`requested` 旁边那个改名前的检查点。
 
-    Resolved from the requested path, not from the process cwd, so
-    `--state /work/repo/.graph_state.json` finds `/work/repo/.graph_state`.
+    从请求的路径解析，而不是从进程的 cwd，这样
+    `--state /work/repo/.graph_state.json` 能找到 `/work/repo/.graph_state`。
     """
     directory = os.path.dirname(requested)
     return os.path.join(directory, LEGACY_STATE) if directory else LEGACY_STATE
 
 
 def read_state(requested: str) -> tuple[dict, str | None]:
-    """Load the checkpoint, falling back to the pre-rename name.
+    """加载检查点，并回退到改名前的名字。
 
-    Only the default file name falls back: an explicit `--state foo.json` means
-    the caller named the file it wants, and quietly reading a different one
-    would be worse than saying it is missing.
+    只有默认文件名才回退：显式的 `--state foo.json` 意味着调用者指明了它要的
+    文件，悄悄去读另一个文件比直接说它不存在更糟。
     """
     legacy = legacy_path_for(requested)
     if (not os.path.exists(requested) and os.path.basename(requested) == STATE_DEFAULT
             and os.path.exists(legacy)):
-        return (load_json(legacy, "state file"),
-                f"read the pre-rename checkpoint {legacy}; the next write goes to {requested}")
-    return load_json(requested, "state file"), None
+        return (load_json(legacy, "状态文件"),
+                f"读取了改名前的检查点 {legacy}；下一次写入会落到 {requested}")
+    return load_json(requested, "状态文件"), None
 
 
 def read_previous(requested: str) -> tuple[dict | None, str | None]:
-    """Same fallback as read_state, but a missing checkpoint is not an error."""
+    """与 read_state 相同的回退，但检查点缺失不算错误。"""
     if os.path.exists(requested):
-        return load_json(requested, "state file"), None
+        return load_json(requested, "状态文件"), None
     legacy = legacy_path_for(requested)
     if os.path.basename(requested) == STATE_DEFAULT and os.path.exists(legacy):
-        return (load_json(legacy, "state file"),
-                f"read the pre-rename checkpoint {legacy}; the next write goes to {requested}")
+        return (load_json(legacy, "状态文件"),
+                f"读取了改名前的检查点 {legacy}；下一次写入会落到 {requested}")
     return None, None
 
 
 def save_state(state: dict, path: str) -> str:
-    """Write the checkpoint and refresh the board beside it.
+    """写检查点，并刷新它旁边的看板。
 
-    The board is a snapshot — it inlines the checkpoint — so a write that skips
-    the refresh leaves a page that silently disagrees with the state. That is not
-    hypothetical: the board sat eight hours stale while nodes were added and
-    shipped, because "re-render" was an obligation attached to finishing a wave
-    and the work after that was not a wave. Putting the refresh in the write
-    itself removes the step someone has to remember. It is best effort: a
-    checkpoint that saved must not be reported as failed over a display file.
+    看板是快照——它把检查点内联进去——所以跳过刷新的一次写入会留下一张与状态
+    悄悄不符的页面。这不是假设：看板曾经过期了八个小时，而期间节点在被新增和
+    交付，因为“重新渲染”是挂在“收尾一波”上的义务，而之后的工作不算一波。把刷新
+    放进写入本身，就免掉了某个必须有人记得的步骤。它是尽力而为：已经保存成功的
+    检查点不能因为一个展示文件而被报成失败。
     """
     state["updated_at"] = now()
     tmp = f"{path}.tmp"
@@ -190,17 +172,17 @@ def save_state(state: dict, path: str) -> str:
 
 
 def render_board(path: str) -> str:
-    """Refresh BOARD_NAME beside `path`. Returns a note to print, or ""."""
+    """刷新 `path` 旁边的 BOARD_NAME。返回一条要打印的提示，或 ""。"""
     board = os.path.join(os.path.dirname(os.path.abspath(path)) or ".", BOARD_NAME)
     renderer = os.path.join(os.path.dirname(os.path.abspath(__file__)), "render_graph_html.py")
     if not os.path.exists(renderer):
-        return f"note: {os.path.basename(renderer)} is missing, so {BOARD_NAME} was not refreshed"
+        return f"提示: {os.path.basename(renderer)} 不存在，因此 {BOARD_NAME} 没有被刷新"
     result = subprocess.run([sys.executable, renderer, path, board],
                             capture_output=True, text=True)
     if result.returncode != 0:
         detail = (result.stderr or result.stdout).strip().splitlines()
-        return (f"note: {BOARD_NAME} was not refreshed "
-                f"({detail[-1] if detail else 'unknown error'}); the checkpoint itself is saved")
+        return (f"提示: {BOARD_NAME} 没有被刷新 "
+                f"({detail[-1] if detail else '未知错误'})；检查点本身已保存")
     return ""
 
 
@@ -214,7 +196,7 @@ def scope_set(node: dict) -> set[str]:
 
 
 def hot_set(node: dict) -> set[str]:
-    """Shared wiring files the node expects to touch but that stay out of `scope`."""
+    """节点预计会改动、但留在 `scope` 之外的共享接线文件。"""
     raw = node.get("hot_files") or ""
     if isinstance(raw, list):
         parts = raw
@@ -230,11 +212,11 @@ def validate(nodes: list[dict]) -> tuple[dict[int, dict], list[str]]:
         try:
             node_id = int(node["id"])
         except (KeyError, TypeError, ValueError):
-            die(f"node without a usable integer id: {node!r}")
+            die(f"节点没有可用的整数 id: {node!r}")
         if node_id in by_id:
-            die(f"duplicate node id {node_id}")
+            die(f"重复的节点 id {node_id}")
         if not str(node.get("title", "")).strip():
-            warnings.append(f"node {node_id} has no title")
+            warnings.append(f"节点 {node_id} 没有标题")
         by_id[node_id] = node
 
     for node_id, node in by_id.items():
@@ -242,9 +224,9 @@ def validate(nodes: list[dict]) -> tuple[dict[int, dict], list[str]]:
         for dep in node.get("deps") or []:
             dep = int(dep)
             if dep not in by_id:
-                warnings.append(f"node {node_id} depends on missing node {dep}; edge dropped")
+                warnings.append(f"节点 {node_id} 依赖不存在的节点 {dep}；该边已丢弃")
             elif dep == node_id:
-                warnings.append(f"node {node_id} depends on itself; edge dropped")
+                warnings.append(f"节点 {node_id} 依赖自身；该边已丢弃")
             else:
                 kept.append(dep)
         node["deps"] = sorted(set(kept))
@@ -252,53 +234,46 @@ def validate(nodes: list[dict]) -> tuple[dict[int, dict], list[str]]:
 
 
 def scopes_overlap(a: str, b: str) -> bool:
-    """Whether two scope entries name the same path or one contains the other.
+    """两个作用域条目是否指向同一路径，或一个包含另一个。
 
-    Scope entries are directories as often as files, and two nodes writing into
-    one directory collide whether they own it wholesale or name different files
-    inside it. Comparing with `==` misses that, which let a node scoped to
-    `internal/config` share a wave with one scoped to
-    `internal/config/config.go` — the pair two agents would have edited at once.
+    作用域条目是目录和文件一样常见，两个节点写进同一个目录就会冲突——无论它们
+    是整体拥有这个目录，还是在里面各写不同的文件。用 `==` 比较看不到这一点，
+    于是作用域为 `internal/config` 的节点会和作用域为
+    `internal/config/config.go` 的节点共享一波——那正是两个 agent 会同时编辑的
+    一对。
     """
     return a == b or a.startswith(b + "/") or b.startswith(a + "/")
 
 
 def scope_clash(scope: set[str], used: set[str]) -> list[str]:
-    """The entries in `scope` that collide with anything in `used`."""
+    """`scope` 中与 `used` 里任何条目冲突的那些条目。"""
     return sorted({entry for entry in scope for other in used if scopes_overlap(entry, other)})
 
 
 def layer(by_id: dict[int, dict], settled: set[int] | None = None,
           inflight: set[int] | None = None) -> tuple[list[list[int]], list[str]]:
-    """Lay nodes into waves: dependencies first, then disjoint scopes.
+    """把节点分层成波：先依赖，再互不重叠的作用域。
 
-    A single greedy pass, because the two constraints interact — a node held back
-    for a scope clash must not jump ahead of its own dependencies, and its
-    dependents must not land in the same wave as it. Only nodes whose deps are
-    already placed are candidates, so ordering holds by construction; a candidate
-    that clashes on scope simply waits for a later wave.
+    单趟贪心，因为这两个约束相互影响——因作用域冲突被拦下的节点不能越过它自己的
+    依赖，而它的下游也不能和它落在同一波。只有依赖已经就位的节点才是候选，
+    所以顺序由构造保证；在作用域上冲突的候选只需等更晚的一波。
 
-    `settled` names nodes that are already finished (shipped or skipped). They are
-    still placed, so the layout keeps their positions and their dependents keep
-    their ordering, but they reserve no scope: a scope clash only matters between
-    two nodes that could run at the same time, and a settled node has already
-    landed on the branch. Without this, re-planning mid-run lets long-finished
-    nodes hold their files against the work that is actually left, which silently
-    serializes the tail of a graph into one node per wave.
+    `settled` 指出已经完成的节点（已交付或已跳过）。它们仍会被放置，好让布局
+    保留它们的位置、让它们的下游保持顺序，但它们不占用作用域：作用域冲突只在
+    两个可能同时运行的节点之间才有意义，而已结算的节点已经落到分支上了。没有
+    这一点，运行中重新规划会让早就完成的节点把文件占住，对抗真正剩下的工作，
+    从而悄悄把图的尾巴串行成每波一个节点。
 
-    `inflight` names nodes that are running right now. They are placed before
-    equally-ready pending nodes, because that tie used to be broken by id alone —
-    and id order runs the wrong way here. A running node is usually the reason the
-    nodes sharing its files are still pending, and those nodes have the lower id
-    about half the time, so they would be layered *ahead* of the work they were
-    waiting on and dispatched into a file another child is editing at that moment.
+    `inflight` 指出此刻正在运行的节点。它们被排在同样就绪的待办节点之前，因为
+    这个平局过去只按 id 决定——而 id 顺序在这里是反的。一个正在运行的节点通常
+    就是共享其文件的那些节点仍待办的原因，而那些节点大约有一半 id 更小，于是
+    它们会被排在它们所等待的工作*之前*，被派发到另一个子节点此刻正在编辑的
+    文件里。
 
-    That collision is recorded as an edge rather than filtered inside the wave
-    loop. Filtering deadlocks: the pending node waits for a running node whose own
-    dependencies are not placed yet, no candidate survives, and the graph is
-    reported as a cycle. As an edge the layering places the running node first
-    wherever its dependencies allow, and its colliding dependents follow — which
-    is the same "wait for it to finish" with the ordering solver doing the work.
+    这个冲突被记成一条边，而不是在波循环里过滤掉。过滤会死锁：待办节点等待一个
+    自身依赖尚未就位的运行中节点，没有候选能存活，图就被报成有环。作为一条边，
+    分层会在依赖允许时把运行中节点排在最前，与之冲突的下游随后跟上——这就是
+    同一句“等它跑完”，只是交给排序求解器去做。
     """
     settled = settled or set()
     inflight = inflight or set()
@@ -308,25 +283,21 @@ def layer(by_id: dict[int, dict], settled: set[int] | None = None,
             continue
         runner_scope = scope_set(by_id[runner])
         for nid in by_id:
-            # Only work that can still run needs the barrier. Wiring it onto a
-            # settled node invents an edge across history and can close a cycle
-            # through real dependencies — #135 and #140 both touch protocol.go,
-            # and #144 depends on #140, so "wait for #144" turned into
-            # #135 -> #144 -> #140 -> #135.
+            # 只有还能跑的工作才需要这道屏障。把它接到已结算的节点上会凭空造出一条
+            # 跨越历史的边，并可能经由真实依赖闭合出一个环——#135 和 #140 都改
+            # protocol.go，而 #144 依赖 #140，于是“等 #144”变成了
+            # #135 -> #144 -> #140 -> #135。
             if nid == runner or nid in inflight or nid in settled:
                 continue
             if scope_set(by_id[nid]) & runner_scope:
                 deps[nid].add(runner)
     notes: list[str] = []
-    # Settled work is done, so it neither reserves scope nor occupies a wave: a
-    # pending node whose only unfinished dependency was settled is ready *now*, not
-    # after the layout has walked the settled node's own dependency chain. Without
-    # this the tail stays serialized even though the scopes were freed — #144 sits
-    # at the end of a deep chain, so #146, which depends on it and on nothing
-    # unfinished, was still pushed to a late wave while an unrelated #217 floated
-    # ahead of it. The layout therefore describes the work that is left; settled
-    # nodes stay in the node table with their status, which is what the board's
-    # counts and any later `set` read.
+    # 已结算的工作已经做完，所以它既不占作用域也不占一波：唯一未完成依赖已结算的
+    # 待办节点*现在*就绪，而不是等布局走完已结算节点自己的依赖链之后。没有这一点，
+    # 即使作用域已被释放，尾巴仍会串行——#144 位于一条深链的末端，所以依赖它、
+    # 且不依赖任何未完成工作的 #146 仍被推到很晚的一波，而一个无关的 #217 却排在
+    # 它前面。因此布局描述的是剩下的工作；已结算的节点连同其状态留在节点表里，
+    # 看板的计数和之后任何一次 `set` 读的就是它。
     remaining = set(by_id) - settled
     placed: set[int] = set(settled)
     waves: list[list[int]] = []
@@ -334,7 +305,7 @@ def layer(by_id: dict[int, dict], settled: set[int] | None = None,
         ready = sorted(nid for nid in remaining if deps[nid] <= placed)
         if not ready:
             cycle = ", ".join(f"#{nid}" for nid in sorted(remaining))
-            die(f"dependency cycle among {cycle} — break it and re-plan")
+            die(f"{cycle} 之间存在依赖环——断开它并重新规划")
         wave: list[int] = []
         used: set[str] = set()
         for nid in ready:
@@ -342,44 +313,40 @@ def layer(by_id: dict[int, dict], settled: set[int] | None = None,
             clash = scope_clash(scope, used)
             if clash:
                 notes.append(
-                    f"#{nid} waits one wave: scope overlaps {sorted(clash)} "
-                    f"with a node already in wave {len(waves)}"
+                    f"#{nid} 等待一波：作用域 {sorted(clash)} "
+                    f"与已在第 {len(waves)} 波的节点重叠"
                 )
                 continue
             wave.append(nid)
             if nid not in settled:
                 used |= scope
-        if not wave:  # every ready node clashes; take the lowest id alone
+        if not wave:  # 所有就绪节点都冲突；只取最小的 id 独占一波
             wave = [ready[0]]
-            notes.append(f"#{ready[0]} gets its own wave: every ready node shares its scope")
+            notes.append(f"#{ready[0]} 独占一波：所有就绪节点都共享它的作用域")
         waves.append(wave)
         remaining.difference_update(wave)
         placed.update(wave)
 
-        # Hot files are deliberately outside `scope`, so the scope check above
-        # cannot see this collision — and it is not enough to compare hot lists
-        # to each other either. The dangerous shape is a node that *owns* a file
-        # (`scope`) sharing a wave with a node that *edits* it (`hot_files`):
-        # that is exactly "one node owns the route table, three others append to
-        # it", which is how a wave resolves the same import block three times.
-        # Warn rather than serialize: keeping these files out of scope is what
-        # lets a wave stay parallel at all.
+        # hot 文件被有意放在 `scope` 之外，所以上面的作用域检查看不到这种冲突——
+        # 而且把 hot 列表互相比较也不够。危险的形状是*拥有*某个文件的节点（`scope`）
+        # 与*编辑*它的节点（`hot_files`）共享一波：那正是“一个节点拥有路由表，
+        # 另外三个往里面追加”，一波因此把同一个 import 块解了三次。
+        # 告警而不是串行：把这些文件排除在作用域之外，才让一波还能并行。
         for path in sorted({p for nid in wave if nid not in settled for p in hot_set(by_id[nid])}):
             hot = sorted({nid for nid in wave if nid not in settled and path in hot_set(by_id[nid])})
-            # A scope entry may be a directory (`internal/config`) while the hot
-            # file is one file inside it, so this compares by nesting rather than
-            # by equality — the equality form missed exactly that pair.
+            # 作用域条目可能是目录（`internal/config`），而 hot 文件是它里面的一个
+            # 文件，所以这里按包含关系比较而非相等——相等的形式恰好漏掉了这一对。
             owners = sorted({nid for nid in wave if nid not in settled
                              and any(scopes_overlap(entry, path) for entry in scope_set(by_id[nid]))})
             interested = sorted(set(hot) | set(owners))
             if len(interested) < 2:
-                continue  # only one node cares about this file
+                continue  # 只有一个节点关心这个文件
             who = ", ".join(f"#{nid}" for nid in interested)
-            shape = (f"{who} all touch {path} and {', '.join(f'#{nid}' for nid in owners)} "
-                     f"have it in scope" if owners else f"{who} all declare {path} as a hot file")
+            shape = (f"{who} 都改动 {path}，且 {', '.join(f'#{nid}' for nid in owners)} "
+                     f"把它放在作用域里" if owners else f"{who} 都把 {path} 声明为 hot 文件")
             notes.append(
-                f"wave {len(waves) - 1}: {shape} — that only merges cleanly if each edits its "
-                f"own region; serialize them or give one node ownership"
+                f"第 {len(waves) - 1} 波: {shape} —— 只有各自编辑自己的区域才能干净合并；"
+                f"把它们串行，或者把所有权交给其中一个节点"
             )
     return waves, notes
 
@@ -400,33 +367,32 @@ def render(state: dict) -> str:
     done = sum(1 for node in state["nodes"].values() if node["status"] in {"shipped", "skipped"})
     total = len(state["nodes"])
     cap = int(state.get("max_parallel") or 0)
-    lines = [f"graph: {state.get('task', '(untitled)')} — {total} nodes, "
-             f"{len(state['waves'])} waves, {done} shipped" + (f", cap {cap}" if cap else "")]
+    lines = [f"graph: {state.get('task', '(未命名)')} — {total} 个节点，"
+             f"{len(state['waves'])} 波，{done} 个已交付" + (f"，上限 {cap}" if cap else "")]
     for index, wave in enumerate(state["waves"]):
         parts = []
         for nid in wave:
             node = state["nodes"][str(nid)]
-            mark = {"shipped": "ok", "failed": "FAIL", "blocked": "blocked", "skipped": "skipped",
-                    "in_progress": "running"}.get(node["status"], "pending")
+            mark = {"shipped": "已交付", "failed": "失败", "blocked": "阻塞", "skipped": "已跳过",
+                    "in_progress": "进行中"}.get(node["status"], "待处理")
             ref = f" [{node['commit']}]" if node.get("commit") else ""
             parts.append(f"#{nid} {node['title']} ({mark}){ref}")
-        marker = "  <-- current" if index == current_wave(state) and index < len(state["waves"]) else ""
-        lines.append(f"  wave {index} (x{len(wave)}): " + "; ".join(parts) + marker)
+        marker = "  <-- 当前" if index == current_wave(state) and index < len(state["waves"]) else ""
+        lines.append(f"  第 {index} 波 (x{len(wave)}): " + "; ".join(parts) + marker)
     blocked = [nid for nid, node in state["nodes"].items() if node["status"] == "blocked"]
     if blocked:
-        lines.append("  blocked: " + ", ".join(f"#{nid}" for nid in sorted(blocked, key=int)))
-    # Settled work that the layout no longer carries. It is still part of the run,
-    # so the CLI summary names it rather than letting the waves above imply the
-    # graph is only what is left.
+        lines.append("  阻塞: " + ", ".join(f"#{nid}" for nid in sorted(blocked, key=int)))
+    # 布局不再承载的已结算工作。它仍然是这次运行的一部分，
+    # 所以 CLI 摘要要点出它，而不是让上面的波暗示图里只剩这些。
     scheduled = {nid for wave in state["waves"] for nid in wave}
     off_layout = sorted((nid for nid in state["nodes"] if int(nid) not in scheduled), key=int)
     if off_layout:
-        marks = {"shipped": "ok", "skipped": "skipped", "failed": "FAIL",
-                 "blocked": "blocked", "in_progress": "running"}
+        marks = {"shipped": "已交付", "skipped": "已跳过", "failed": "失败",
+                 "blocked": "阻塞", "in_progress": "进行中"}
         shown = ", ".join(
             f"#{nid} ({marks.get(state['nodes'][nid]['status'], state['nodes'][nid]['status'])})"
             for nid in off_layout)
-        lines.append(f"  settled, not in the layout: {shown}")
+        lines.append(f"  已结算，不在布局中: {shown}")
     return "\n".join(lines)
 
 
@@ -447,25 +413,24 @@ def dispatch_list(state: dict, index: int) -> list[str]:
     out = []
     for nid in wave:
         node = state["nodes"][str(nid)]
-        deps = ", ".join(f"#{d}" for d in node.get("deps") or []) or "none"
+        deps = ", ".join(f"#{d}" for d in node.get("deps") or []) or "无"
         hot = node.get("hot_files") or []
         hot_note = f" — hot: {', '.join(hot)}" if hot else ""
-        out.append(f"  #{nid} [{node.get('type', 'task')}] {node['title']} — deps: {deps} "
-                   f"— scope: {', '.join(sorted(scope_set(node))) or '(unscoped)'}{hot_note}")
+        out.append(f"  #{nid} [{node.get('type', 'task')}] {node['title']} — 依赖: {deps} "
+                   f"— 作用域: {', '.join(sorted(scope_set(node))) or '(无作用域)'}{hot_note}")
     return out
 
 
 def carry_over(state: dict, previous: dict | None, path: str) -> list[str]:
-    """Carry a previous checkpoint's per-node outcomes onto a freshly layered plan.
+    """把上一个检查点里每个节点的结果沿用到刚分好层的计划上。
 
-    Re-planning mid-run is normal: a node turns out to be already satisfied,
-    another has to move. Resetting every node to `pending` on a re-layer forces
-    the orchestrator to re-record what shipped by hand, and hand-kept accounting
-    is where drift starts. Ids that survive keep their outcome; ids that are new
-    start pending; ids that disappeared are reported rather than silently kept.
+    运行中重新规划很正常：一个节点发现已经满足了，另一个得挪位置。重新分层时把
+    每个节点都重置成 `pending`，会逼着编排者手工重新记录已交付的内容，而手工维护
+    的账目正是漂移的起点。存活下来的 id 保留其结果；新增的 id 从 pending 开始；
+    消失的 id 会被报出来，而不是悄悄留着。
     """
     if previous is None:
-        return ["--keep-shipped: no existing checkpoint to carry over from"]
+        return ["--keep-shipped: 没有可沿用的现有检查点"]
     old_nodes = previous.get("nodes") or {}
     notes: list[str] = []
     carried = 0
@@ -478,26 +443,25 @@ def carry_over(state: dict, previous: dict | None, path: str) -> list[str]:
                 node[field] = old[field]
         carried += 1
     if carried:
-        notes.append(f"--keep-shipped: carried the outcome of {carried} node(s) from {path}")
+        notes.append(f"--keep-shipped: 从 {path} 沿用了 {carried} 个节点的结果")
     dropped = sorted(set(old_nodes) - set(state["nodes"]), key=lambda k: (len(str(k)), str(k)))
     if dropped:
-        notes.append("--keep-shipped: dropped " + ", ".join(f"#{key}" for key in dropped)
-                     + " (no longer in the nodes file)")
+        notes.append("--keep-shipped: 丢弃 " + ", ".join(f"#{key}" for key in dropped)
+                     + "（已不在 nodes 文件中）")
     return notes
 
 
 def nodes_from_state(state: dict) -> list[dict]:
-    """Rebuild the planner's input from a checkpoint.
+    """从检查点重建规划器的输入。
 
-    The checkpoint is a strict superset of the nodes file: every declarative field
-    a plan reads — title, deps, scope, hot_files, type, criteria, context, and a
-    branch that is already known — is on the node record, and the outcome fields
-    `set` owns are disjoint from them. So a checkpoint can be re-layered without
-    the nodes file it was built from.
+    检查点是 nodes 文件的严格超集：plan 会读的每个声明式字段——title、deps、
+    scope、hot_files、type、criteria、context，以及一个已知的 branch——都在节点
+    记录上，而 `set` 拥有的结果字段与它们不相交。所以检查点可以在没有当初构建它
+    的 nodes 文件的情况下重新分层。
 
-    That matters because the nodes file is a scratch input: gitignored, easy to
-    lose, and until now the one thing whose absence made re-planning impossible —
-    which is exactly when `--only-pending` is worth the most.
+    这很重要，因为 nodes 文件是一次性输入：被 gitignore、容易丢，而且直到现在
+    都是那个一旦缺失就让重新规划无法进行的东西——而那恰恰是 `--only-pending`
+    最有价值的时候。
     """
     return [
         {
@@ -509,8 +473,8 @@ def nodes_from_state(state: dict) -> list[dict]:
             "type": node.get("type", "task"),
             "criteria": node.get("criteria") or [],
             "context": node.get("context", ""),
-            # Carried, never synthesized: the checkpoint holds a branch only once
-            # one exists, and the state builder below drops an empty value anyway.
+            # 只沿用，绝不合成：检查点只在分支存在之后才持有它，
+            # 而且下面的 state 构建本来就会丢掉空值。
             "branch": node.get("branch"),
         }
         for key, node in state["nodes"].items()
@@ -518,26 +482,25 @@ def nodes_from_state(state: dict) -> list[dict]:
 
 
 def cmd_plan(args: argparse.Namespace) -> int:
-    # The previous checkpoint is read first either way: `--only-pending` needs its
-    # outcomes before layering can decide whose scope still counts, and without a
-    # nodes file it is also where the graph itself comes from.
+    # 无论哪条路径都先读上一个检查点：`--only-pending` 需要它的结果，分层才能
+    # 判断谁的作用域还算数；而没有 nodes 文件时，图本身也来自它。
     previous, legacy_note = read_previous(args.state)
     from_state_note = ""
     if args.nodes:
-        spec = load_json(args.nodes, "nodes file")
+        spec = load_json(args.nodes, "nodes 文件")
         nodes = spec.get("nodes")
         if not isinstance(nodes, list) or not nodes:
-            die("nodes file must contain a non-empty 'nodes' array")
+            die("nodes 文件必须包含一个非空的 'nodes' 数组")
     else:
         if not previous:
-            die(f"nothing to layer: no nodes file given and no checkpoint at {args.state} — "
-                f"pass --nodes on the first plan of a graph")
-        spec = {"task": previous.get("task", "(untitled)"),
+            die(f"无可分层的内容：没有给 nodes 文件，{args.state} 处也没有检查点——"
+                f"一张图的首次 plan 请传 --nodes")
+        spec = {"task": previous.get("task", "(未命名)"),
                 "repo": previous.get("repo", ""),
                 "max_parallel": previous.get("max_parallel")}
         nodes = nodes_from_state(previous)
-        from_state_note = (f"no --nodes: re-layered the {len(nodes)} node(s) recorded in "
-                           f"{args.state}")
+        from_state_note = (f"没有 --nodes：重新分层了记录在 {args.state} 中的 "
+                           f"{len(nodes)} 个节点")
 
     by_id, warnings = validate(nodes)
 
@@ -555,26 +518,25 @@ def cmd_plan(args: argparse.Namespace) -> int:
         settled &= set(by_id)
         inflight &= set(by_id)
         if previous is None:
-            notes_later = "--only-pending: no existing checkpoint, so nothing is settled"
+            notes_later = "--only-pending: 没有现有检查点，因此没有已结算的节点"
         elif not settled:
-            notes_later = "--only-pending: the checkpoint has no shipped or skipped node"
+            notes_later = "--only-pending: 检查点里没有已交付或已跳过的节点"
         else:
-            notes_later = (f"--only-pending: {len(settled)} settled node(s) no longer "
-                           f"reserve their scope")
+            notes_later = (f"--only-pending: {len(settled)} 个已结算节点不再"
+                           f"占用其作用域")
             if inflight:
-                notes_later += (f"; {len(inflight)} in-flight node(s) "
-                                f"({', '.join(f'#{nid}' for nid in sorted(inflight))}) keep theirs")
+                notes_later += (f"；{len(inflight)} 个运行中的节点"
+                                f"（{', '.join(f'#{nid}' for nid in sorted(inflight))}）仍然占用")
     else:
         notes_later = ""
     waves, notes = layer(by_id, settled, inflight)
     if notes_later:
         notes.append(notes_later)
 
-    # The concurrency cap shapes the layout, so it belongs in the checkpoint:
-    # re-planning without it would silently re-layer the waves and nobody would
-    # see the change, because every node's status is preserved either way.
-    # The checkpoint is the only place a criterion sometimes lives (issues are filed
-    # and criteria pasted straight into it). Re-planning must not be destructive.
+    # 并发上限会塑造布局，所以它属于检查点：不带它重新规划会悄悄重新分层，
+    # 而没人会看到变化，因为无论哪种方式每个节点的状态都被保留。
+    # 检查点有时是验收条件唯一的存放处（issue 提出来之后，criteria 被直接粘进去）。
+    # 重新规划绝不能是破坏性的。
     previous_criteria = {k: v.get("criteria") for k, v in checkout_nodes.items() if v.get("criteria")}
     previous_context = {k: v.get("context") for k, v in checkout_nodes.items() if v.get("context")}
     if legacy_note:
@@ -585,26 +547,26 @@ def cmd_plan(args: argparse.Namespace) -> int:
     if args.max_parallel is not None:
         limit = args.max_parallel
         if recorded and limit != recorded:
-            notes.append(f"--max-parallel {limit} differs from the {recorded} recorded in "
-                         f"{args.state} — the wave layout will change")
+            notes.append(f"--max-parallel {limit} 与记录的 {recorded} 不同"
+                         f"（{args.state}）——波布局会改变")
     else:
         limit = int(spec.get("max_parallel") or 0)
         if not limit and recorded:
             limit = recorded
-            notes.append(f"--max-parallel not given: reusing the {recorded} recorded in {args.state}")
+            notes.append(f"--max-parallel 未给出：复用记录的 {recorded}（{args.state}）")
     if limit > 0:
         limited: list[list[int]] = []
         for wave in waves:
             for start in range(0, len(wave), limit):
                 limited.append(wave[start:start + limit])
         if len(limited) != len(waves):
-            notes.append(f"waves split to respect --max-parallel {limit}")
+            notes.append(f"为遵守 --max-parallel {limit}，波被拆分")
         waves = limited
 
     state = {
         "version": 1,
         "updated_at": now(),
-        "task": spec.get("task", "(untitled)"),
+        "task": spec.get("task", "(未命名)"),
         "repo": spec.get("repo", ""),
         "max_parallel": limit,
         "waves": waves,
@@ -616,22 +578,21 @@ def cmd_plan(args: argparse.Namespace) -> int:
                 "type": node.get("type", "task"),
                 "scope": sorted(scope_set(node)),
                 "hot_files": sorted(hot_set(node)),
-                # Re-planning rebuilds every node from the nodes file, so anything
-                # recorded only in the checkpoint is silently lost. Criteria are the
-                # case that bites: they are usually written straight into the
-                # checkpoint when the issue is filed, and a later re-plan used to
-                # erase them (the child prompt then says "write them from the issue").
-                # Fall back to the checkpoint so re-planning is not destructive.
-                # Presence decides, not truthiness: an explicit `"criteria": []`
-                # in the nodes file is a deliberate clear, and treating it as
-                # "not provided" would resurrect the checkpoint's value.
+                # 重新规划会从 nodes 文件重建每个节点，所以只记在检查点里的东西会
+                # 被悄悄丢掉。验收条件正是会咬人的那种：它们通常在建 issue 时被
+                # 直接写进检查点，而之后的一次重新规划过去会把它们抹掉
+                # （子节点提示词于是说“从 issue 里把它们写出来”）。
+                # 回退到检查点，好让重新规划不是破坏性的。
+                # 由字段是否存在决定，而非真假值：nodes 文件里显式的
+                # `"criteria": []` 是有意的清空，把它当成“未提供”
+                # 会让检查点的值复活。
                 "criteria": (node["criteria"] if "criteria" in node
                              else previous_criteria.get(str(nid))) or [],
                 "context": (node["context"] if "context" in node
                             else previous_context.get(str(nid))) or "",
-                # A branch is recorded only when it is known. Synthesizing one at
-                # plan time would put a name in the checkpoint that nothing has
-                # created yet, and `prompt` would then present it as fact.
+                # 分支只在已知时才记录。在 plan 时合成一个会把一个
+                # 还没有任何东西创建过的名字放进检查点，`prompt`
+                # 随后会把它当作事实呈现。
                 **({"branch": str(node["branch"])} if node.get("branch") else {}),
                 "status": "pending",
             }
@@ -647,33 +608,33 @@ def cmd_plan(args: argparse.Namespace) -> int:
 
     max_par = max(len(wave) for wave in waves)
     print(render(state))
-    print(f"\nmax parallelism: {max_par} child agent(s) in one wave")
-    print(f"checkpoint: {args.state}")
+    print(f"\n最大并行度: 一波 {max_par} 个子 agent")
+    print(f"检查点: {args.state}")
     for warning in warnings:
-        print(f"warning: {warning}")
+        print(f"警告: {warning}")
     for note in notes:
-        print(f"note: {note}")
+        print(f"提示: {note}")
     if board_note:
         print(board_note)
     print("\n" + mermaid(state))
     index = current_wave(state)
     if index < len(state["waves"]):
-        print(f"\nwave {index} — dispatch these together, one child each:")
+        print(f"\n第 {index} 波 —— 一起派发，每个子节点一个:")
         for line in dispatch_list(state, index):
             print(line)
-        print("\nnext: render the tracker with render_graph_html.py, then dispatch this wave.")
+        print("\n下一步: 用 render_graph_html.py 渲染追踪板，然后派发这一波。")
     else:
-        print("\nevery wave is already closed — nothing to dispatch.")
+        print("\n每一波都已关闭——没有可派发的。")
     return 0
 
 
 def cmd_set(args: argparse.Namespace) -> int:
     if args.status not in STATUSES:
-        die(f"unknown status {args.status!r} (expected one of: {', '.join(STATUSES)})")
+        die(f"未知状态 {args.status!r}（应为以下之一: {', '.join(STATUSES)}）")
     state, legacy_note = read_state(args.state)
     key = str(args.node)
     if key not in state["nodes"]:
-        die(f"node {key} is not in {args.state}")
+        die(f"节点 {key} 不在 {args.state} 中")
     node = state["nodes"][key]
     previous = node["status"]
     node["status"] = args.status
@@ -681,13 +642,12 @@ def cmd_set(args: argparse.Namespace) -> int:
         node["branch"] = args.branch
     if args.commit:
         node["commit"] = args.commit
-    # The node's structured report is the only place its evidence lives once the wave's
-    # workflow call has returned, so it is written into the checkpoint instead of being left
-    # in the transcript. `files` is what the fan-in diffstat gets compared against — the
-    # cheapest catch there is, and it only works if both sides are written down.
+    # 节点的结构化报告是它的证据在那一波 workflow 调用返回后唯一存在的地方，
+    # 所以要写进检查点，而不是留在对话记录里。`files` 是 fan-in diffstat 拿来
+    # 比对的依据——最便宜的一次抓错，而它只有在两边都写下来时才管用。
     #
-    # Read with a default: the CLI parser always supplies all four, while a caller that only
-    # wants to move a status (a test fixture, a re-plan script) should not have to name them.
+    # 带默认值读取：CLI 解析器总会提供全部四个，而只想改一个状态的调用方
+    # （测试夹具、重新规划脚本）不应该被迫写出它们。
     for field, value in (("files", getattr(args, "files", None)),
                          ("gates", getattr(args, "gates", None)),
                          ("summary", getattr(args, "summary", None)),
@@ -701,9 +661,8 @@ def cmd_set(args: argparse.Namespace) -> int:
         node["attempts"] = int(node.get("attempts", 0)) + 1
     else:
         node.pop("error", None)
-    # `current_wave` is derived, and the board reads it. Only a plan used to
-    # refresh it, so recording the last node of a wave left the file pointing at
-    # the wave that had just closed.
+    # `current_wave` 是推导出来的，看板会读它。过去只有 plan 会刷新它，
+    # 所以记录一波的最后一个节点之后，文件仍指向那个刚刚关闭的波。
     state["current_wave"] = current_wave(state)
     board_note = save_state(state, args.state)
 
@@ -711,51 +670,51 @@ def cmd_set(args: argparse.Namespace) -> int:
     node_wave = index_of.get(int(key))
     index = current_wave(state)
     if legacy_note:
-        print(f"note: {legacy_note}")
+        print(f"提示: {legacy_note}")
     if board_note:
         print(board_note)
-    print(f"node #{key}: {previous} -> {args.status}")
+    print(f"节点 #{key}: {previous} -> {args.status}")
     if args.status == "shipped":
         missing = [field for field in ("files", "gates", "summary") if not node.get(field)]
         if missing:
             print(
-                f"  ! no {', '.join(missing)} recorded for node #{key} — a shipped node without "
-                f"them says it finished, not what proved it. Pass the report fields to `set`.",
+                f"  ! 节点 #{key} 没有记录 {', '.join(missing)}——已交付的节点缺了它们，"
+                f"只能说它完成了，说不出是什么证明了它。请把报告字段传给 `set`。",
                 file=sys.stderr,
             )
     print(render(state))
 
-    if node_wave is None:  # unreachable for a well-formed state, but stay honest
-        print("\nnode is not in any wave — re-plan.")
+    if node_wave is None:  # 对格式良好的 state 不可达，但要诚实
+        print("\n节点不在任何一波中——重新规划。")
         return 0
 
     wave = state["waves"][node_wave]
     if all(state["nodes"][str(nid)]["status"] in WAVE_DONE for nid in wave):
-        print(f"\nwave {node_wave} is closed. Fan-in now:")
-        print("  1. leak check: git status --porcelain must be clean on the shared checkout")
-        print('  2. integrate: git checkout "$BASE"')
-        print("     pull only when an upstream is configured — a bare `git pull` exits 1 without one:")
+        print(f"\n第 {node_wave} 波已关闭。现在做 fan-in:")
+        print("  1. 泄漏检查: 共享检出上的 git status --porcelain 必须是干净的")
+        print('  2. 集成: git checkout "$BASE"')
+        print("     只有配置了上游时才 pull——没有上游时裸 `git pull` 会以 1 退出:")
         print("     git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1 && git pull")
         if len(wave) > 1:
-            print(f"     git checkout -b wave-{node_wave}-<slug>, then merge each node branch with --no-ff")
+            print(f"     git checkout -b wave-{node_wave}-<slug>，然后用 --no-ff 合并每个节点分支")
         else:
-            print("     merge the one node branch with --no-ff (a one-node wave skips the wave branch)")
-        print("     and run the project's gates on the integrated tree")
-        print("  3. review the wave ONCE (git diff against the default branch), fix, re-run the gates")
-        print("  4. ship the wave ONCE with the ship-it skill, close the issues it satisfied")
+            print("     用 --no-ff 合并这一个节点分支（单节点的波跳过波分支）")
+        print("     并在集成后的树上跑项目的门禁")
+        print("  3. 只审查这一波一次（对着默认分支 git diff），修好，重跑门禁")
+        print("  4. 用 ship-it 技能只交付这一波一次，关闭它满足的 issue")
         next_index = node_wave + 1
         if next_index < len(state["waves"]):
-            print(f"  5. render the tracker, then dispatch wave {next_index}:")
+            print(f"  5. 渲染追踪板，然后派发第 {next_index} 波:")
             for line in dispatch_list(state, next_index):
                 print(line)
         else:
-            print("  5. every wave is done — write the final summary and clean up the worktrees.")
+            print("  5. 每一波都完成了——写最终总结并清理 worktree。")
     else:
         outstanding = [f"#{nid}" for nid in wave
                        if state["nodes"][str(nid)]["status"] not in WAVE_DONE]
-        print(f"\nwave {node_wave} still open — waiting on {', '.join(outstanding)}")
+        print(f"\n第 {node_wave} 波仍未关闭——等待 {', '.join(outstanding)}")
         if index != node_wave:
-            print(f"(wave {index} is already current; wave {node_wave} just needs closing)")
+            print(f"（第 {index} 波已经是当前波；第 {node_wave} 波只差关闭）")
     return 0
 
 
@@ -765,12 +724,12 @@ def node_slug(title: str, node_id: str) -> str:
 
 
 def worktree_root(override: str | None) -> str:
-    """Where node worktrees go: inside the repo, matching the skill's recipe.
+    """节点 worktree 放在哪里：仓库内部，与技能的配方一致。
 
-    Inside rather than beside it: DSH's `workspace-write` sandbox denies writes outside the
-    session's working directory, so a sibling `.graph-worktrees` is refused there with an
-    error that does not read like a path problem. The skill commits an ignore rule for this
-    path before the first wave, which keeps `git status` clean for the leak check.
+    放在内部而不是旁边：DSH 的 `workspace-write` 沙箱会拒绝写会话工作目录之外的
+    路径，所以同级的 `.graph-worktrees` 在那里会被拒，而报错读起来不像路径问题。
+    技能会在第一波之前为这个路径提交一条忽略规则，从而让泄漏检查时的
+    `git status` 保持干净。
     """
     if override:
         return os.path.abspath(override)
@@ -778,25 +737,24 @@ def worktree_root(override: str | None) -> str:
         top = subprocess.run(["git", "rev-parse", "--show-toplevel"], check=True,
                              capture_output=True, text=True).stdout.strip()
     except (OSError, subprocess.CalledProcessError):
-        die("not inside a git repository — pass --worktrees to say where the worktrees go")
+        die("不在 git 仓库内——传 --worktrees 说明 worktree 放哪里")
     return os.path.join(top, ".graph-worktrees")
 
 
 def load_template(override: str | None) -> str:
-    """The node prompt body, read from the skill's own reference file.
+    """节点提示词正文，从技能自己的参考文件读取。
 
-    One source of truth: the script renders exactly the template a human would
-    copy, so the two cannot drift apart.
+    单一事实来源：脚本渲染出的正是人类会复制的那份模板，所以两者不会漂移。
     """
     path = override or os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "references", "node-prompt.md")
     try:
         text = open(path, encoding="utf-8").read()
     except OSError as exc:
-        die(f"node prompt template is unreadable ({path}): {exc}")
+        die(f"节点提示词模板不可读（{path}）：{exc}")
     match = re.search(r"```markdown\n(.*?)\n```", text, re.S)
     if not match:
-        die(f"no ```markdown template block in {path}")
+        die(f"{path} 中没有 ```markdown 模板块")
     return match.group(1)
 
 
@@ -804,16 +762,14 @@ def cmd_prompt(args: argparse.Namespace) -> int:
     state, legacy_note = read_state(args.state)
     key = str(args.node)
     if key not in state["nodes"]:
-        die(f"node {key} is not in {args.state}")
+        die(f"节点 {key} 不在 {args.state} 中")
     node = state["nodes"][key]
 
     worktree = os.path.join(worktree_root(args.worktrees), f"node-{key}")
     slug = node_slug(node.get("title", ""), key)
-    # The checkpoint is the only place a real branch name can come from: a child
-    # that renamed it (or a node whose branch was created before the plan was
-    # written) must not be contradicted by a name this script invented from the
-    # title. Synthesis is a fallback for a branch nobody has created yet, and the
-    # header says so instead of presenting it as fact.
+    # 检查点是真实分支名唯一可能的来源：一个改过名的子节点（或者分支在 plan
+    # 写下来之前就已创建的节点）不能被这个脚本从标题凭空造出的名字顶掉。
+    # 合成只用于还没有人创建过的分支，而且头部会说明这一点，而不是把它当事实。
     recorded = node.get("branch")
     branch = str(recorded) if recorded else f"feat/node-{key}-{slug}"
     exists = os.path.isdir(worktree)
@@ -823,49 +779,47 @@ def cmd_prompt(args: argparse.Namespace) -> int:
     prompt = prompt.replace(
         "- [ ] {criterion 1}\n- [ ] {criterion 2}",
         "\n".join(f"- [ ] {criterion}" for criterion in criteria)
-        or "- [ ] (no criteria recorded — write them from the issue before dispatching)")
-    # `context` on a node is the orchestrator's dependency briefing. It existed as a
-    # placeholder with no way to fill it, which meant every dispatch had the text
-    # hand-appended to a temp copy of the prompt — an easy step to skip and a silent
-    # quality loss (the child cannot read the earlier nodes' conversations).
+        or "- [ ] (没有记录验收条件——派发前先从 issue 里把它们写出来)")
+    # 节点上的 `context` 是编排者的依赖简报。它过去只是一个无法填写的占位符，
+    # 意味着每次派发都要把文字手工追加到提示词的临时副本上——一个容易跳过的步骤，
+    # 也是一次无声的质量损失（子节点读不到更早节点的对话）。
     context = str(node.get("context") or "").strip()
     prompt = prompt.replace(
-        "{summaries of dependency nodes' outputs, or the referenced PRD/SPEC excerpt}",
-        context or "(FILL THIS IN: one or two lines per dependency — what it added, where, and "
-        "anything this node must know. The child cannot read the earlier nodes' conversations, so "
-        "this is the only channel the graph has.)")
+        "{dependency_summaries}",
+        context or "(此处填写: 每个依赖一到两行——它新增了什么、加在哪里，以及该节点必须"
+        "知道的任何事。子节点读不到更早节点的对话，所以这是图唯一的通道。)")
     for token, value in (
         ("{WT}", worktree),
         ("{N}", key),
         ("{slug}", slug),
         ("{branch}", branch),
-        ("{branch_state}", "already created and checked out" if exists else
-         "NOT created yet — create it with the command above before you start"),
+        ("{branch_state}", "已经创建并检出" if exists else
+         "尚未创建——开始前用上面的命令创建它"),
         ("{title}", str(node.get("title", ""))),
         ("{type}", str(node.get("type", "task"))),
-        ("{scope_hint}", ", ".join(node.get("scope") or []) or "(unscoped)"),
+        ("{scope_hint}", ", ".join(node.get("scope") or []) or "(无作用域)"),
     ):
         prompt = prompt.replace(token, value)
 
-    deps = ", ".join(f"#{dep}" for dep in node.get("deps") or []) or "none"
+    deps = ", ".join(f"#{dep}" for dep in node.get("deps") or []) or "无"
     hot = node.get("hot_files") or []
     if legacy_note:
-        print(f"note: {legacy_note}")
-    print(f"# node #{key} — {node.get('title', '')}")
-    print(f"# deps: {deps}   status: {node.get('status', 'pending')}")
+        print(f"提示: {legacy_note}")
+    print(f"# 节点 #{key} — {node.get('title', '')}")
+    print(f"# 依赖: {deps}   状态: {node.get('status', 'pending')}")
     if hot:
-        print(f"# hot files: {', '.join(hot)} — shared; expect a conflict with any other node "
-              f"in this wave that declares them unless each edits its own region")
+        print(f"# hot 文件: {', '.join(hot)} —— 共享的；除非各自编辑自己的区域，否则"
+              f"预计会和这一波里声明了它们的其他任何节点冲突")
     print("#")
     if exists:
-        print(f"# the worktree already exists; the prompt below names the branch it should hold:")
-        print(f'# confirm with: git -C "{worktree}" rev-parse --abbrev-ref HEAD')
+        print(f"# worktree 已经存在；下面的提示词指明了它应该持有的分支:")
+        print(f'# 用这条命令确认: git -C "{worktree}" rev-parse --abbrev-ref HEAD')
     else:
-        print("# create the worktree first — the prompt below names this branch:")
+        print("# 先创建 worktree——下面的提示词指明了这个分支:")
         print(f'git worktree add -b {branch} "{worktree}" "$BASE"')
     if not recorded:
-        print("# (that branch name was derived from the title and does not exist yet —")
-        print(f"#  once it does, record it so later prompts stop guessing: "
+        print("# （那个分支名是从标题推导出来的，目前还不存在——")
+        print(f"#  一旦它存在，就记录下来，让后续提示词不再猜: "
               f"graph_state.py set --node {key} --status <same> --branch {branch})")
     print()
     print(prompt)
@@ -873,14 +827,14 @@ def cmd_prompt(args: argparse.Namespace) -> int:
     leftovers = sorted(set(re.findall(r"\{[a-z][^}]*\}", prompt)))
     if leftovers:
         print()
-        print("# unfilled placeholders: " + ", ".join(leftovers))
+        print("# 未填充的占位符: " + ", ".join(leftovers))
     return 0
 
 
 def cmd_show(args: argparse.Namespace) -> int:
     state, legacy_note = read_state(args.state)
     if legacy_note and not args.json:
-        print(f"note: {legacy_note}")
+        print(f"提示: {legacy_note}")
     if args.json:
         print(json.dumps(state, indent=2, ensure_ascii=False))
     else:
@@ -892,41 +846,41 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
 
-    plan = sub.add_parser("plan", help="validate, layer into waves, write the checkpoint")
+    plan = sub.add_parser("plan", help="校验、分层成波、写检查点")
     plan.add_argument("--nodes", default=None,
-                      help="path to the nodes JSON file; omit to re-layer from the checkpoint itself")
+                      help="nodes JSON 文件的路径；省略则从检查点本身重新分层")
     plan.add_argument("--state", default=STATE_DEFAULT,
-                      help=f"checkpoint path (default {STATE_DEFAULT})")
+                      help=f"检查点路径（默认 {STATE_DEFAULT}）")
     plan.add_argument("--max-parallel", type=int, default=None,
-                      help="split waves wider than this (reused from the checkpoint when omitted)")
+                      help="把宽于此值的波拆开（省略时从检查点复用）")
     plan.add_argument("--keep-shipped", action="store_true",
-                      help="carry an existing checkpoint's per-node outcome onto the new layout")
+                      help="把现有检查点中每个节点的结果沿用到新布局上")
     plan.add_argument("--only-pending", action="store_true",
-                      help="let shipped/skipped nodes stop reserving their scope when re-layering")
+                      help="重新分层时让已交付/已跳过的节点不再占用其作用域")
     plan.set_defaults(func=cmd_plan)
 
-    setter = sub.add_parser("set", help="record one node's outcome")
+    setter = sub.add_parser("set", help="记录一个节点的结果")
     setter.add_argument("--state", default=STATE_DEFAULT)
     setter.add_argument("--node", required=True)
     setter.add_argument("--status", required=True, choices=STATUSES)
     setter.add_argument("--commit")
-    setter.add_argument("--branch", help="record the branch this node actually lives on")
+    setter.add_argument("--branch", help="记录这个节点实际所在的分支")
     setter.add_argument("--error")
-    setter.add_argument("--files", help="comma-separated files the node changed, from its report")
-    setter.add_argument("--gates", help="the gate commands it ran and their exit codes")
-    setter.add_argument("--summary", help="what it did and what surprised it")
+    setter.add_argument("--files", help="节点改动的文件，逗号分隔，来自它的报告")
+    setter.add_argument("--gates", help="它跑过的门禁命令及其退出码")
+    setter.add_argument("--summary", help="它做了什么，以及什么出乎意料")
     setter.add_argument("--new-work", dest="new_work",
-                        help="work it found that the graph does not capture")
+                        help="它发现但图没有覆盖的工作")
     setter.set_defaults(func=cmd_set)
 
-    prompt = sub.add_parser("prompt", help="render one node's dispatch prompt from the checkpoint")
+    prompt = sub.add_parser("prompt", help="从检查点渲染一个节点的派发提示词")
     prompt.add_argument("--state", default=STATE_DEFAULT)
     prompt.add_argument("--node", required=True)
-    prompt.add_argument("--worktrees", help="worktree root (default: <repo>/.graph-worktrees)")
-    prompt.add_argument("--template", help="override the node prompt template path")
+    prompt.add_argument("--worktrees", help="worktree 根目录（默认: <repo>/.graph-worktrees）")
+    prompt.add_argument("--template", help="覆盖节点提示词模板的路径")
     prompt.set_defaults(func=cmd_prompt)
 
-    show = sub.add_parser("show", help="print the current plan and status")
+    show = sub.add_parser("show", help="打印当前计划与状态")
     show.add_argument("--state", default=STATE_DEFAULT)
     show.add_argument("--json", action="store_true")
     show.set_defaults(func=cmd_show)

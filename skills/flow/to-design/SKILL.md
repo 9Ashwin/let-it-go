@@ -1,16 +1,16 @@
 ---
 name: to-design
-description: "Write a Go-style design proposal from a PRD — Abstract / Background / Design / Rationale / Compatibility / Implementation, strong on the why; optionally render it as a self-contained house-style HTML page. Triggers: to-design, 设计文档, 设计提案, design doc, 生成设计文档."
+description: "从 PRD 写一份 Go 风格的设计提案——Abstract / Background / Design / Rationale / Compatibility / Implementation，重在「为什么」；可选渲染成自包含的 house-style HTML 页面。Triggers: to-design, 设计文档, 设计提案, design doc, 生成设计文档."
 
 ---
 
 # to-design — 需求 → 设计文档
 
-Turn a PRD (or a rough idea) into a **design document** in the style of Go's official design proposals: plain language, concrete examples, and—above all—an honest account of *why this approach and not the alternatives*.
+把 PRD（或一个还粗糙的想法）写成一份**设计文档**，风格照 Go 官方 design proposal：语言平实、例子具体，最重要的是**老实交代为什么选这条路而不是别的**。
 
-A design document is a **decision artifact**: it argues for an approach, surfaces the tradeoffs, and gets a team onto the same facts before anyone writes code. It is **not** an implementation contract — that lives in the **contract field block of an issue body**, produced by `/to-issues` (tables, endpoints, schemas an engineer builds against). Question is "*how should we build this and why*" → design doc. Question is "*give me the exact contract to implement*" → `/to-issues`.
+设计文档是一份**决策产物**：它为一个方案辩护、把取舍摊开、让团队在有人动手写代码之前先站在同一套事实上。它**不是**实现契约——那是 `/to-issues` 产出的 **issue 正文里的契约字段块**（表、接口、schema，工程师照着建）。问「*该怎么建、为什么这么建*」→ 设计文档；问「*给我可以照着实现的精确契约*」→ `/to-issues`。
 
-**Markdown is the primary deliverable.** Rendering it as a self-contained HTML page is an optional presentation layer, never a requirement — see 可选：渲染成 HTML at the end.
+**Markdown 是主产物。** 渲染成自包含的 HTML 页面只是可选的呈现层，从不是必须——见文末「可选：渲染成 HTML」。
 
 > 设计哲学源自对 5 篇 Go 官方 proposal（泛型 / 错误包装 / loopvar / slog / try）的分析。核心信念：**文档的价值不取决于方案是否通过，而取决于它是否让讨论建立在同一套事实和取舍之上。**
 
