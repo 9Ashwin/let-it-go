@@ -16,7 +16,7 @@
   set --issue N --status <pending|in_progress|shipped|failed|skipped|blocked>
       [--error-class X] [--error TEXT] [--branch B] [--phase P] [--waive TEXT]
       记录一次状态转移，打上时间戳，在一次尝试开始时递增 `attempts`，写入检查点，并打印
-      下一步该做什么。把 issue 标成 `shipped` 时，若没有结构化的 `evidence`，这次转移会被
+      下一步该做什么。把 issue 标成 `shipped` 时，若没有结构化的 `evidence`，会打一条告警，
       **拒绝**——一条背后没有观察的 shipped 记录只说明有事发生过，说明不了是什么证明了它。
       确实拿不到观察时用 `--waive "原因"` 显式豁免，豁免会记进检查点并在 `summary` 里标出。
       仍缺 `decisions` / `verification` / `open` 时只告警，不拦——那是判断，不是可核验的事实。
@@ -119,6 +119,11 @@ SEP = re.compile(r"[ \t]*(?:,|;|\band\b|、)?[ \t]*", re.IGNORECASE)
 
 def now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def warn(message: str) -> None:
+    """打一条告警，不改变退出码。"""
+    print(f"警告: {message}", file=sys.stderr)
 
 
 def die(message: str) -> None:
@@ -558,14 +563,13 @@ def cmd_set(args: argparse.Namespace) -> int:
     previous = entry.get("status", "pending")
     stamp = now()
 
-    if args.status == "shipped" and missing_evidence(entry) and not args.waive:
-        die(
-            f"{ref(args.issue)} 没有记录 evidence —— 背后没有观察的 shipped 记录以后无法审计。\n"
-            f"  先记一条观察：`evidence add --issue {args.issue} "
-            f"--kind <test|runtime|database|external|human> --command '…' "
-            f"--result <pass|fail|deferred>`\n"
-            f"  确实拿不到观察时写明原因豁免：`set --issue {args.issue} --status shipped "
-            f"--waive \"…\"`"
+    if args.status == "shipped" and missing_evidence(entry):
+        # 告警而不是拒绝：观测的**落点**已经改成 scope README 的验收表，检查点里的
+        # 结构化 evidence 是可选的。拒绝会把那条轻路径堵死——要求留在技能正文里，
+        # 脚本只负责把"没有证据"这件事说出来，不替人做判断。
+        warn(
+            f"{ref(args.issue)} 的 shipped 没有结构化 evidence —— 确认 scope README 的验收表里"
+            f"记了它的观测；要跨会话追踪某条观测时用 `evidence add`。"
         )
     if args.status == "shipped" and args.waive:
         entry["evidence_waiver"] = {"reason": args.waive, "at": stamp}

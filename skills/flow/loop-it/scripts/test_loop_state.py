@@ -296,18 +296,18 @@ def test_notes_are_kept_verbatim():
         check("记录齐全时 shipped 不告警", "没有记录 decisions" not in err, err)
 
 
-def test_shipping_without_evidence_is_refused():
-    """背后没有观察的 shipped 记录是断言，不是记录——这条是阻塞，不是告警。"""
+def test_shipping_without_evidence_warns_but_proceeds():
+    """观测的落点已经改成 scope README 的验收表——检查点里没有 evidence 只告警，不阻塞。"""
     with tempfile.TemporaryDirectory() as tmp:
         state_path = os.path.join(tmp, ".loop-state.json")
         issues = write_issues(tmp, [(1, "Only", "no deps")])
         run("scan", "--issues", issues, "--state", state_path, "--repo", "o/r")
 
         code, out, err = run("set", "--issue", 1, "--status", "shipped", "--state", state_path)
-        check("没有 evidence 的 shipped 被拒绝", code != 0, out)
-        check("拒绝时说明怎么补", "evidence add" in err and "--waive" in err, err)
-        check("被拒绝的转移没有落盘",
-              read_state(state_path)["issues"]["1"]["status"] != "shipped",
+        check("没有 evidence 也能 shipped", code == 0, err)
+        check("但要打一条告警", "evidence" in err, err)
+        check("状态确实落盘了",
+              read_state(state_path)["issues"]["1"]["status"] == "shipped",
               str(read_state(state_path)["issues"]["1"]))
 
         code, out, err = run("set", "--issue", 1, "--status", "shipped", "--state", state_path,
@@ -455,7 +455,7 @@ def main() -> int:
         test_blocked_and_next_computation,
         test_untracked_dependency_waits,
         test_notes_are_kept_verbatim,
-        test_shipping_without_evidence_is_refused,
+        test_shipping_without_evidence_warns_but_proceeds,
         test_shipping_without_notes_warns,
         test_evidence_is_recorded_structured,
         test_evidence_batch_appends_in_one_write,

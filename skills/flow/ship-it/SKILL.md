@@ -41,7 +41,7 @@ git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|origin/||
 - **落点：`<scope>/notes/walkthrough-<feature>.md`**（作用域根见 `/prd` 的落点约定）。
 - **它是证明，不是 diff 倾倒。** 记录的是**你实际跑过什么、它打印出什么、你看到了什么**：
   命令与原始输出、演示路径的可视化证明、带 diff stat 的高风险说明、逐项人工验收状态。
-- **跳过它只有一种理由**：一行改动或纯机械改动，既没有演示路径也没有可追的东西——那就直接把
+- **什么时候可以不写**：改动没有演示路径、也没有要人工验收的项（纯机械改动、一行改动、或全部验收条件都能被同一条命令证明）。那时把命令与原始输出直接放进 scope README 的验收表即可——**走查件是给「要人看的东西」用的，不是每次交付的例行公事**。另一种要写的情况：
   diff 递过去。
 
 详细的产物结构、逐项清单与反模式见 [`references/walkthrough.md`](references/walkthrough.md)。
