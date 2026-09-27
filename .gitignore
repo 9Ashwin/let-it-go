@@ -8,3 +8,4 @@ __pycache__/
 evals/results/*
 !evals/results/README.md
 evals/harness/evalctl
+evals/harness/evals

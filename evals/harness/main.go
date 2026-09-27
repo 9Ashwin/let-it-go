@@ -19,10 +19,12 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -30,6 +32,7 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"time"
 )
 
 // ---------------------------------------------------------------------------
@@ -53,16 +56,16 @@ func sourceDir() string {
 	return filepath.Dir(file)
 }
 
-// repoPath 把命令行上的相对路径解析成相对**仓库根**的绝对路径。
+// repoPath 把命令行上的相对路径解析成相对 **evals/** 的绝对路径。
 //
 // 不能靠 cwd：`go -C evals/harness run .` 会把进程的 cwd 换到 harness 目录，
-// 于是 `evals/results/...` 这种相对路径会解析到 harness 下面去。相对路径统一
-// 相对仓库根，规则简单，和 run.md / README 里写的调用方式一致。
+// 相对路径会解析到 harness 下面去。基址选 evals/ 而不是仓库根，因为 run.md 与
+// README 里写的都是 `results/iteration-1/...` 这种形式（结果就在 evals/results/ 下）。
 func repoPath(path string) string {
 	if path == "" || filepath.IsAbs(path) {
 		return path
 	}
-	return filepath.Join(repoDir, path)
+	return filepath.Join(evalsDir, path)
 }
 
 func mustJSON(v any) []byte {
@@ -230,10 +233,21 @@ func loadSeed(workdir string) (Seed, error) {
 // 外部命令与文件小工具
 // ---------------------------------------------------------------------------
 
+// commandTimeout 是一次门禁/探针调用的上限。
+//
+// 没有它，一个挂住的 `make check` 会让整轮 eval 永久卡住——Python 版有 300 秒，
+// 这里对齐。
+const commandTimeout = 300 * time.Second
+
 func runIn(workdir string, name string, args ...string) (string, int) {
-	cmd := exec.Command(name, args...)
+	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, name, args...)
 	cmd.Dir = workdir
 	combined, err := cmd.CombinedOutput()
+	if ctx.Err() == context.DeadlineExceeded {
+		return string(combined) + "\n[evalctl] 命令超时", -1
+	}
 	if err != nil {
 		if exit, ok := err.(*exec.ExitError); ok {
 			return string(combined), exit.ExitCode()
@@ -396,12 +410,9 @@ func assertProbe(caseID, workdir string, spec AssertionSpec) (bool, string) {
 		}
 		out, code := runIn(workdir, command[0], command[1:]...)
 		match := pattern.FindStringSubmatch(out)
-		var observed map[string]int
+		var observed map[string]any
 		if len(match) > 1 {
-			var parsed map[string]any
-			if json.Unmarshal([]byte(match[1]), &parsed) == nil {
-				observed = toIntMap(parsed)
-			}
+			json.Unmarshal([]byte(match[1]), &observed)
 		}
 		if observed == nil {
 			lines = append(lines, fmt.Sprintf("  %s → 探针没有输出可解析的 JSON（exit %d）%s",
@@ -411,7 +422,10 @@ func assertProbe(caseID, workdir string, spec AssertionSpec) (bool, string) {
 		}
 		same := true
 		for key, want := range scenario.Expect {
-			if observed[key] != want {
+			// 按数值比较，且**缺键不算通过**——把观察值收成 int 时缺键会被当成 0，
+			// 期望恰好是 0 的场景就会误判通过。
+			got, present := observed[key]
+			if !present || number(got) != float64(want) {
 				same = false
 			}
 		}
@@ -425,6 +439,20 @@ func assertProbe(caseID, workdir string, spec AssertionSpec) (bool, string) {
 		}
 	}
 	return ok, strings.Join(lines, "\n")
+}
+
+// number 把 JSON 解码出来的数值统一成 float64。
+func number(value any) float64 {
+	switch typed := value.(type) {
+	case float64:
+		return typed
+	case int:
+		return float64(typed)
+	case json.Number:
+		parsed, _ := typed.Float64()
+		return parsed
+	}
+	return math.NaN()
 }
 
 func mustJSONCompact(v any) []byte {
@@ -451,7 +479,14 @@ func assertPathAbsent(caseID, workdir string, spec AssertionSpec) (bool, string)
 func assertCheckpointLocation(caseID, workdir string, spec AssertionSpec) (bool, string) {
 	var found []string
 	filepath.WalkDir(workdir, func(path string, entry os.DirEntry, err error) error {
-		if err == nil && !entry.IsDir() && entry.Name() == ".loop-state.json" {
+		if err != nil {
+			return nil
+		}
+		// 跳过隐藏目录（Python 的 glob `**` 不匹配隐藏项），否则 .git 之类会被扫进来
+		if entry.IsDir() && path != workdir && strings.HasPrefix(entry.Name(), ".") {
+			return filepath.SkipDir
+		}
+		if !entry.IsDir() && entry.Name() == ".loop-state.json" {
 			found = append(found, path)
 		}
 		return nil
@@ -489,9 +524,19 @@ func assertWorkspaceClean(caseID, workdir string, spec AssertionSpec) (bool, str
 	now := dirtyLines(repoDir)
 	var fresh []string
 	for _, line := range now {
-		if !before[line] {
-			fresh = append(fresh, line)
+		if before[line] {
+			continue
 		}
+		// `evals/` 整个不算：那是 eval 工作区自己的家，跑一轮的过程里 harness、
+		// 结果目录、fixture 定义本来就会变。仓库的其它内容仍然受检查——臂不该碰
+		// `skills/`、`scripts/`、`docs/` 或根文件。
+		//
+		// 这条断言只在**跑臂期间仓库被冻结**时可信：Lead 顺手改一行 `skills/`
+		// 会被记成臂的越界。run.md 里把这条写成了流程规则。
+		if strings.Contains(line, "evals/") {
+			continue
+		}
+		fresh = append(fresh, line)
 	}
 	if len(fresh) > 0 {
 		return false, "本次运行往 let-it-go 工作树里写了东西：\n  " + strings.Join(fresh, "\n  ")
@@ -695,6 +740,10 @@ func cmdMaterialize(args []string) int {
 		ProtectedMissing:   []string{},
 		LetitgoDirtyAtSeed: dirtyLines(repoDir),
 	}
+	if seed.LetitgoDirtyAtSeed == nil {
+		// nil 切片会 marshal 成 null；schema 里它是数组，统一成 []
+		seed.LetitgoDirtyAtSeed = []string{}
+	}
 	abs, _ := filepath.Abs(dest)
 	seed.Workdir = abs
 	for _, rel := range c.TamperGuard {
@@ -786,7 +835,13 @@ func cmdAssert(args []string) int {
 		payload = grade(caseID, workdir, c)
 	}
 	if out != "" {
-		if err := os.WriteFile(out, mustJSON(payload), 0o644); err != nil {
+		// --out 的父目录不存在时自动建：跑一轮要手写多级路径，
+		// 让人先去 mkdir 是没必要的摩擦。
+		if err := os.MkdirAll(filepath.Dir(repoPath(out)), 0o755); err != nil {
+			fmt.Fprintln(os.Stderr, "assert:", err)
+			return 1
+		}
+		if err := os.WriteFile(repoPath(out), mustJSON(payload), 0o644); err != nil {
 			fmt.Fprintln(os.Stderr, "assert:", err)
 			return 1
 		}

@@ -55,6 +55,10 @@ go -C evals/harness run . assert 01-single-unit /tmp/eval-1-01-with --phase pref
 
 两条臂用**同一段任务文字**，只有最后一行不同；否则测的就不是技能，是 prompt 差异。
 
+⚠️ **跑臂期间冻结仓库。** `workspace_clean` 断言拿 materialize 时的脏快照比，
+所以你在臂运行期间顺手改一行 `skills/` 或 `.gitignore`，会被记成那条臂的越界。
+要么别改，要么接受这条断言当轮无效（在 `notes.md` 里写明，别让它冒充结果）。
+
 ⚠️ **DSH 的 `subagent` 工具没有 cwd 参数**——子代理继承父会话的 cwd。
 所以 fixture 的 `AGENTS.md` **不会**自动加载，必须在 prompt 里显式指认它
 （模板里那句「先读它的 AGENTS.md」就是干这个的）。
