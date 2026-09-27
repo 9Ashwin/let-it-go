@@ -25,7 +25,7 @@
 
 ## let-it-go 是什么
 
-let-it-go 是一套研发工作流技能集：25 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。你说想做什么，剩下的交给 Agent：澄清问题、写 PRD、拆成带契约字段的 Issue、在隔离的工作树里并行实现、审查、开 PR、合入。
+let-it-go 是一套研发工作流技能集：26 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。你说想做什么，剩下的交给 Agent：澄清问题、写 PRD、拆成带契约字段的 Issue、在隔离的工作树里并行实现、审查、开 PR、合入。
 
 **实现节点是子代理**，每个节点一个独立 git worktree，职责到「实现 → 跑通项目门禁自证 → commit 到自己分支」为止。泄漏检查、集成、集成后的门禁、评审、交付收成一件事，**按波次各做一次**：一个 PR 关闭这一波满足的全部 Issue。
 
@@ -53,7 +53,7 @@ cp -R <let-it-go>/skills/flow/graph ~/.agents/skills/graph   # 拍平，不要�
 还可以作为**部署层配置**安装（随包携带 preset、`toolFilter`、persona，可锁定 commit）——安装命令与参数说明见文档站：**<https://9ashwin.github.io/let-it-go/#install>**。
 
 > [!TIP]
-> 不记得该用哪个技能？直接敲 **`/ask-flow`**——它挑出该走的那一步**并直接开始**，只有两条路真接近时才停下来问。
+> 不记得该用哪个技能？**不用敲**——26 个技能的 description 就是路由表，模型命中就自己加载并直接开始；想强制走某一条时才敲它的名字。
 >
 > 完整使用指南（安装、每一步怎么触发、验收标准、FAQ）在 **<https://9ashwin.github.io/let-it-go/>**，会自动按浏览器语言跳转到中文或英文版；仓库内是 [docs/index_cn.html](docs/index_cn.html) 与 [docs/index_en.html](docs/index_en.html)。
 
@@ -84,11 +84,10 @@ cp -R <let-it-go>/skills/flow/graph ~/.agents/skills/graph   # 拍平，不要�
 
 下表用技能短名，前缀统一是 `/`（DSH）。
 
-**不知道该用哪个？先调用 `ask-flow`** —— 它路由之后**直接开始**那一步，而不是只报一个名字让你再敲一遍。
+**不知道该用哪个？不用先问。** 每个技能的 description 写清了它管什么、什么时候该用，模型按它自己挑并直接开始；把每一步都变成「请确认」，等于把该由 agent 做的判断推回给人。
 
 | 阶段 | 技能 | 做什么 |
 | --- | --- | --- |
-| 入口 | `/ask-flow` | 不知道该用哪个技能、这套流程该怎么走时问它：它在技能图上路由，**然后直接开始那一步**（模型可调用；只有两条路真接近时才停下来问） |
 | 需求与设计 | `/prd` · `/to-design` | 需求文档 → 设计提案（**只在跨两个及以上服务、改数据模型或迁移、涉及两条以上对外契约时写**；Markdown 是主产物，HTML 只是可选呈现层） |
 | 拆解与分诊 | `/to-issues` · `/triage` | 把自己的 PRD 拆成垂直切片，**每条 Issue 正文就是契约**（目标/非目标/验收条件/必须收集的证据/外部边界/完成定义/未决问题）· 把**外面进来的**原始 issue 分流成可执行卡片 |
 | 实现 | `/implement` · `/test-first` · `/graph` · `/loop-it` | 单个单元内联做完 · 红-绿写测试 · DAG 波次并行（每节点独立 worktree，节点在 fan-in 时过 evidence check）· issue 依赖序串行（每 issue 一次 supervisor 检查，结构化证据与 follow-up 台账落在可恢复的检查点里） |
@@ -98,7 +97,7 @@ cp -R <let-it-go>/skills/flow/graph ~/.agents/skills/graph   # 拍平，不要�
 | 文档与制图 | `/understand` · `/svg-diagram`（vendor） | 把本次改动变成可交互审阅网页 · SVG 制图规范 + 12 项机械校验（自带 `svg-lint`） |
 | 第三方（`skills/vendor/`，逐字副本） | `/find-skills` · `/frontend-design` · `/humanizer-zh` · `/pptx` · `/resume-optimizer` · `/skill-creator` · `/teach` · `/ui-ux-pro-max` · `/web-design-guidelines` | 发现并安装生态里的技能 · 前端视觉设计方向 · 中文文本去模板化润色 · `.pptx` / `.potx` 的读写与编辑 · 简历审计与优化（成果型改写、按目标 JD 调整）· 创建/改进技能并跑评测 · 以教学方式讲清一个概念 · 可检索的 UI/UX 设计知识库 · 按 Web Interface Guidelines 审 UI 代码 |
 
-`ask-flow` 是**模型可调用**的：它路由之后**直接开始**那一步，只有两条路真接近时才停下来问——把每一步都变成「请确认」，等于把该由 agent 做的判断推回给人。当前 27 个技能（flow 10 / bonus 7 / vendor 10），目录总量 6446 字符，模型实际看到 **6385 字符**。唯一带 `disable-model-invocation` 的是 vendor 的 `teach`，那是上游的选择，不进模型目录。
+26 个技能（flow 9 / bonus 7 / vendor 10）全部**模型可调用**：description 就是路由表，模型命中就自己加载并直接开始，不需要你手敲；只有想强制走某一条时才需要敲名字。description 合计 5293 字符，模型实际看到 **5232 字符**（DSH 会把每条归一化空白并截到 500 字符）。唯一带 `disable-model-invocation` 的是 vendor 的 `teach`，那是上游的选择，不进模型目录，要用手敲名字。
 
 `/goal` 是宿主的**命令**（不是技能）。模型侧是 `create_goal` / `update_goal`，门禁是 **authority 而不是措辞**：`create_goal` 只在**顶层 agent 的直接人类回合**有效，所以子代理和编排中途建不了——但**人类不必说 "goal"**，他直接交出一个长期目标（"把这批 issue 全做完"）时就该建，这正是它被设计的用法。长批次里 goal 是**会话级驱动**（一个回合结束后把会话重新推起来），检查点（`.loop-state.json` / `.graph_state.json`）是**仓库级状态**（记到哪了）——两者互补，计数也各算各的（`maxGoalRounds` 管续跑轮数，`attempts` 管单个 issue 的重试）。
 
@@ -117,7 +116,7 @@ cordis.patch.yml   # DSH bundle patch：三个桶各列为一个 customSkillDirs
 
 判据是「它在这条链上扮演什么角色」：`flow` 是流水线本身；`bonus` 是你在中途因为「出事了 / 要保证质量 / 需要一个非代码产物」伸手拿的（测试方法、排障、冲突、外部分诊、重构、设计文档、审阅页）；`vendor` 不产生新技能，只是把上游第三方技能逐字收进来，每个目录带一份 `NOTICE.md`（来源 / commit / 许可 / 同步日期）。
 
-DSH 的技能根**只扫一层**（`<root>/<name>/SKILL.md`），所以 `cordis.patch.yml` 把三个桶各列为一个 root，而不是指向 `skills/`。`npx skills add` 是递归扫描、安装时拍平，无论走哪条安装路径，得到的技能集完全相同。`scripts/check_skills.py` 守着三个静默失败面：**技能被放回顶层**（三个 root 都覆盖不到它）、**某个桶漏进 patch**（那一桶会整体消失，且不报错），以及**根目录 `.claude-plugin/marketplace.json` 与桶内容不一致**（安装 picker 退回成一列平铺的 27 项，同样不报错）。
+DSH 的技能根**只扫一层**（`<root>/<name>/SKILL.md`），所以 `cordis.patch.yml` 把三个桶各列为一个 root，而不是指向 `skills/`。`npx skills add` 是递归扫描、安装时拍平，无论走哪条安装路径，得到的技能集完全相同。`scripts/check_skills.py` 守着三个静默失败面：**技能被放回顶层**（三个 root 都覆盖不到它）、**某个桶漏进 patch**（那一桶会整体消失，且不报错），以及**根目录 `.claude-plugin/marketplace.json` 与桶内容不一致**（安装 picker 退回成一列平铺的 26 项，同样不报错）。
 
 ## 维护
 

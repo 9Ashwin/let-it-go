@@ -522,12 +522,11 @@
         <li><a href="#step-to-design">14. Bonus: /to-design — PRD 转设计文档</a></li>
         <li><a href="#step-graph">15. Bonus: /graph — 任务图并发实现</a></li>
         <li><a href="#step-understand">16. Bonus: /understand — 交互式变更审阅</a></li>
-        <li><a href="#step-ask-flow">17. Bonus: /ask-flow — 不知道该用哪个技能</a></li>
-        <li><a href="#step-triage">18. Bonus: /triage — 外部 issue 分诊</a></li>
-        <li><a href="#step-diagnose">19. Bonus: /diagnose — 排障循环</a></li>
-        <li><a href="#step-conflict">20. Bonus: /conflict — 解 merge / rebase 冲突</a></li>
-        <li><a href="#vendor">21. Vendor 技能与一键同步</a></li>
-        <li><a href="#faq">22. FAQ</a></li>
+        <li><a href="#step-triage">17. Bonus: /triage — 外部 issue 分诊</a></li>
+        <li><a href="#step-diagnose">18. Bonus: /diagnose — 排障循环</a></li>
+        <li><a href="#step-conflict">19. Bonus: /conflict — 解 merge / rebase 冲突</a></li>
+        <li><a href="#vendor">20. Vendor 技能与一键同步</a></li>
+        <li><a href="#faq">21. FAQ</a></li>
       </ul>
     </div>
 
@@ -538,28 +537,16 @@
         <h3>1. 概述</h3>
       </div>
       <p>
-        <strong>let-it-go</strong> 是一套研发工作流技能集：27 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。
+        <strong>let-it-go</strong> 是一套研发工作流技能集：26 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。
       </p>
       <p>
         它让 AI Agent 能够像一个有经验的工程师一样——从理解需求、拆解任务、编写代码、审查质量，到最终提交合入——全流程自主完成。你只需描述功能想法，剩下的交给工作流。
       </p>
       <div class="tip">
-        <strong>入口：</strong>不记得该用哪个技能？直接敲 <code class="inline-code">/ask-flow</code>——说清你现在的处境（一个还没成形的想法、一堆进来的 issue、一段调不通的代码、一次漫长的实现），它挑出该走的那一步<strong>并直接开始</strong>，只有两条路真接近、或下一步越过人的判断边界（开 PR、合入、产品验收）时才停下来问。
+        <strong>入口：</strong>不用先问该用哪个。<strong>26 个技能的 description 就是路由表</strong>——它写清了各自管什么、什么时候该用，模型命中就自己加载并<strong>直接开始</strong>那一步，不需要你手敲。想强制走某一条时才敲它的名字。
       </div>
 
       <div class="cards">
-        <div class="card">
-          <div class="card-header">
-            <div class="card-dot terracotta"></div>
-            <h4>/ask-flow</h4>
-          </div>
-          <p>技能路由（入口）：路由之后直接开始那一步</p>
-          <ul>
-            <li>在技能图上做路由，然后读该技能的正文并照着做</li>
-            <li>只有两条路真接近、或下一步越过人的判断边界（开 PR / 合入 / 产品验收）时才停下来问</li>
-            <li>模型可调用：没有 <code class="inline-code">disable-model-invocation</code></li>
-          </ul>
-        </div>
         <div class="card">
           <div class="card-header">
             <div class="card-dot terracotta"></div>
@@ -888,7 +875,7 @@
       </div>
 
       <div class="note">
-        <strong>技能分组：</strong>27 个技能按「在流程里扮演什么角色」分三个桶——<code class="inline-code">flow</code>（流水线本身，10 个）、<code class="inline-code">bonus</code>（中途因为出事了、要保证质量、或需要一个非代码产物伸手拿的，7 个）、<code class="inline-code">vendor</code>（第三方技能的逐字副本，由 manifest 钉住 commit，10 个）。
+        <strong>技能分组：</strong>26 个技能按「在流程里扮演什么角色」分三个桶——<code class="inline-code">flow</code>（流水线本身，9 个）、<code class="inline-code">bonus</code>（中途因为出事了、要保证质量、或需要一个非代码产物伸手拿的，7 个）、<code class="inline-code">vendor</code>（第三方技能的逐字副本，由 manifest 钉住 commit，10 个）。
       </div>
     </div>
 
@@ -947,11 +934,11 @@
       </table>
 
       <div class="tip">
-        <strong>Tip：</strong>安装后输入 <code class="inline-code">/ask-flow</code>、<code class="inline-code">/prd</code>、<code class="inline-code">/to-design</code>、<code class="inline-code">/to-issues</code>、<code class="inline-code">/implement</code>、<code class="inline-code">/loop-it</code>、<code class="inline-code">/graph</code>、<code class="inline-code">/review-it</code>、<code class="inline-code">/walkthrough</code>、<code class="inline-code">/ship-it</code>（flow 10 个）、<code class="inline-code">/test-first</code>、<code class="inline-code">/triage</code>、<code class="inline-code">/diagnose</code>、<code class="inline-code">/conflict</code>、<code class="inline-code">/refactor</code>、<code class="inline-code">/modern-go</code>、<code class="inline-code">/understand</code>（bonus 7 个）、<code class="inline-code">/svg-diagram</code>、<code class="inline-code">/find-skills</code>、<code class="inline-code">/frontend-design</code>、<code class="inline-code">/humanizer-zh</code>、<code class="inline-code">/pptx</code>、<code class="inline-code">/resume-optimizer</code>、<code class="inline-code">/skill-creator</code>、<code class="inline-code">/teach</code>、<code class="inline-code">/ui-ux-pro-max</code>、<code class="inline-code">/web-design-guidelines</code>（vendor 10 个）即可直接调用对应技能。其中 <code class="inline-code">/goal</code> 是 DSH 的命令（不是 skill）：模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但只在顶层直接的人类回合执行。
+        <strong>Tip：</strong>安装后输入 <code class="inline-code">/prd</code>、<code class="inline-code">/to-design</code>、<code class="inline-code">/to-issues</code>、<code class="inline-code">/implement</code>、<code class="inline-code">/loop-it</code>、<code class="inline-code">/graph</code>、<code class="inline-code">/review-it</code>、<code class="inline-code">/walkthrough</code>、<code class="inline-code">/ship-it</code>（flow 9 个）、<code class="inline-code">/test-first</code>、<code class="inline-code">/triage</code>、<code class="inline-code">/diagnose</code>、<code class="inline-code">/conflict</code>、<code class="inline-code">/refactor</code>、<code class="inline-code">/modern-go</code>、<code class="inline-code">/understand</code>（bonus 7 个）、<code class="inline-code">/svg-diagram</code>、<code class="inline-code">/find-skills</code>、<code class="inline-code">/frontend-design</code>、<code class="inline-code">/humanizer-zh</code>、<code class="inline-code">/pptx</code>、<code class="inline-code">/resume-optimizer</code>、<code class="inline-code">/skill-creator</code>、<code class="inline-code">/teach</code>、<code class="inline-code">/ui-ux-pro-max</code>、<code class="inline-code">/web-design-guidelines</code>（vendor 10 个）即可直接调用对应技能。其中 <code class="inline-code">/goal</code> 是 DSH 的命令（不是 skill）：模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但只在顶层直接的人类回合执行。
       </div>
 
       <div class="note">
-        <strong>模型目录：</strong>27 个技能的目录总量是 6446 字符，模型实际看到 <strong>6385 字符</strong>。唯一带 <code class="inline-code">disable-model-invocation</code> 的是 vendor 的 <code class="inline-code">/teach</code>（上游的选择，不进模型目录），省下每个会话与<strong>每个子代理</strong>都要付的那份固定成本；<code class="inline-code">/ask-flow</code> 是模型可调用的。
+        <strong>模型目录：</strong>26 个技能的 description 合计 5293 字符，模型实际看到 <strong>5232 字符</strong>（DSH 会把每条 description 归一化空白并截到 500 字符）。唯一带 <code class="inline-code">disable-model-invocation</code> 的是 vendor 的 <code class="inline-code">/teach</code>（上游的选择，不进模型目录），要用手敲名字；省下每个会话与<strong>每个子代理</strong>都要付的那份固定成本。
       </div>
     </div>
 
@@ -1108,7 +1095,7 @@
       </table>
 
       <div class="tip">
-        <strong>Tip：</strong>这条主线不必按顺序走：<strong>一个单元</strong>直接 <code class="inline-code">/implement</code>，<strong>有 bug / 偶发 flake / 性能回归</strong>先 <code class="inline-code">/diagnose</code>，<strong>外面进来的</strong>原始 issue 先 <code class="inline-code">/triage</code>，<strong>正在解 merge / rebase 冲突</strong>用 <code class="inline-code">/conflict</code>。选不准就敲 <code class="inline-code">/ask-flow</code>。
+        <strong>Tip：</strong>这条主线不必按顺序走：<strong>一个单元</strong>直接 <code class="inline-code">/implement</code>，<strong>有 bug / 偶发 flake / 性能回归</strong>先 <code class="inline-code">/diagnose</code>，<strong>外面进来的</strong>原始 issue 先 <code class="inline-code">/triage</code>，<strong>正在解 merge / rebase 冲突</strong>用 <code class="inline-code">/conflict</code>。选不准就看各技能的 description——它写清了适用场景，模型会自己挑。
       </div>
     </div>
 
@@ -1894,42 +1881,11 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       </div>
     </div>
 
-    <!-- Section 17: /ask-flow -->
-    <div class="section" id="step-ask-flow">
-      <div class="section-title">
-        <div class="section-dot terracotta"></div>
-        <h3>17. Bonus: /ask-flow — 不知道该用哪个技能</h3>
-      </div>
-      <p>
-        <code class="inline-code">/ask-flow</code> 是整套技能集的<strong>入口</strong>：你想不起来这么多技能各自管什么，所以问。说清你现在的处境（一个还没成形的想法、一堆进来的 issue、一段调不通的代码、一次漫长的实现），它挑出该走的那一步，<strong>然后直接开始</strong>——读那个技能的正文并按它做，而不是只报一个名字让你再敲一遍。
-      </p>
-
-      <h3>触发方式</h3>
-      <pre><code><span class="comment"># 直接调用</span>
-<span class="cmd">/ask-flow</span>
-
-<span class="comment"># 或直接问</span>
-<span class="cmd">该用哪个技能</span>
-<span class="cmd">这套流程怎么走</span></code></pre>
-
-      <h3>路由覆盖</h3>
-      <ul class="step-list">
-        <li><strong>主线：</strong><code class="inline-code">/prd</code> → <code class="inline-code">/to-design</code>（<strong>有条件</strong>：只在跨两个及以上服务、改数据模型或迁移、涉及两条以上对外契约时写，不命中就跳过）→ <code class="inline-code">/to-issues</code> → 岔口（真并行 <code class="inline-code">/graph</code> / 串行 <code class="inline-code">/loop-it</code> / 单单元 <code class="inline-code">/implement</code>）→ 内联实现 → 门禁自证 → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code>；交付前走查补 <code class="inline-code">/walkthrough</code></li>
-        <li><strong>旁路：</strong>有 bug 走 <code class="inline-code">/diagnose</code>，外面进来的原始条目走 <code class="inline-code">/triage</code>，先把行为定下来走 <code class="inline-code">/test-first</code>，正在解 merge / rebase 走 <code class="inline-code">/conflict</code></li>
-        <li><strong>直接开始那一步：</strong>路由之后读该技能的正文并按它做，不会只报一个名字让你再敲一遍；只有两条路真接近、或下一步越过人的判断边界（开 PR、合入、产品验收）时才停下来问</li>
-        <li><strong>自报缺口：</strong>维护规则要求任何技能新增 / 改名 / 删除后都回来重读并更新这份路由，以及两份 README 与这两份 HTML 指南——<strong>说谎的路由比没有路由更糟</strong></li>
-      </ul>
-
-      <div class="tip">
-        <strong>Tip：</strong><code class="inline-code">/ask-flow</code> 是<strong>模型可调用</strong>的——它没有 <code class="inline-code">disable-model-invocation</code>，模型可以主动挑它。27 个技能的目录总量是 6446 字符，其中模型实际看到的是 <strong>6385 字符</strong>；唯一不进模型目录的是 vendor 的 <code class="inline-code">/teach</code>（上游的选择）。
-      </div>
-    </div>
-
     <!-- Section 18: /triage -->
     <div class="section" id="step-triage">
       <div class="section-title">
         <div class="section-dot amber"></div>
-        <h3>18. Bonus: /triage — 外部 issue 分诊</h3>
+        <h3>17. Bonus: /triage — 外部 issue 分诊</h3>
       </div>
       <p>
         <code class="inline-code">/triage</code> 处理<strong>从外面进来的</strong>原始条目：bug 报告、用户反馈、别人提的需求。它先复现 / 理解，再给每条定一个角色，并把 <code class="inline-code">ready</code> 的补成 agent 可执行的卡片。<strong><code class="inline-code">/to-issues</code> 产出的卡片不要 triage</strong>——那些已经 agent-ready。
@@ -1962,7 +1918,7 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
     <div class="section" id="step-diagnose">
       <div class="section-title">
         <div class="section-dot coral"></div>
-        <h3>19. Bonus: /diagnose — 排障循环</h3>
+        <h3>18. Bonus: /diagnose — 排障循环</h3>
       </div>
       <p>
         难 bug、偶发 flake 与性能回归的纪律：<strong>在有一条已经在「这个」bug 上变红的命令之前，不许开始推理</strong>——直接跳到「我觉得是这里」正是这个技能要防的失败。它<strong>不做 <code class="inline-code">/review-it</code> / <code class="inline-code">/ship-it</code></strong>，定位清楚后按单点改动回主线。
@@ -1995,7 +1951,7 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
     <div class="section" id="step-conflict">
       <div class="section-title">
         <div class="section-dot plum"></div>
-        <h3>20. Bonus: /conflict — 解 merge / rebase 冲突</h3>
+        <h3>19. Bonus: /conflict — 解 merge / rebase 冲突</h3>
       </div>
       <p>
         <code class="inline-code">/conflict</code> 解<strong>进行中的</strong> git merge / rebase 冲突：先查清两边意图，再逐 hunk 解，跑项目门禁，把这次操作做完。<strong>永远解，不 <code class="inline-code">--abort</code></strong>。
@@ -2019,7 +1975,7 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
     <div class="section" id="vendor">
       <div class="section-title">
         <div class="section-dot violet"></div>
-        <h3>21. Vendor 技能与一键同步</h3>
+        <h3>20. Vendor 技能与一键同步</h3>
       </div>
       <p>
         <code class="inline-code">skills/vendor/</code> 放的是<strong>第三方技能的逐字副本</strong>：它们不是这套技能集写的，只是被收进来一起安装。谁、从哪个 commit 收的，由 <code class="inline-code">skills/vendor/vendor.json</code> 这份 manifest 记录，每个技能目录里还有一份 <code class="inline-code">NOTICE.md</code>（来源 / commit / 许可 / 同步日期）。
@@ -2061,7 +2017,7 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
     <div class="section" id="faq">
       <div class="section-title">
         <div class="section-dot terracotta"></div>
-        <h3>22. FAQ</h3>
+        <h3>21. FAQ</h3>
       </div>
 
       <h3>Q: 必须按顺序使用所有步骤吗？</h3>

@@ -25,7 +25,7 @@
 
 ## What is let-it-go?
 
-let-it-go is a set of development-workflow skills: 25 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill. You say what you want; the agent asks the questions, writes the PRD, splits it into contract-carrying Issues, implements in parallel inside isolated worktrees, reviews, opens the PR and merges.
+let-it-go is a set of development-workflow skills: 26 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill. You say what you want; the agent asks the questions, writes the PRD, splits it into contract-carrying Issues, implements in parallel inside isolated worktrees, reviews, opens the PR and merges.
 
 **An implementation node is a subagent** in its own git worktree, and its job stops at "implement → prove it against the project's gates → commit on its own branch". Leak check, integration, gates on the integrated tree, review and shipping are one step, done **once per wave**: a single PR closes every Issue the wave satisfies.
 
@@ -53,7 +53,7 @@ cp -R <let-it-go>/skills/flow/graph ~/.agents/skills/graph   # flattened, not th
 It can also be installed as **deployment configuration** (a preset that travels with the package, `toolFilter`, persona, commit pinning) — the commands and flags are in the docs: **<https://9ashwin.github.io/let-it-go/#install>**.
 
 > [!TIP]
-> Not sure which skill to reach for? Type **`/ask-flow`** — it picks the next step **and starts it**, stopping only when two routes are genuinely close.
+> Not sure which skill to reach for? **You don't have to type anything** — the 26 descriptions are the routing table, so the model loads the matching one and starts it; type a name only to force a particular route.
 >
 > The full usage guide (installation, how to trigger each step, acceptance criteria, FAQ) lives at **<https://9ashwin.github.io/let-it-go/>**, which redirects to the Chinese or English version based on your browser language; in the repo it is [docs/index_cn.html](docs/index_cn.html) and [docs/index_en.html](docs/index_en.html).
 
@@ -84,11 +84,10 @@ A few deliberate design choices:
 
 The table uses short skill names; the prefix is `/` everywhere (DSH).
 
-**Not sure which one? Invoke `ask-flow` first** — it routes and then **starts that step**, instead of naming a skill and leaving you to type it again.
+**Not sure which one? Don't ask first.** Each description says what that skill owns and when to reach for it, so the model picks one and starts; turning every step into a "please confirm" pushes back onto the human a judgement the agent should be making.
 
 | Stage | Skill | What it does |
 | --- | --- | --- |
-| Entry | `/ask-flow` | Ask which skill or flow fits your situation: it routes on the skill map and then **starts that step** (model-invocable; it only stops when two routes are genuinely close) |
 | Requirements & design | `/prd` · `/to-design` | Requirements doc → design proposal (**only when the change spans two or more services, alters the data model or a migration, or touches two or more external contracts**; Markdown is the main artifact, HTML an optional rendering) |
 | Breakdown & triage | `/to-issues` · `/triage` | Split your own PRD into vertical slices where **the Issue body is the contract** (goal / non-goals / acceptance criteria / required evidence / external boundary / definition of done / open questions) · turn **incoming** raw issues into agent-ready cards |
 | Implementation | `/implement` · `/test-first` · `/graph` · `/loop-it` | Finish a single unit inline · red-green testing · DAG waves in parallel (one worktree per node, and nodes pass an evidence check at fan-in) · Issues in dependency order, serial (one supervisor check per Issue; structured evidence and a follow-up ledger live in the resumable checkpoint) |
@@ -98,7 +97,7 @@ The table uses short skill names; the prefix is `/` everywhere (DSH).
 | Docs & diagrams | `/understand` · `/svg-diagram` (vendor) | Turn the current change into an interactive review page · SVG diagramming conventions plus 12 mechanical checks (bundled `svg-lint`) |
 | Third-party (`skills/vendor/`, verbatim copies) | `/find-skills` · `/frontend-design` · `/humanizer-zh` · `/pptx` · `/resume-optimizer` · `/skill-creator` · `/teach` · `/ui-ux-pro-max` · `/web-design-guidelines` | Discover and install skills from the ecosystem · front-end visual direction · strip template-speak from Chinese prose · read, write and edit `.pptx` / `.potx` · audit and rewrite a résumé around outcomes and the target JD · create and improve skills with evals · explain a concept as a lesson · a searchable UI/UX design knowledge base · review UI code against the Web Interface Guidelines |
 
-`ask-flow` is **model-invocable**: it routes and then **starts that step**, stopping only when two routes are genuinely close — turning every step into a "please confirm" pushes back onto the human a judgement the agent should be making. Across the current 27 skills (flow 10 / bonus 7 / vendor 10) the catalog is 6,446 characters, of which the model actually sees **6,385**. The only skill carrying `disable-model-invocation` is the vendored `teach`, which is upstream's choice and stays out of the model catalog.
+All 26 skills (flow 9 / bonus 7 / vendor 10) are **model-invocable**: the descriptions are the routing table, so the model loads the matching one and starts that step itself — you only type a name to force a particular route. The descriptions total 5,293 characters, of which the model actually sees **5,232** (DSH normalises whitespace and truncates each at 500). The only skill carrying `disable-model-invocation` is the vendored `teach`, which is upstream's choice, stays out of the model catalog, and must be typed by name.
 
 `/goal` is a host **command**, not a skill. The model side of that surface is `create_goal` / `update_goal`, and its gate is **authority, not wording**: `create_goal` runs only in a **direct top-level human turn**, so a subagent or a mid-orchestration step cannot mint one — but the human does **not** have to say "goal". Handing over a long-running objective ("work through this whole batch") is exactly when it should be created, and that is the behaviour it was designed for. On a long batch the goal is the **session-scoped driver** (it re-prompts the session once a turn ends) while the checkpoint (`.loop-state.json` / `.graph_state.json`) is the **repo-scoped state** (where the batch got to) — the two are complementary and count different things (`maxGoalRounds` bounds continuation, `attempts` counts one issue's retries).
 
@@ -117,7 +116,7 @@ cordis.patch.yml   # the DSH bundle patch: each of the three buckets is its own 
 
 The test is the role a skill plays: `flow` is the pipeline itself; `bonus` is what you reach for mid-flight because something broke, because quality is at stake, or because you need a non-code artifact (a testing method, diagnosis, conflicts, incoming triage, refactoring, design docs, a review page); `vendor` adds no new skills — it collects upstream third-party skills verbatim, each directory carrying a `NOTICE.md` (source / commit / license / sync date).
 
-A DSH skill root is scanned **exactly one level deep** (`<root>/<name>/SKILL.md`), so `cordis.patch.yml` lists each of the three buckets as its own root rather than pointing at `skills/`. `npx skills add` scans recursively and flattens on install; either install route yields exactly the same set. `scripts/check_skills.py` guards the three silent failures: **a skill left at the top level** (no root covers it), **a bucket missing from the patch** (that whole bucket disappears without an error), and **a root `.claude-plugin/marketplace.json` out of step with the buckets** (the install picker falls back to one flat list of 27, also without an error).
+A DSH skill root is scanned **exactly one level deep** (`<root>/<name>/SKILL.md`), so `cordis.patch.yml` lists each of the three buckets as its own root rather than pointing at `skills/`. `npx skills add` scans recursively and flattens on install; either install route yields exactly the same set. `scripts/check_skills.py` guards the three silent failures: **a skill left at the top level** (no root covers it), **a bucket missing from the patch** (that whole bucket disappears without an error), and **a root `.claude-plugin/marketplace.json` out of step with the buckets** (the install picker falls back to one flat list of 26, also without an error).
 
 ## Maintenance
 

@@ -154,29 +154,6 @@ def check_reference_links(repo_root: str, skills: list[tuple[str, str, str]]) ->
     return problems
 
 
-def check_router_coverage(repo_root: str, skills: list[tuple[str, str, str]]) -> list[str]:
-    """Every skill this repo owns must be reachable from the router.
-
-    `ask-flow` is the map the model reads when the next step is not obvious. A skill missing
-    from it is not merely undocumented: the router confidently routes around a skill that
-    exists, and a router that lies is worse than no router. This is the mechanical half of the
-    entropy loop — it caught `walkthrough` sitting outside the map.
-
-    Vendored skills are exempt. They are upstream's tools, and this map is about the repo's own
-    flow, not about everything installed alongside it.
-    """
-    path = os.path.join(repo_root, "skills", "flow", "ask-flow", "SKILL.md")
-    if not os.path.isfile(path):
-        return []
-    body = open(path, encoding="utf-8").read()
-    mentioned = set(re.findall(r"`/([a-z0-9]+(?:-[a-z0-9]+)*)`", body))
-    return [
-        f"ask-flow never mentions /{name} — the router would route around a skill that exists"
-        for bucket, name, _ in skills
-        if bucket != VENDOR_BUCKET and name != "ask-flow" and name not in mentioned
-    ]
-
-
 def _skills_in(root: str, label: str, problems: list[str]) -> list[tuple[str, str, str]]:
     """Collect `<root>/<name>/SKILL.md` triples, one level deep."""
     found: list[tuple[str, str, str]] = []
@@ -322,7 +299,6 @@ def main() -> int:
         return 1
     failures.extend(check_bundle_patch(repo_root, {b for b, _, _ in skills}))
     failures.extend(check_skill_references(repo_root, skills))
-    failures.extend(check_router_coverage(repo_root, skills))
     failures.extend(check_reference_links(repo_root, skills))
     failures.extend(check_installer_manifest(repo_root, skills))
 

@@ -522,12 +522,11 @@
         <li><a href="#step-to-design">14. Bonus: /to-design — PRD to Design Document</a></li>
         <li><a href="#step-graph">15. Bonus: /graph — Parallel Task-Graph Execution</a></li>
         <li><a href="#step-understand">16. Bonus: /understand — Interactive Change Review</a></li>
-        <li><a href="#step-ask-flow">17. Bonus: /ask-flow — Which Skill Do I Use?</a></li>
-        <li><a href="#step-triage">18. Bonus: /triage — Triaging Inbound Issues</a></li>
-        <li><a href="#step-diagnose">19. Bonus: /diagnose — The Debugging Loop</a></li>
-        <li><a href="#step-conflict">20. Bonus: /conflict — Resolving Merge / Rebase Conflicts</a></li>
-        <li><a href="#vendor">21. Vendor Skills and One-Command Sync</a></li>
-        <li><a href="#faq">22. FAQ</a></li>
+        <li><a href="#step-triage">17. Bonus: /triage — Triaging Inbound Issues</a></li>
+        <li><a href="#step-diagnose">18. Bonus: /diagnose — The Debugging Loop</a></li>
+        <li><a href="#step-conflict">19. Bonus: /conflict — Resolving Merge / Rebase Conflicts</a></li>
+        <li><a href="#vendor">20. Vendor Skills and One-Command Sync</a></li>
+        <li><a href="#faq">21. FAQ</a></li>
       </ul>
     </div>
 
@@ -538,28 +537,16 @@
         <h3>1. Overview</h3>
       </div>
       <p>
-        <strong>let-it-go</strong> is a set of development-workflow skills: 27 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill.
+        <strong>let-it-go</strong> is a set of development-workflow skills: 26 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill.
       </p>
       <p>
         It enables AI agents to act like experienced engineers — from understanding requirements, breaking down tasks, writing code, reviewing quality, to final submission and merge — autonomously completing the entire process. You just describe the feature idea, and the workflow handles the rest.
       </p>
       <div class="tip">
-        <strong>Entry point:</strong> can't remember which skill to use? Type <code class="inline-code">/ask-flow</code> and describe where you are (a half-formed idea, a pile of inbound issues, code that won't work, a long implementation). It picks the next step <strong>and starts it</strong>, stopping only when two routes are genuinely close or the next step crosses the human judgement boundary (opening a PR, merging, product acceptance).
+        <strong>Entry point:</strong> you don't have to ask first. <strong>The 26 skill descriptions are the routing table</strong> — each says what it owns and when to reach for it, so the model loads the matching one and <strong>starts that step</strong> itself; you only type a name to force a particular route.
       </div>
 
       <div class="cards">
-        <div class="card">
-          <div class="card-header">
-            <div class="card-dot terracotta"></div>
-            <h4>/ask-flow</h4>
-          </div>
-          <p>Skill routing (entry point): routes, then starts that step</p>
-          <ul>
-            <li>Routes on the skill map, then reads that skill's body and follows it</li>
-            <li>Stops only when two routes are genuinely close or the next step crosses the human judgement boundary (opening a PR / merging / product acceptance)</li>
-            <li>Model-invocable: no <code class="inline-code">disable-model-invocation</code></li>
-          </ul>
-        </div>
         <div class="card">
           <div class="card-header">
             <div class="card-dot terracotta"></div>
@@ -888,7 +875,7 @@
       </div>
 
       <div class="note">
-        <strong>Skill groups:</strong> the 27 skills split into three buckets by the role they play — <code class="inline-code">flow</code> (the pipeline itself, 10), <code class="inline-code">bonus</code> (what you reach for mid-flow because something broke, because quality is at stake, or because you need a non-code artifact, 7), and <code class="inline-code">vendor</code> (verbatim third-party copies pinned to a commit by the manifest, 10).
+        <strong>Skill groups:</strong> the 26 skills split into three buckets by the role they play — <code class="inline-code">flow</code> (the pipeline itself, 9), <code class="inline-code">bonus</code> (what you reach for mid-flow because something broke, because quality is at stake, or because you need a non-code artifact, 7), and <code class="inline-code">vendor</code> (verbatim third-party copies pinned to a commit by the manifest, 10).
       </div>
     </div>
 
@@ -904,8 +891,7 @@
       <pre><code><span class="comment"># Recommended — install all skills into ~/.agents/skills</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span>
 
-<span class="comment"># Or install specific skills — flow (10)</span>
-<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">ask-flow</span>
+<span class="comment"># Or install specific skills — flow (9)</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">prd</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">to-design</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">to-issues</span>
@@ -986,11 +972,11 @@
       </table>
 
       <div class="tip">
-        <strong>Tip:</strong> After installation, type <code class="inline-code">/ask-flow</code>, <code class="inline-code">/prd</code>, <code class="inline-code">/to-design</code>, <code class="inline-code">/to-issues</code>, <code class="inline-code">/implement</code>, <code class="inline-code">/loop-it</code>, <code class="inline-code">/graph</code>, <code class="inline-code">/review-it</code>, <code class="inline-code">/walkthrough</code>, <code class="inline-code">/ship-it</code> (flow, 10), <code class="inline-code">/test-first</code>, <code class="inline-code">/triage</code>, <code class="inline-code">/diagnose</code>, <code class="inline-code">/conflict</code>, <code class="inline-code">/refactor</code>, <code class="inline-code">/modern-go</code>, <code class="inline-code">/understand</code> (bonus, 7), <code class="inline-code">/svg-diagram</code>, <code class="inline-code">/find-skills</code>, <code class="inline-code">/frontend-design</code>, <code class="inline-code">/humanizer-zh</code>, <code class="inline-code">/pptx</code>, <code class="inline-code">/resume-optimizer</code>, <code class="inline-code">/skill-creator</code>, <code class="inline-code">/teach</code>, <code class="inline-code">/ui-ux-pro-max</code>, <code class="inline-code">/web-design-guidelines</code> (vendor, 10) to directly invoke the corresponding skill. <code class="inline-code">/goal</code> is a DSH command that a human types, not a skill.
+        <strong>Tip:</strong> After installation, type <code class="inline-code">/prd</code>, <code class="inline-code">/to-design</code>, <code class="inline-code">/to-issues</code>, <code class="inline-code">/implement</code>, <code class="inline-code">/loop-it</code>, <code class="inline-code">/graph</code>, <code class="inline-code">/review-it</code>, <code class="inline-code">/walkthrough</code>, <code class="inline-code">/ship-it</code> (flow, 9), <code class="inline-code">/test-first</code>, <code class="inline-code">/triage</code>, <code class="inline-code">/diagnose</code>, <code class="inline-code">/conflict</code>, <code class="inline-code">/refactor</code>, <code class="inline-code">/modern-go</code>, <code class="inline-code">/understand</code> (bonus, 7), <code class="inline-code">/svg-diagram</code>, <code class="inline-code">/find-skills</code>, <code class="inline-code">/frontend-design</code>, <code class="inline-code">/humanizer-zh</code>, <code class="inline-code">/pptx</code>, <code class="inline-code">/resume-optimizer</code>, <code class="inline-code">/skill-creator</code>, <code class="inline-code">/teach</code>, <code class="inline-code">/ui-ux-pro-max</code>, <code class="inline-code">/web-design-guidelines</code> (vendor, 10) to directly invoke the corresponding skill. <code class="inline-code">/goal</code> is a DSH command that a human types, not a skill.
       </div>
 
       <div class="note">
-        <strong>The model catalog:</strong> across the 27 skills the catalog is 6,446 characters, of which the model actually sees <strong>6,385</strong>. The only skill carrying <code class="inline-code">disable-model-invocation</code> is the vendored <code class="inline-code">/teach</code> (upstream's choice, so it stays out of the model catalog), which saves the fixed cost every session and <strong>every subagent</strong> would otherwise pay; <code class="inline-code">/ask-flow</code> is model-invocable.
+        <strong>The model catalog:</strong> across the 26 skills the descriptions total 5,293 characters, of which the model actually sees <strong>5,232</strong> (DSH normalises whitespace and truncates each description at 500). The only skill carrying <code class="inline-code">disable-model-invocation</code> is the vendored <code class="inline-code">/teach</code> (upstream's choice, so it stays out of the model catalog and you must type its name), which saves the fixed cost every session and <strong>every subagent</strong> would otherwise pay.
       </div>
     </div>
 
@@ -1146,7 +1132,7 @@
       </table>
 
       <div class="tip">
-        <strong>Tip:</strong> this main line does not have to be walked in order: <strong>a single unit</strong> goes straight to <code class="inline-code">/implement</code>; <strong>a bug, an intermittent flake or a performance regression</strong> starts with <code class="inline-code">/diagnose</code>; <strong>a raw inbound issue</strong> starts with <code class="inline-code">/triage</code>; <strong>an in-progress merge / rebase</strong> uses <code class="inline-code">/conflict</code>. Can't tell which? Type <code class="inline-code">/ask-flow</code>.
+        <strong>Tip:</strong> this main line does not have to be walked in order: <strong>a single unit</strong> goes straight to <code class="inline-code">/implement</code>; <strong>a bug, an intermittent flake or a performance regression</strong> starts with <code class="inline-code">/diagnose</code>; <strong>a raw inbound issue</strong> starts with <code class="inline-code">/triage</code>; <strong>an in-progress merge / rebase</strong> uses <code class="inline-code">/conflict</code>. Can't tell which? Read the skill descriptions — each says when it applies, and the model picks one itself.
       </div>
     </div>
 
@@ -1927,42 +1913,11 @@ leak check → evidence check per node → merge only shipped nodes → gates on
       </div>
     </div>
 
-    <!-- Section 17: /ask-flow -->
-    <div class="section" id="step-ask-flow">
-      <div class="section-title">
-        <div class="section-dot terracotta"></div>
-        <h3>17. Bonus: /ask-flow — Which Skill Do I Use?</h3>
-      </div>
-      <p>
-        <code class="inline-code">/ask-flow</code> is the <strong>entry point</strong> to the whole skill set: you cannot remember what all these skills own, so you ask. Describe where you are (a half-formed idea, a pile of inbound issues, code that will not work, a long implementation) and it picks the next step, <strong>then starts it</strong> — reading that skill's body and following it, instead of naming a skill and leaving you to type it again.
-      </p>
-
-      <h3>How to Invoke</h3>
-      <pre><code><span class="comment"># Run this directly</span>
-<span class="cmd">/ask-flow</span>
-
-<span class="comment"># Or just ask</span>
-<span class="cmd">Which skill should I use?</span>
-<span class="cmd">How do I run this workflow?</span></code></pre>
-
-      <h3>What It Routes</h3>
-      <ul class="step-list">
-        <li><strong>Main line:</strong> <code class="inline-code">/prd</code> → <code class="inline-code">/to-design</code> (<strong>conditional</strong>: written only when the change spans two or more services, alters the data model or a migration, or touches two or more external contracts; skipped otherwise) → <code class="inline-code">/to-issues</code> → the fork (true parallelism <code class="inline-code">/graph</code> / sequential <code class="inline-code">/loop-it</code> / a single unit <code class="inline-code">/implement</code>) → implement inline → prove with the gates → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code>; add <code class="inline-code">/walkthrough</code> for the pre-ship walkthrough</li>
-        <li><strong>Bypasses:</strong> a bug goes to <code class="inline-code">/diagnose</code>, raw inbound items to <code class="inline-code">/triage</code>, pinning behaviour down first to <code class="inline-code">/test-first</code>, and an in-progress merge / rebase to <code class="inline-code">/conflict</code></li>
-        <li><strong>It starts that step:</strong> after routing it reads that skill's body and follows it, instead of naming a skill and leaving you to type it again; it stops only when two routes are genuinely close or the next step crosses the human judgement boundary (opening a PR, merging, product acceptance)</li>
-        <li><strong>It reports its own gaps:</strong> the maintenance rule requires it to be re-read and updated whenever a skill is added, renamed or deleted — along with both READMEs and these two HTML guides — because <strong>a lying router is worse than no router</strong></li>
-      </ul>
-
-      <div class="tip">
-        <strong>Tip:</strong> <code class="inline-code">/ask-flow</code> is <strong>model-invocable</strong> — it carries no <code class="inline-code">disable-model-invocation</code>, so the model can pick it. Across the 27 skills the catalog is 6,446 characters, of which the model actually sees <strong>6,385</strong>; the only skill that stays out of the model catalog is the vendored <code class="inline-code">/teach</code> (upstream's choice).
-      </div>
-    </div>
-
     <!-- Section 18: /triage -->
     <div class="section" id="step-triage">
       <div class="section-title">
         <div class="section-dot amber"></div>
-        <h3>18. Bonus: /triage — Triaging Inbound Issues</h3>
+        <h3>17. Bonus: /triage — Triaging Inbound Issues</h3>
       </div>
       <p>
         <code class="inline-code">/triage</code> handles <strong>raw items that arrive from outside</strong>: bug reports, user feedback, requests filed by other people. It reproduces / understands first, assigns each item exactly one role, and fills the <code class="inline-code">ready</code> ones out into agent-executable cards. <strong>Never triage <code class="inline-code">/to-issues</code> output</strong> — that is already agent-ready.
@@ -1995,7 +1950,7 @@ leak check → evidence check per node → merge only shipped nodes → gates on
     <div class="section" id="step-diagnose">
       <div class="section-title">
         <div class="section-dot coral"></div>
-        <h3>19. Bonus: /diagnose — The Debugging Loop</h3>
+        <h3>18. Bonus: /diagnose — The Debugging Loop</h3>
       </div>
       <p>
         The discipline for hard bugs, intermittent flakes and performance regressions: <strong>no reasoning starts until there is a command already red on <em>this</em> bug</strong> — jumping straight to "I bet it's here" is exactly the failure this skill exists to prevent. It does <strong>no <code class="inline-code">/review-it</code> / <code class="inline-code">/ship-it</code></strong>; once the cause is pinned down, go back to the main line as a single-point change.
@@ -2028,7 +1983,7 @@ leak check → evidence check per node → merge only shipped nodes → gates on
     <div class="section" id="step-conflict">
       <div class="section-title">
         <div class="section-dot plum"></div>
-        <h3>20. Bonus: /conflict — Resolving Merge / Rebase Conflicts</h3>
+        <h3>19. Bonus: /conflict — Resolving Merge / Rebase Conflicts</h3>
       </div>
       <p>
         <code class="inline-code">/conflict</code> resolves an <strong>in-progress</strong> git merge / rebase: recover both sides' intent, resolve hunk by hunk, run the project gates, and finish the operation. <strong>Always resolve, never <code class="inline-code">--abort</code></strong>.
@@ -2052,7 +2007,7 @@ leak check → evidence check per node → merge only shipped nodes → gates on
     <div class="section" id="vendor">
       <div class="section-title">
         <div class="section-dot violet"></div>
-        <h3>21. Vendor Skills and One-Command Sync</h3>
+        <h3>20. Vendor Skills and One-Command Sync</h3>
       </div>
       <p>
         <code class="inline-code">skills/vendor/</code> holds <strong>verbatim copies of third-party skills</strong>: this skill set did not write them, it collects them so they install alongside everything else. Which skill came from where, at which commit, is recorded in the manifest <code class="inline-code">skills/vendor/vendor.json</code>, and each skill directory carries a <code class="inline-code">NOTICE.md</code> (source / commit / license / sync date).
@@ -2094,7 +2049,7 @@ leak check → evidence check per node → merge only shipped nodes → gates on
     <div class="section" id="faq">
       <div class="section-title">
         <div class="section-dot terracotta"></div>
-        <h3>22. FAQ</h3>
+        <h3>21. FAQ</h3>
       </div>
 
       <h3>Q: Do I have to use all steps in order?</h3>
