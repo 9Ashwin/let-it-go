@@ -36,14 +36,15 @@ description: "实现入口：一个单元就内联做完，一批有依赖的 is
 
 ## 批处理模型
 
-默认（也是推荐）模式：**整批在一条需求分支上推进**，每个 issue 一个 commit，过一次 supervisor 检查，ship 只在批末做一次。
+默认（也是推荐）模式：**整批在一条需求分支上推进**，每个 issue 一个 commit，过一次 supervisor 检查，ship 只在批末做一次。**分支是例外路径的工具，不是每个 issue 的固定开销**——正常路径永远只有那一条需求分支。
 
 ```
 每个 issue（N 次）:  内联实现 → 用项目门禁自证 → supervisor 检查 → 在需求分支上 commit
 批末（1 次）:        /review-it 审整批 diff → /walkthrough → /ship-it → 1 个 PR → merge → 关闭本批满足的 issue
 ```
 
-- **一个需求一条分支，整批共用**：`feat/<scope-slug>`（仓库有分支命名约定就用它的）。**不逐 issue 开分支**——N 条分支要 N 次汇总、N 套上下文，换来的只是「单个 issue 能单独回滚」，而那个用一个 commit 就拿到了。
+- **一个需求一条分支，整批共用**：`feat/<scope-slug>`（仓库有分支命名约定就用它的）。**正常路径不逐 issue 开分支**——N 条分支要 N 次汇总、N 套上下文，换来的只是「单个 issue 能单独回滚」，而那个用一个 commit 就拿到了。
+- **例外才开 issue 分支**：某个 issue 要打回、重做、或需要单独给人看时，把它切到 `feat/issue-N-<slug>` 上留档（见下面「打回或重做」）。这样它不污染需求分支，也还被人翻得出来——**分支数是按需的，不是固定的 N**。
 - **每个 issue 一个 commit**，message 带 issue 编号与标题：单个 issue 的追溯与回滚靠 **commit**（`git revert <那个 commit>`），不靠分支。**整批不 push、不开 PR**——push 与 PR 在批末做一次。
 - 「项目门禁」= 目标仓库自己的构建/测试/lint（如 `go build ./...`、`go test ./...`、`pnpm lint`、`mise run check`），以 issue 所属项目为准。
 - 为什么逐 issue 过一次检查：**审自己刚写完的代码是最弱的评审**，但把反馈全推到批末同样有代价——批末才发现的方向性错误，会让前面每个 issue 跟着返工。逐 issue 的检查由**另一个上下文**做，判据是证据。
@@ -109,7 +110,8 @@ python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status in_progress
 # 分支：每次 bash 都是全新 shell，多步 git 必须写在同一条命令里
 set -e   # 任一步失败就停：基线切错比中断更贵
 # 一个需求一条分支，整批共用。已存在就直接切回去——恢复循环时走的也是这条路，
-# 所以这里必须幂等，不能无条件 checkout -b。
+# 所以这里必须幂等，不能无条件 checkout -b。例外留档分支（feat/issue-N-slug）
+# 不在这里开：它是打回时才用的，见「打回或重做」。
 BRANCH="feat/<scope-slug>"
 if git show-ref --verify --quiet "refs/heads/$BRANCH"; then
   git checkout "$BRANCH"
@@ -172,12 +174,22 @@ python3 <SKILL_DIR>/scripts/loop_state.py followup add --from-issue N \
 
 它写进检查点、随需求资料版本化、由 `summary` 列出来。批末若还有 open 的，`set` 会提醒你收口。**不允许"记在脑子里"**——这就是"任务树允许在执行中增长"的落点，没有它，RFC 里的 follow-up 只是一个结论词。
 
-**打回或重做的 issue 不留在这条分支上**：还没 commit 就别 commit，已经 commit 了就 `git revert` 掉。`set --status failed` 记下原因，继续下一个。**ship 仍然只在批末做一次**——每个 issue 一次 PR 是这条流水线明确排除的。
+**打回或重做的 issue 挪到它自己的分支上留档，需求分支上不留它。** 这就是例外路径：
+
+```bash
+# 已经 commit 了：在那个 commit 上开分支留档，再从需求分支撤掉
+git branch feat/issue-N-slug <那个 commit>
+git revert --no-edit <那个 commit>
+# 还没 commit：把工作树挪到 issue 分支上收起来，再回到需求分支
+git checkout -b feat/issue-N-slug && git commit -am "wip: issue-N 打回" && git checkout feat/<scope-slug>
+```
+
+`set --status failed` 记下原因（**并把 `--branch feat/issue-N-slug` 记进去**——检查点的 `branch` 字段正是在这种时候才有意义：正常路径上它一直是需求分支），继续下一个。**ship 仍然只在批末做一次**——每个 issue 一次 PR 是这条流水线明确排除的；例外分支不进批末 PR。
 
 收尾时记录结果（脚本据此重算下一项）：
 
 ```bash
-python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status shipped --branch feat/<scope-slug>
+python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status shipped --branch feat/<scope-slug>   # 例外时才是 feat/issue-N-slug
 python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status shipped --waive "<为什么拿不到观察>"
 python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status skipped
 python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status blocked
@@ -197,7 +209,7 @@ python3 <SKILL_DIR>/scripts/loop_state.py note --issue N \
 
 - **跳过**：提问/讨论、纯文档、已实现、重复、带 `wontfix`/`question`/`discussion`/`invalid` 标签、无验收条件且推不出需求。
 - **blocked**：依赖未 `shipped`（`next` 已经给出，不要自己判断）。依赖不在本批（issue 已关闭）也按未 `shipped` 处理；确实要放行就 `set --issue <dep> --status shipped` 手工补记。
-- **整批都留在需求分支上**，不要每个 issue 切回默认分支：下一个 issue 接着在这条分支上做。
+- **整批都留在需求分支上**，不要每个 issue 切回默认分支：下一个 issue 接着在这条分支上做。例外分支只用来留档，不在上面继续推进。
 - 回到 `next` 处理下一项，直到 `set` 输出「全部 issue 处理完毕」。
 
 ### 3. 批末收尾（只做一次）
