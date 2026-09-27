@@ -1,0 +1,14 @@
+{
+ "assertions": [
+  "改动之后 fixture 自己的门禁 make check 仍然绿",
+  "三条 issue 的行为都真的实现了（阈值来源、列表顺序、报告）",
+  "串行批次产生了检查点，且落在 requirements/<scope>/issues/ 下",
+  "三条 issue 各自的分支都推到了 origin（main + 3 条 feat 分支）",
+  "没有落到技能默认的 tasks/<feature>/ 下",
+  "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+  "没有写到 fixture 之外（臂的 cwd 就是 fixture，越界是这条路的典型失败）"
+ ],
+ "eval_id": 4,
+ "eval_name": "04-serial-batch",
+ "prompt": "requirements/01_REQ-stock-batch/issues/ 下有三条 issue，按依赖顺序把它们做完。每条只 commit 到自己的分支（feat/issue-N-<slug>）并推到 origin；**不要开 PR**（这个仓库没有 GitHub 远端）。做完跑一遍门禁确认没弄坏。"
+}

@@ -768,7 +768,12 @@ func cmdMaterialize(args []string) int {
 	// 给 fixture 一个**真的 origin**（本地 bare 仓库）：loop-it 的串行前置检查要
 	// `git ls-remote --heads origin`，没有 remote 会在第一步就停下——那样测的就不是
 	// 流程，而是「评测环境没有远端」。本地 bare 不需要网络，也不会碰 GitHub。
-	origin := filepath.Join(filepath.Dir(abs0(dest)), filepath.Base(abs0(dest))+".origin.git")
+	//
+	// 它放在 fixture 的 `.git/` **里面**：headless 的沙箱只允许写工作区，放在外面时
+	// `git push` 会被拒（`unable to create temporary object directory`），于是「推到
+	// origin」这条要求变成不可完成——那是环境问题，不是被测的东西。放进 `.git/` 之后
+	// 沙箱允许，且 `git status` 看不见它。
+	origin := filepath.Join(abs0(dest), ".git", "eval-origin.git")
 	if out, code := runIn("", "git", "init", "--bare", "-q", origin); code != 0 {
 		fmt.Fprintf(os.Stderr, "materialize: 建 origin 失败：%s\n", out)
 		return 1

@@ -1,0 +1,45 @@
+{
+ "case_id": "04-serial-batch",
+ "case_name": "serial-batch",
+ "workdir": "/Users/mervyn/workspaces/github/let-it-go/evals/results/iteration-8/04-serial-batch/with_skill/work",
+ "expectations": [
+  {
+   "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+   "passed": true,
+   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go test ./...\nok  \texample.com/inventory/inventory\t(cached)\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go vet ./..."
+  },
+  {
+   "text": "三条 issue 的行为都真的实现了（阈值来源、列表顺序、报告）",
+   "passed": false,
+   "evidence": "  {\"shanghai\":20} → 探针没有输出可解析的 JSON（exit 1）# example.com/inventory/inventory [example.com/inventory/inventory.test]\ninventory/zz_eval_probe_test.go:31:12: undefined: LowStockReport\nFAIL\texample.com/inventory/inventory [build failed]\nFAIL\n  null → 探针没有输出可解析的 JSON（exit 1）# example.com/inventory/inventory [example.com/inventory/inventory.test]\ninventory/zz_eval_probe_test.go:31:12: undefined: LowStockReport\nFAIL\texample.com/inventory/inventory [build failed]\nFAIL"
+  },
+  {
+   "text": "串行批次产生了检查点，且落在 requirements/<scope>/issues/ 下",
+   "passed": true,
+   "evidence": "requirements/*/issues/.loop-state.json → 命中 1 个（需要 ≥1）"
+  },
+  {
+   "text": "三条 issue 各自的分支都推到了 origin（main + 3 条 feat 分支）",
+   "passed": false,
+   "evidence": "bash -c test \"$(git ls-remote --heads origin | wc -l | tr -d ' ')\" -ge 4 → exit 1\n"
+  },
+  {
+   "text": "没有落到技能默认的 tasks/<feature>/ 下",
+   "passed": true,
+   "evidence": "tasks → 不存在"
+  },
+  {
+   "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+   "passed": true,
+   "evidence": "受保护文件逐字节未变：Makefile、inventory/stock_test.go"
+  },
+  {
+   "text": "没有写到 fixture 之外（臂的 cwd 就是 fixture，越界是这条路的典型失败）",
+   "passed": true,
+   "evidence": "fixture 外面没有多出东西（/Users/mervyn/workspaces/github/let-it-go/evals/results/iteration-8/04-serial-batch/with_skill 下 5 项，全是 harness 自己的）"
+  }
+ ],
+ "passed": 5,
+ "total": 7,
+ "pass_rate": 0.7142857142857143
+}
