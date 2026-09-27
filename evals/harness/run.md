@@ -72,6 +72,16 @@ go -C evals/harness run . assert 01-single-unit /tmp/eval-1-01-with --phase pref
 替代做法（case 02 用的就是这个）：把变更**明确写进 prompt**，同时在 fixture 里
 **种下作废的旧产物**——于是「不许两套并存」这条断言就不是空洞的，臂必须真的去删掉它。
 
+**还有一条：模式 A 里子代理问不了人。** 实测 `ask_user_question` 会被拒——
+`human interaction is unavailable while the calling agent is owned by another live agent`。
+所以臂遇到该澄清的事，只能「记录问题 + 带着假设继续」，拿不到答案。
+
+这条会**低估**技能的 clarify 行为：真实使用里 agent 问得到人。所以：
+
+- 别把「臂没有停下来问」记成缺陷
+- 该澄清的场景要断言**它留下了什么**（决策记录、假设标注、未决项），而不是断言它问了
+- 想在评测里真正回答澄清问题，得用模式 B（或让 Lead 在臂跑动中介入——但见上一条，模式 A 也递不进去）
+
 真正的「中途变更」只有**模式 B**（`dsh headless`，可以把消息推进正在跑的会话）能测。
 在模式 B 可用之前，别在文档里把这类用例说成「中途」——它测的是**变更后的调整**，
 不是**变更的送达**。
