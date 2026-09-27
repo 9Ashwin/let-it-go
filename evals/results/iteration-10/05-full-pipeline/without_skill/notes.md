@@ -1,6 +1,6 @@
 # 05-full-pipeline / without_skill
 
-- dsh：`/tmp/bin/dsh`
+- dsh：`（--regrade：没重跑 dsh，只重新打分）`
 - 耗时：110.4s
 - token：526997
 - 步数：19，工具调用：27

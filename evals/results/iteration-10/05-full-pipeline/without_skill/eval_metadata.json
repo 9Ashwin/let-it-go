@@ -3,7 +3,6 @@
   "改动之后 fixture 自己的门禁 make check 仍然绿",
   "阈值真的能按仓库配置，没配的回退默认值",
   "流程自己走了 prd：scope 下产出了 PRD",
-  "流程自己走了 to-issues：scope 下产出了 issue 卡",
   "scope 目录本身建起来了（需求资料落在仓库声明的作用域根下）",
   "没有落到技能默认的 tasks/<feature>/ 下",
   "若产生了 loop 检查点，它必须在 requirements/<scope>/issues/ 下",

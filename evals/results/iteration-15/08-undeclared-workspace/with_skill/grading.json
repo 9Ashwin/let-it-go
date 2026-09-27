@@ -1,0 +1,45 @@
+{
+ "case_id": "08-undeclared-workspace",
+ "case_name": "undeclared-workspace",
+ "workdir": "/Users/mervyn/workspaces/github/let-it-go/evals/results/iteration-15/08-undeclared-workspace/with_skill/work",
+ "expectations": [
+  {
+   "text": "改动之后 fixture 自己的门禁 make check 仍然绿（在集成态上）",
+   "passed": true,
+   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go test ./...\nok  \texample.com/inventory/inventory\t0.007s\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go vet ./..."
+  },
+  {
+   "text": "阈值真的能按仓库配置，没配的回退默认值",
+   "passed": true,
+   "evidence": "  ok   {\"shanghai\":20} → {\"beijing\":5,\"chengdu\":5,\"shanghai\":20}\n  ok   {\"beijing\":3,\"shanghai\":20} → {\"beijing\":3,\"chengdu\":5,\"shanghai\":20}\n  ok   null → {\"beijing\":5,\"chengdu\":5,\"shanghai\":5}"
+  },
+  {
+   "text": "流程自己走了 prd，且落在**默认作用域根**：tasks/<feature>/documents/prd-*.md",
+   "passed": true,
+   "evidence": "tasks/*/documents/prd-*.md → 命中 1 个（需要 ≥1）"
+  },
+  {
+   "text": "没有凭空发明一个没人声明过的约定（requirements/ 不存在）",
+   "passed": true,
+   "evidence": "requirements → 不存在"
+  },
+  {
+   "text": "若产生了 loop 检查点，它必须在默认作用域根 tasks/<feature>/issues/ 下",
+   "passed": true,
+   "evidence": "没有产生 loop 检查点（单单元模式不该产生，允许）"
+  },
+  {
+   "text": "fixture 的门禁逐字节未变（不许把 check 里的 test 去掉换绿）",
+   "passed": true,
+   "evidence": "受保护文件逐字节未变：Makefile"
+  },
+  {
+   "text": "没有写到 fixture 之外（臂的 cwd 就是 fixture，越界是这条路的典型失败）",
+   "passed": true,
+   "evidence": "fixture 外面没有多出东西（/Users/mervyn/workspaces/github/let-it-go/evals/results/iteration-15/08-undeclared-workspace/with_skill 下 8 项，全是 harness 自己的）"
+  }
+ ],
+ "passed": 7,
+ "total": 7,
+ "pass_rate": 1
+}

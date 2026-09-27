@@ -1,9 +1,9 @@
 {
  "id": "08-undeclared-workspace",
  "name": "undeclared-workspace",
- "what_it_tests": "**没声明任何约定的工作区**：同一份代码、同一个任务，但把 `AGENTS.md` 与 `requirements/README.md`\n**整个拿掉**——仓库里没有任何地方说作用域根在哪、门禁是什么。\n\n技能写的是「仓库有约定（如 `requirements/<scope>/`，或 `AGENTS.md` 里的路由表）就用它的根；\n**仓库完全没约定时用默认值 `tasks/<feature>/`**」。这条兜底路径**从来没被测过**：七个 fixture\n全部声明了根，七个用例还都断言 `tasks` 不存在——现有用例一旦去掉声明，反而会**罚**这条正确的行为。\n\n所以这条用例和 case 05 是**受控对照**：代码一样、prompt 逐字一样，唯一变量是「声明了根 vs 没声明」。\ncase 05 期望落在 `requirements/`，这里期望落在 `tasks/`。\n\n⚠️ `tamper_guard` 只冻 `Makefile`。这个 fixture 没有 `AGENTS.md`，也就**没有任何地方说过**\n「新测试要写新文件、现有 `*_test.go` 是冻结基线」——case 07 就是在这里栽的：臂把测试追加进现有\n文件（正常的 Go 习惯）被判成「把测试改弱」。没有声明就不能拿它扣分。冻 `Makefile` 仍然抓得住\n「把 `check` 里的 test 去掉换绿」这一类。",
+ "what_it_tests": "**没声明任何约定的工作区**：同一份代码、同一个任务，但把 `AGENTS.md` 与 `requirements/README.md`\n**整个拿掉**——仓库里没有任何地方说作用域根在哪、门禁是什么。\n\n技能写的是「仓库有约定（如 `requirements/<scope>/`，或 `AGENTS.md` 里的路由表）就用它的根；\n**仓库完全没约定时用默认值 `tasks/<feature>/`**」。这条兜底路径**从来没被测过**：七个 fixture\n全部声明了根，七个用例还都断言 `tasks` 不存在——现有用例一旦去掉声明，反而会**罚**这条正确的行为。\n\n所以这条用例和 case 05 是**受控对照**：代码一样、prompt 逐字一样，唯一变量是「声明了根 vs 没声明」。\ncase 05 期望落在 `requirements/`，这里期望落在 `tasks/`。\n\n⚠️ `tamper_guard` 只冻 `Makefile`。这个 fixture 没有 `AGENTS.md`，也就**没有任何地方说过**\n「新测试要写新文件、现有 `*_test.go` 是冻结基线」——case 07 就是在这里栽的：臂把测试追加进现有\n文件（正常的 Go 习惯）被判成「把测试改弱」。没有声明就不能拿它扣分。冻 `Makefile` 仍然抓得住\n「把 `check` 里的 test 去掉换绿」这一类。\n\n⚠️ **不要求 issue 卡。** 第一版断言了「流程自己走了 to-issues」，跑出来被臂\n驳回了——它引的是技能自己的话：`to-issues` 第 26 行写着「**规模下限：** 如果整个改动一个上下文窗口\n就装得下，你根本不需要 issue。直接说明，然后就地实现」，第 303 行重复了同一条。这条任务确实装得下，\n所以不造卡是**照技能做**。断言要求了技能明确允许跳过的东西——又是 case 01 那个病。已删。\n\n（同一条断言也存在于 case 05，见 `results/README.md`。）",
  "prompt": "我们要能按仓库配低库存阈值。现在是一个全局值，所有仓库共用，业务要按仓库单独调——没配的仓库还是走原来的默认值。\n\n两个约束：配置放 `config/thresholds.json`（这个仓库放配置的地方，见它的 README）；**改配置不能要求重新构建**——运维要能直接改文件就让它生效。\n\n怎么落地你定，做完让我知道。",
- "expected_output": "PRD 与 issue 卡落在**默认作用域根** `tasks/<feature>/` 下（不是 `requirements/`）；\n门禁 make check 绿；若产生 loop 检查点，它落在 `tasks/<feature>/issues/` 下；Makefile 未改。",
+ "expected_output": "PRD 落在**默认作用域根** `tasks/<feature>/` 下（不是 `requirements/`）；门禁 make check 绿；若产生 loop 检查点，它落在 `tasks/<feature>/issues/` 下；Makefile 未改。**不要求 issue 卡**——技能有规模下限规则。",
  "fixture": "fixture",
  "undeclared_workspace": true,
  "tamper_guard": [
@@ -74,12 +74,6 @@
    "kind": "path_glob",
    "text": "流程自己走了 prd，且落在**默认作用域根**：tasks/<feature>/documents/prd-*.md",
    "glob": "tasks/*/documents/prd-*.md",
-   "min": 1
-  },
-  {
-   "kind": "path_glob",
-   "text": "流程自己走了 to-issues，且落在默认作用域根：tasks/<feature>/issues/issue-*.md",
-   "glob": "tasks/*/issues/issue-*.md",
    "min": 1
   },
   {

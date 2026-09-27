@@ -327,6 +327,59 @@ worktree 隔离。`without_skill` 把三个函数都写对了（它们不难）�
 它和 01/02/03 一样属于**按需**：一次 `with_skill` 要付三次子代理生命周期（实测 210.8s /
 1,568,225 tokens），不该每轮都跑。**改动 `graph` 之后必须跑它。**
 
+## iteration-15：`08-undeclared-workspace`——唯一没被走过的设计约定
+
+仓库的约定是「**工作区说作用域根在哪，流程决定里面长什么样**」。七个 fixture 全都声明了根，
+七个用例还都断言 `tasks` 不存在——所以这条约定的**另一半**（「仓库完全没声明时退到默认的
+`tasks/<feature>/`」）从来没被走过，而且去掉声明之后现有用例反而会**罚**它。
+
+`08` 与 `05` 是**受控对照**：同一份代码、**prompt 逐字相同**，唯一变量是工作区有没有声明根。
+`05` 期望落在 `requirements/`，`08` 期望落在 `tasks/`。
+
+| 用例 | with_skill | without_skill | 区分点 |
+|---|---|---|---|
+| 08-undeclared-workspace | **7/7** | 6/7 | **PRD 落在默认根** |
+
+**兜底路径是对的**：`with_skill` 把资料放在 `tasks/warehouse-thresholds/`（`documents/prd-*.md`
++ `notes/walkthrough-*.md`），**没有**凭空发明 `requirements/`，门禁绿、Makefile 未动。
+`without_skill` 只写了代码，一点规划产物都没有。
+
+为了让它能跑，harness 里两处**把 fixture 的事实写死**的地方得挪开——两处是同一个错误：
+
+- `assertCheckpointLocation` 把 `requirements` 硬编码成 `parts[0]`。按上面那条约定，根是**仓库的
+  事实**，所以现在从断言里读可选的 `root`（默认不变）。
+- 自检**要求每个 fixture 都有 `AGENTS.md`**（理由：fixture 自己的地图也是被测对象）。对七个用例成立，
+  对这个不成立，所以改成 `case.json` 里显式写 `"undeclared_workspace": true`——而不是删掉那条检查，
+  误丢地图仍然会在自检里报出来。
+
+`tamper_guard` 只冻 `Makefile`：这个 fixture 没有 `AGENTS.md`，也就**没有任何地方说过**现有
+`*_test.go` 是冻结基线——case 07 正是在这里栽的，守卫不能罚一条没声明过的约定。
+
+### 顺手修掉一条罚了正确行为的断言（case 05 与 08）
+
+首跑 `08/with_skill` 是 7/8，挂的是「流程自己走了 `to-issues`」。**臂当场把它驳回了**：
+
+> `to-issues` 有规模下限规则——一个上下文窗口装得下就直接内联——这个改动确实装得下，所以没造 issue 卡。
+
+它引对了。`to-issues` 第 26 行与第 303 行都写着：
+
+> **规模下限：** 如果整个改动一个上下文窗口就装得下，你根本不需要 issue。直接说明，然后就地实现
+
+这条任务确实装得下，**不造卡是照技能做**。断言在要求技能明确允许跳过的东西——又是 case 01 那个病。
+
+**case 05 有同一条断言**，只是那次的臂碰巧造了卡才没暴露。两个用例的 prompt 逐字相同、任务规模相同，
+所以取舍也相同：一起删掉。两条都**用已有工作树重打分**，没有重跑：
+
+| 用例 | 改前 | 改后 |
+|---|---|---|
+| 05-full-pipeline / with_skill | 9/9 | **8/8** |
+| 05-full-pipeline / without_skill | 7/9 | **7/8** |
+| 08-undeclared-workspace / with_skill | 7/8 | **7/7** |
+| 08-undeclared-workspace / without_skill | 6/8 | **6/7** |
+
+**05 的区分度从 2 分收窄到 1 分**（0.778 → 0.875），因为去掉的是一个**假区分点**：它区分的是
+「臂这次有没有顺手造卡」，不是技能。剩下的区分点就是它一开始要测的**规划半边**。
+
 ## iteration-6：一个负结果——fixture 在替技能干活
 
 | 用例 | with_skill | without_skill | 区分点 |

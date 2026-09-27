@@ -89,6 +89,7 @@ python ~/.agents/skills/skill-creator/eval-viewer/generate_review.py \
 | [03-artifact-handoff](cases/03-artifact-handoff/case.json) | 一个全新会话只凭上一个会话留下的 `requirements/<scope>/` 能不能把待办的 issue-002 做对 | 动了 `prd`／产物的字段结构 |
 | [06-exception-path](cases/06-exception-path/case.json) | 打回的 issue 挪到 `feat/issue-N-*` 留档、检查点记成 `failed` 并写下那条分支 | 动了例外路径／失败处理 |
 | [07-parallel-waves](cases/07-parallel-waves/case.json) | 两个互不依赖的节点进同一个波、各自 worktree 与分支、fan-in 汇合；检查点与 `graph.html` 落在作用域根 | **动了 `graph`**（它零覆盖时最该跑的一条） |
+| [08-undeclared-workspace](cases/08-undeclared-workspace/case.json) | **工作区什么都不声明**时退到默认作用域根 `tasks/<feature>/`，而不是凭空发明一个约定 | 动了产物落点／作用域根那条约定 |
 
 01/02/03 是**纯护栏**：两条臂分数一样，它们只告诉你「技能没把简单事做复杂」。
 **06 与 07 不一样——它们有区分度**（06 是 9/9 vs 6/9，07 是 10/10 vs 6/10，是七个用例里最大的差距），

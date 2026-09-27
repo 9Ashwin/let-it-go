@@ -5,7 +5,7 @@
 
 只有那两条在量技能的价值——实测里两条臂的分数**不同**。其余五条
 （`01-single-unit`、`02-mid-flight-change`、`03-artifact-handoff`、`06-exception-path`、
-`07-parallel-waves`）**改了对应路径才跑**（见 [README 的用例表](../README.md#用例)）。
+`07-parallel-waves`、`08-undeclared-workspace`）**改了对应路径才跑**（见 [README 的用例表](../README.md#用例)）。
 其中 01/02/03 是纯护栏（两条臂一样），**06 与 07 有区分度**——07 的 10/10 vs 6/10 是七个用例里最大的差距，
 但它也最贵（一次 `with_skill` 要付三次子代理生命周期）。
 
