@@ -517,16 +517,15 @@
         <li><a href="#step-svg-diagram">9. Vendor: /svg-diagram — SVG 制图规范与机械校验</a></li>
         <li><a href="#step-refactor">10. Bonus: /refactor — 专家级代码重构</a></li>
         <li><a href="#step-modern-go">11. Bonus: /modern-go — Go 代码现代化改造</a></li>
-        <li><a href="#step-walkthrough">12. Bonus: /walkthrough — 交付前走查</a></li>
-        <li><a href="#step-loop-it">13. Bonus: /loop-it — 自动化 Issue 批量实现循环</a></li>
-        <li><a href="#step-to-design">14. Bonus: /to-design — PRD 转设计文档</a></li>
-        <li><a href="#step-graph">15. Bonus: /graph — 任务图并发实现</a></li>
-        <li><a href="#step-understand">16. Bonus: /understand — 交互式变更审阅</a></li>
-        <li><a href="#step-triage">17. Bonus: /triage — 外部 issue 分诊</a></li>
-        <li><a href="#step-diagnose">18. Bonus: /diagnose — 排障循环</a></li>
-        <li><a href="#step-conflict">19. Bonus: /conflict — 解 merge / rebase 冲突</a></li>
-        <li><a href="#vendor">20. Vendor 技能与一键同步</a></li>
-        <li><a href="#faq">21. FAQ</a></li>
+        <li><a href="#step-loop-it">12. /loop-it（深入）— 自动化 Issue 批量实现循环</a></li>
+        <li><a href="#step-to-design">13. /to-design（深入）— PRD 转设计文档</a></li>
+        <li><a href="#step-graph">14. /graph（深入）— 任务图并发实现</a></li>
+        <li><a href="#step-understand">15. Bonus: /understand — 交互式变更审阅</a></li>
+        <li><a href="#step-triage">16. Bonus: /triage — 外部 issue 分诊</a></li>
+        <li><a href="#step-diagnose">17. Bonus: /diagnose — 排障循环</a></li>
+        <li><a href="#step-conflict">18. Bonus: /conflict — 解 merge / rebase 冲突</a></li>
+        <li><a href="#vendor">19. Vendor 技能与一键同步</a></li>
+        <li><a href="#faq">20. FAQ</a></li>
       </ul>
     </div>
 
@@ -537,13 +536,13 @@
         <h3>1. 概述</h3>
       </div>
       <p>
-        <strong>let-it-go</strong> 是一套研发工作流技能集：25 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。
+        <strong>let-it-go</strong> 是一套研发工作流技能集：24 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。
       </p>
       <p>
         它让 AI Agent 能够像一个有经验的工程师一样——从理解需求、拆解任务、编写代码、审查质量，到最终提交合入——全流程自主完成。你只需描述功能想法，剩下的交给工作流。
       </p>
       <div class="tip">
-        <strong>入口：</strong>不用先问该用哪个。<strong>25 个技能的 description 就是路由表</strong>——它写清了各自管什么、什么时候该用，模型命中就自己加载并<strong>直接开始</strong>那一步，不需要你手敲。想强制走某一条时才敲它的名字。
+        <strong>入口：</strong>不用先问该用哪个。<strong>24 个技能的 description 就是路由表</strong>——它写清了各自管什么、什么时候该用，模型命中就自己加载并<strong>直接开始</strong>那一步，不需要你手敲。想强制走某一条时才敲它的名字。
       </div>
 
       <div class="cards">
@@ -665,18 +664,6 @@
             <li>35+ 条 gofix 风格转换规则</li>
             <li>Go 1.0 到 1.27+ 全覆盖</li>
             <li>自动检测版本 + 安全保护</li>
-          </ul>
-        </div>
-        <div class="card">
-          <div class="card-header">
-            <div class="card-dot teal"></div>
-            <h4>/walkthrough</h4>
-          </div>
-          <p>交付前走查（只提供证据）</p>
-          <ul>
-            <li>变更摘要 + 真实验证输出</li>
-            <li>demo 路径的视觉证据</li>
-            <li>风险点 + 人工验收状态（PR body 与合并清单归 /ship-it）</li>
           </ul>
         </div>
         <div class="card">
@@ -863,7 +850,7 @@
       </div>
 
       <div class="note">
-        <strong>技能分组：</strong>25 个技能按「在流程里扮演什么角色」分三个桶——<code class="inline-code">flow</code>（流水线本身，8 个）、<code class="inline-code">bonus</code>（中途因为出事了、要保证质量、或需要一个非代码产物伸手拿的，7 个）、<code class="inline-code">vendor</code>（第三方技能的逐字副本，由 manifest 钉住 commit，10 个）。
+        <strong>技能分组：</strong>24 个技能按「在流程里扮演什么角色」分三个桶——<code class="inline-code">flow</code>（流水线本身，8 个）、<code class="inline-code">bonus</code>（中途因为出事了、要保证质量、或需要一个非代码产物伸手拿的，7 个）、<code class="inline-code">vendor</code>（第三方技能的逐字副本，由 manifest 钉住 commit，10 个）。
       </div>
     </div>
 
@@ -884,7 +871,7 @@
       <ul class="step-list">
         <li>skills 落到 <code class="inline-code">~/.agents/skills</code>，这条装法不必动任何 profile 依赖。</li>
         <li><code class="inline-code">npx skills</code> 递归扫描，安装时把 <code class="inline-code">skills/&lt;桶&gt;/&lt;技能&gt;</code> <strong>拍平</strong>成 <code class="inline-code">~/.agents/skills/&lt;技能&gt;</code>——技能根只扫一层，所以必须拍平。</li>
-        <li>选择技能时，picker 按根目录 <code class="inline-code">.claude-plugin/marketplace.json</code> 分成 <strong>Let It Go Flow / Bonus / Vendor 三组</strong>（共 27 项）；安装后仍是拍平的 <code class="inline-code">~/.agents/skills/&lt;技能&gt;</code>，桶这一层只存在于仓库里。</li>
+        <li>选择技能时，picker 按根目录 <code class="inline-code">.claude-plugin/marketplace.json</code> 分成 <strong>Let It Go Flow / Bonus / Vendor 三组</strong>（共 24 项）；安装后仍是拍平的 <code class="inline-code">~/.agents/skills/&lt;技能&gt;</code>，桶这一层只存在于仓库里。</li>
         <li>这是最省事的一条路：不必动 profile 的依赖，对所有 profile 都生效。</li>
       </ul>
       <p>手动拷贝时要自己完成<strong>拍平</strong>这一步——不要连桶一起拷：</p>
@@ -922,11 +909,11 @@
       </table>
 
       <div class="tip">
-        <strong>Tip：</strong>安装后输入 <code class="inline-code">/prd</code>、<code class="inline-code">/to-design</code>、<code class="inline-code">/to-issues</code>、<code class="inline-code">/loop-it</code>、<code class="inline-code">/graph</code>、<code class="inline-code">/review-it</code>、<code class="inline-code">/walkthrough</code>、<code class="inline-code">/ship-it</code>（flow 8 个）、<code class="inline-code">/test-first</code>、<code class="inline-code">/triage</code>、<code class="inline-code">/diagnose</code>、<code class="inline-code">/conflict</code>、<code class="inline-code">/refactor</code>、<code class="inline-code">/modern-go</code>、<code class="inline-code">/understand</code>（bonus 7 个）、<code class="inline-code">/svg-diagram</code>、<code class="inline-code">/find-skills</code>、<code class="inline-code">/frontend-design</code>、<code class="inline-code">/humanizer-zh</code>、<code class="inline-code">/pptx</code>、<code class="inline-code">/resume-optimizer</code>、<code class="inline-code">/skill-creator</code>、<code class="inline-code">/teach</code>、<code class="inline-code">/ui-ux-pro-max</code>、<code class="inline-code">/web-design-guidelines</code>（vendor 10 个）即可直接调用对应技能。其中 <code class="inline-code">/goal</code> 是 DSH 的命令（不是 skill）：模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但只在顶层直接的人类回合执行。
+        <strong>Tip：</strong>安装后输入 <code class="inline-code">/prd</code>、<code class="inline-code">/to-design</code>、<code class="inline-code">/to-issues</code>、<code class="inline-code">/loop-it</code>、<code class="inline-code">/graph</code>、<code class="inline-code">/review-it</code>、<code class="inline-code">/ship-it</code>（flow 7 个）、<code class="inline-code">/test-first</code>、<code class="inline-code">/triage</code>、<code class="inline-code">/diagnose</code>、<code class="inline-code">/conflict</code>、<code class="inline-code">/refactor</code>、<code class="inline-code">/modern-go</code>、<code class="inline-code">/understand</code>（bonus 7 个）、<code class="inline-code">/svg-diagram</code>、<code class="inline-code">/find-skills</code>、<code class="inline-code">/frontend-design</code>、<code class="inline-code">/humanizer-zh</code>、<code class="inline-code">/pptx</code>、<code class="inline-code">/resume-optimizer</code>、<code class="inline-code">/skill-creator</code>、<code class="inline-code">/teach</code>、<code class="inline-code">/ui-ux-pro-max</code>、<code class="inline-code">/web-design-guidelines</code>（vendor 10 个）即可直接调用对应技能。其中 <code class="inline-code">/goal</code> 是 DSH 的命令（不是 skill）：模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但只在顶层直接的人类回合执行。
       </div>
 
       <div class="note">
-        <strong>模型目录：</strong>25 个技能的 description 合计 5211 字符，模型实际看到 <strong>5150 字符</strong>（DSH 会把每条 description 归一化空白并截到 500 字符）。唯一带 <code class="inline-code">disable-model-invocation</code> 的是 vendor 的 <code class="inline-code">/teach</code>（上游的选择，不进模型目录），要用手敲名字；省下每个会话与<strong>每个子代理</strong>都要付的那份固定成本。
+        <strong>模型目录：</strong>24 个技能的 description 合计 5423 字符，模型实际看到 <strong>5362 字符</strong>（DSH 会把每条 description 归一化空白并截到 500 字符）。唯一带 <code class="inline-code">disable-model-invocation</code> 的是 vendor 的 <code class="inline-code">/teach</code>（上游的选择，不进模型目录），要用手敲名字；省下每个会话与<strong>每个子代理</strong>都要付的那份固定成本。
       </div>
     </div>
 
@@ -969,7 +956,7 @@
                                              │        ├─ 一个单元：内联实现 → 门禁自证 → <span class="cmd">/review-it</span> → <span class="cmd">/ship-it</span>
                                              │        └─ 一批有依赖：一次一个 Issue，带检查点恢复
                                              └─→ <span class="cmd">/graph</span>     <span class="comment">（真并行：按波次 fan-out，每节点独立 git worktree，波次间 fan-in 屏障）</span>
-                                                     节点：内联实现 → 门禁自证 → commit；波末：集成 → <span class="cmd">/review-it</span> → <span class="cmd">/walkthrough</span> → <span class="cmd">/ship-it</span></code></pre>
+                                                     节点：内联实现 → 门禁自证 → commit；波末：集成 → <span class="cmd">/review-it</span> → <span class="cmd">/ship-it</span>（先写走查件）</code></pre>
 
       <div class="diagram-box">
         <svg viewBox="0 0 980 220" style="min-width: 870px;">
@@ -1065,16 +1052,10 @@
           <td>通过审查的干净代码</td>
         </tr>
         <tr>
-          <td><span class="badge badge-review">3.5 走查</span></td>
-          <td><code class="inline-code">/walkthrough</code></td>
-          <td>已评审的变更</td>
-          <td><code class="inline-code">tasks/walkthrough-&lt;feature&gt;.md</code> 走查文档（可选）</td>
-        </tr>
-        <tr>
           <td><span class="badge badge-ship">4. 交付</span></td>
           <td><code class="inline-code">/ship-it</code></td>
           <td>已审查的代码</td>
-          <td>已合入的 PR + 已关闭的 Issue</td>
+          <td>走查文档（证据）+ 已合入的 PR + 已关闭的 Issue</td>
         </tr>
       </table>
 
@@ -1182,7 +1163,7 @@
       </div>
 
       <h3>边界：/triage 只管从外面进来的条目</h3>
-      <p><code class="inline-code">/to-issues</code> 拆的是<strong>你自己</strong>的需求，产出已经是 agent-ready 的卡片；从外面进来的 bug 报告、用户反馈、别人提的需求归 <code class="inline-code">/triage</code>——先复现 / 理解，再定角色（<code class="inline-code">ready</code> / <code class="inline-code">needs-info</code> / <code class="inline-code">bug-confirmed</code> / <code class="inline-code">duplicate</code> / <code class="inline-code">wontfix</code>），并把 <code class="inline-code">ready</code> 的补成 agent 可执行的卡片。<strong>不要 triage <code class="inline-code">/to-issues</code> 产出的卡片。</strong>详见 <a href="#step-triage" style="color: #E8624F; text-decoration: none;">18. /triage</a>。</p>
+      <p><code class="inline-code">/to-issues</code> 拆的是<strong>你自己</strong>的需求，产出已经是 agent-ready 的卡片；从外面进来的 bug 报告、用户反馈、别人提的需求归 <code class="inline-code">/triage</code>——先复现 / 理解，再定角色（<code class="inline-code">ready</code> / <code class="inline-code">needs-info</code> / <code class="inline-code">bug-confirmed</code> / <code class="inline-code">duplicate</code> / <code class="inline-code">wontfix</code>），并把 <code class="inline-code">ready</code> 的补成 agent 可执行的卡片。<strong>不要 triage <code class="inline-code">/to-issues</code> 产出的卡片。</strong>详见 <a href="#step-triage" style="color: #E8624F; text-decoration: none;">17. /triage</a>。</p>
     </div>
 
     <!-- Section 6: Implementation (/loop-it & /graph) -->
@@ -1226,8 +1207,8 @@
       <ul class="step-list">
         <li>获取仓库中所有打开的 GitHub Issue</li>
         <li>解析 Issue 正文里的依赖关系，做依赖感知的拓扑排序，得到可安全开始的顺序</li>
-        <li>一次一个 Issue <strong>内联实现</strong>（读需求 → 写代码 → 跑门禁自证），随后过一次 <strong>supervisor 检查</strong>——判据是证据（命令与真实输出），不是 diff 观感——再在该 Issue 自己的分支上 commit；<strong>不 push、不开 PR</strong></li>
-        <li>批末把各 Issue 分支汇总成一条批次分支（<strong>不并入 failed 的分支</strong>），只做一次 <code class="inline-code">/review-it</code>、一次 <code class="inline-code">/walkthrough</code> 与一次 <code class="inline-code">/ship-it</code></li>
+        <li>一次一个 Issue <strong>内联实现</strong>（读需求 → 写代码 → 跑门禁自证），随后过一次 <strong>supervisor 检查</strong>——判据是证据（命令与真实输出），不是 diff 观感——再<strong>在需求分支上 commit（一个 issue 一个 commit）</strong>；<strong>不 push、不开 PR</strong></li>
+        <li>批末把各 Issue 分支汇总成一条批次分支（<strong>不并入 failed 的分支</strong>），只做一次 <code class="inline-code">/review-it</code> 与一次 <code class="inline-code">/ship-it</code>（它先写走查件）</li>
         <li>每次状态变更立即写入 <code class="inline-code">.loop-state.json</code> 检查点，崩溃或中断后可从断点恢复</li>
       </ul>
       <p>适合节点之间大量共享文件、必须串行保证安全的场景；一次只处理一个 Issue。批末 PR 关闭多个 Issue，需按逐项证据表列出每项的 commit、关闭编号、验收证据与人工验收状态。</p>
@@ -1240,7 +1221,7 @@
         <li>屏障到达后统一收尾：泄漏检查 → 对每个节点过 <strong>evidence check</strong>（判据是节点报上来的证据：命令与真实输出，不是 diff 观感）→ 集成（<strong>只合并 shipped 的节点</strong>，failed 的绝不合并）→ 在<strong>集成后的树</strong>上跑门禁 → <strong>评审一次</strong>（逐节点分节）→ <strong>ship 一次</strong>（一个 PR，关闭该波满足的 Issue）</li>
         <li>每波写入 <code class="inline-code">.graph_state.json</code> 检查点，并据此重新渲染 <code class="inline-code">graph.html</code> 实时看板</li>
       </ul>
-      <p>适合 DAG 中存在真正并行度（相互独立的子系统）的场景。单节点波没有可集成的对象，跳过 wave 分支与 merge 仪式，直接对该节点分支 review + ship。详见 <a href="#step-loop-it" style="color: #5B8A72; text-decoration: none;">13. /loop-it</a> 与 <a href="#step-graph" style="color: #5B8A72; text-decoration: none;">15. /graph</a>。</p>
+      <p>适合 DAG 中存在真正并行度（相互独立的子系统）的场景。单节点波没有可集成的对象，跳过 wave 分支与 merge 仪式，直接对该节点分支 review + ship。详见 <a href="#step-loop-it" style="color: #5B8A72; text-decoration: none;">12. /loop-it</a> 与 <a href="#step-graph" style="color: #5B8A72; text-decoration: none;">14. /graph</a>。</p>
 
       <h3>失败节点：原地重试 → 重跑 → 剔除</h3>
       <ul class="step-list">
@@ -1333,7 +1314,7 @@
         <h3>8. Step 4: /ship-it — 提交交付</h3>
       </div>
       <p>
-        <code class="inline-code">/ship-it</code> 是实现完成后的标准收尾流程：提交代码、创建 PR、合入、关闭 Issue，并<strong>一次写出实现总结评论</strong>（设计决策 / 偏离 / 权衡 / 待确认）。它是 <strong>PR body 的唯一产出者</strong>——<code class="inline-code">/walkthrough</code> 只提供证据，由它一次写进 body。在 <code class="inline-code">/graph</code> 一波或 <code class="inline-code">/loop-it</code> 一批的收尾里，它<strong>只调用一次</strong>：一个分支、一个 PR、一次 CI、一次 merge，关闭该波 / 该批满足的多个 Issue。
+        <code class="inline-code">/ship-it</code> 是实现完成后的标准收尾流程：提交代码、创建 PR、合入、关闭 Issue，并<strong>一次写出实现总结评论</strong>（设计决策 / 偏离 / 权衡 / 待确认）。它是<strong>走查件与 PR body 的唯一产出者</strong>：先写走查件（命令、真实输出、可视化、风险点、人工验收状态），再由它一次写进 body。在 <code class="inline-code">/graph</code> 一波或 <code class="inline-code">/loop-it</code> 一批的收尾里，它<strong>只调用一次</strong>：一个分支、一个 PR、一次 CI、一次 merge，关闭该波 / 该批满足的多个 Issue。
       </p>
 
       <h3>触发方式</h3>
@@ -1388,7 +1369,7 @@
       </table>
 
       <div class="note">
-        <strong>Note：</strong>解进行中的 merge / rebase 用 <code class="inline-code">/conflict</code>——能同时保留两边意图就都保留，真不兼容时选与本次合并目标一致的一边并把权衡写进 commit message，<strong>永远解，不 <code class="inline-code">--abort</code></strong>。详见 <a href="#step-conflict" style="color: #4A6FA5; text-decoration: none;">20. /conflict</a>。
+        <strong>Note：</strong>解进行中的 merge / rebase 用 <code class="inline-code">/conflict</code>——能同时保留两边意图就都保留，真不兼容时选与本次合并目标一致的一边并把权衡写进 commit message，<strong>永远解，不 <code class="inline-code">--abort</code></strong>。详见 <a href="#step-conflict" style="color: #4A6FA5; text-decoration: none;">19. /conflict</a>。
       </div>
 
       <div class="note">
@@ -1595,60 +1576,14 @@
       </div>
     </div>
 
-    <!-- Section 12: /walkthrough -->
-    <div class="section" id="step-walkthrough">
-      <div class="section-title">
-        <div class="section-dot teal"></div>
-        <h3>12. Bonus: /walkthrough — 交付前走查</h3>
-      </div>
-      <p>
-        <code class="inline-code">/walkthrough</code> 在实现、验证和 <code class="inline-code">/review-it</code> 都完成之后、<code class="inline-code">/ship-it</code> 之前，产出一份可以直接交给 reviewer 的走查文档：说清<strong>改了什么</strong>、<strong>真的跑过什么、打印了什么</strong>，并用视觉证据证明 demo 路径确实走通。它的重点是<strong>证据而不是断言</strong>——diff 说明代码长什么样，走查说明你实际运行了什么、看到了什么。
-      </p>
-
-      <h3>触发方式</h3>
-      <pre><code><span class="comment"># 直接输入</span>
-<span class="cmd">/walkthrough</span>
-
-<span class="comment"># 或使用触发词</span>
-<span class="cmd">走查：</span><span class="value">为 user-auth 生成交付前走查</span>
-<span class="cmd">交付前走查：</span><span class="value">整理这次改动的验证证据</span></code></pre>
-
-      <h3>走查文档的四个部分</h3>
-      <table>
-        <tr><th>部分</th><th>内容</th><th>要点</th></tr>
-        <tr><td>1. 变更摘要</td><td>面向没看过这份改动的人描述 diff</td><td>3–6 条：做了什么、关键文件与组件、对应哪条需求 / Issue</td></tr>
-        <tr><td>2. 验证步骤</td><td>真正跑过的命令与真实输出</td><td>贴出确切命令和输出（保留 pass 数、截断噪声）；UI 场景按「操作 → 观察结果 → 通过/失败」逐条记录</td></tr>
-        <tr><td>3. 视觉证据</td><td>demo 路径的截图或短视频</td><td>2–4 张证明主路径（前 → 操作 → 后），而不是截图堆</td></tr>
-        <tr><td>4. 风险与人工验收</td><td>还没被证明的部分</td><td>diff stat 与文件清单、高风险提示、人工验收状态；PR body 与合并清单归 <code class="inline-code">/ship-it</code></td></tr>
-      </table>
-
-      <h3>输出</h3>
-      <ul class="step-list">
-        <li>格式：Markdown，单个文件</li>
-        <li>保存到 <code class="inline-code">tasks/walkthrough-&lt;feature&gt;.md</code>（<code class="inline-code">tasks/</code> 是这套技能集默认的工作产物目录）</li>
-        <li>文件名用 kebab-case；功能名优先取用户给的名字，其次从分支名或 <code class="inline-code">tasks/prd-*.md</code> / <code class="inline-code">spec-*.md</code> 推导，都没有就问用户</li>
-        <li>图片默认用<strong>相对路径</strong>（<code class="inline-code">![caption](tasks/shot.png)</code>）并随文件一起提交：文件小、diff 可读</li>
-        <li>只有文档必须<strong>独立存在</strong>时（贴进聊天、issue 评论等图片不会跟着走的地方）才用 base64 data URI，并说明用了哪种模式</li>
-      </ul>
-
-      <h3>定位</h3>
-      <p>
-        <code class="inline-code">/walkthrough</code> 只负责<strong>证据</strong>：命令与真实输出、可视化、风险点、人工验收状态。<strong>PR body 与合并清单不在这里产出</strong>——那是 <code class="inline-code">/ship-it</code> 的产物，由它写一次即可；走查再写一份就是同一份内容维护两处。它<strong>记录门禁输出，但不替代项目自己的门禁</strong>；没有验证过的步骤要如实写成未验证或阻塞，绝不写成已通过。
-      </p>
-
-      <div class="tip">
-        <strong>Tip：</strong>一行或纯机械的改动不值得走查——没有 demo 路径、也没什么可让人追上的，直接给 diff 就好。走查也应在评审<strong>之后</strong>再写：给一份马上还要改的代码写走查，等于写完就重写。
-      </div>
-    </div>
-
-    <!-- Section 13: /loop-it -->
+    <!-- Section 12: /loop-it -->
     <div class="section" id="step-loop-it">
       <div class="section-title">
         <div class="section-dot plum"></div>
-        <h3>13. Bonus: /loop-it — 自动化 Issue 批量实现循环</h3>
+        <h3>12. /loop-it（深入）— 自动化 Issue 批量实现循环</h3>
       </div>
       <p>
-        <code class="inline-code">/loop-it</code> 获取所有打开的 GitHub Issue，解析依赖顺序，一次一个 Issue 内联实现（读需求 → 写代码 → 跑门禁自证 → 记 evidence → supervisor 检查，判据是证据不是 diff 观感），只在该 Issue 自己的分支上 commit（不 push、不开 PR）。批末把各分支汇总成一条批次分支（<strong>failed 的分支不并入</strong>），只做一次 <code class="inline-code">/review-it</code>、一次 <code class="inline-code">/walkthrough</code> 与一次 <code class="inline-code">/ship-it</code>。进度持久化到 <code class="inline-code">.loop-state.json</code>，崩溃或中断后可从断点恢复。每条验收条件对应的观测以结构化 <code class="inline-code">evidence</code> 写进同一检查点，执行中发现的新任务以 <code class="inline-code">followup</code> 进队列——批次可以在跑的过程中长出新 issue，而不是被冻结在拆解那一刻的清单里。
+        <code class="inline-code">/loop-it</code> 获取所有打开的 GitHub Issue，解析依赖顺序，一次一个 Issue 内联实现（读需求 → 写代码 → 跑门禁自证 → 记 evidence → supervisor 检查，判据是证据不是 diff 观感），只在该 Issue 自己的分支上 commit（不 push、不开 PR）。批末把各分支汇总成一条批次分支（<strong>failed 的分支不并入</strong>），只做一次 <code class="inline-code">/review-it</code> 与一次 <code class="inline-code">/ship-it</code>（它先写走查件）。进度持久化到 <code class="inline-code">.loop-state.json</code>，崩溃或中断后可从断点恢复。每条验收条件对应的观测以结构化 <code class="inline-code">evidence</code> 写进同一检查点，执行中发现的新任务以 <code class="inline-code">followup</code> 进队列——批次可以在跑的过程中长出新 issue，而不是被冻结在拆解那一刻的清单里。
       </p>
 
       <h3>如何调用</h3>
@@ -1679,18 +1614,18 @@
 <span class="cmd">/prd</span> → <span class="cmd">/to-issues</span> → <span class="cmd">/loop-it</span>
                               │
                               └→ 每个 Issue：内联实现 → 门禁自证 → 记 evidence → supervisor 检查 → commit（× N）
-                                 批末 ×1：follow-up 收口 → 汇总批次分支 → <span class="cmd">/review-it</span> → <span class="cmd">/walkthrough</span> → <span class="cmd">/ship-it</span></code></pre>
+                                 批末 ×1：follow-up 收口 → 汇总批次分支 → <span class="cmd">/review-it</span> → <span class="cmd">/ship-it</span>（先写走查件）</code></pre>
 
       <div class="tip">
         <strong>提示：</strong>将 <code class="inline-code">.loop-state.json</code> 添加到 <code class="inline-code">.gitignore</code>。如果循环崩溃，再次运行 <code class="inline-code">/loop-it</code> 即可检测状态文件并恢复。
       </div>
     </div>
 
-    <!-- Section 14: /to-design -->
+    <!-- Section 13: /to-design -->
     <div class="section" id="step-to-design">
       <div class="section-title">
         <div class="section-dot terracotta"></div>
-        <h3>14. Bonus: /to-design — PRD 转设计文档</h3>
+        <h3>13. /to-design（深入）— PRD 转设计文档</h3>
       </div>
       <p>
         <code class="inline-code">/to-design</code> 把一份 PRD（或一个粗略想法）转化为 <strong>设计文档（design doc）</strong>，文风借鉴 Go 官方提案：朴素的语言、具体的示例，以及最重要的——诚实地交代<strong>为什么选这个方案而不是别的</strong>。<strong>Markdown 提案是主产物</strong>；渲染成单文件 HTML 只是可选的呈现层，默认不渲染。
@@ -1744,14 +1679,14 @@
       </div>
     </div>
 
-    <!-- Section 15: /graph -->
+    <!-- Section 14: /graph -->
     <div class="section" id="step-graph">
       <div class="section-title">
         <div class="section-dot plum"></div>
-        <h3>15. Bonus: /graph — 任务图并发实现</h3>
+        <h3>14. /graph（深入）— 任务图并发实现</h3>
       </div>
       <p>
-        <code class="inline-code">/graph</code> 把一个任务（或 PRD / SPEC / Issue 集合）转化为<strong>有向无环图（DAG）</strong>，按依赖关系分层为若干<strong>超步（wave）</strong>，然后对每一层中相互独立的节点<strong>并发实现</strong>：每个节点由一个 subagent 在<strong>独立的 git worktree</strong> 中内联实现并 commit 到自己的分支；层与层之间用<strong>栅栏（fan-in barrier）</strong>汇聚——泄漏检查、逐节点过 <strong>evidence check</strong>、只合并 shipped 的节点、在集成后的树上跑门禁，然后<strong>评审一次、走查一次、ship 一次</strong>，并动态重规划下一层。PR body 与合并清单由 <code class="inline-code">/ship-it</code> 唯一产出，<code class="inline-code">/walkthrough</code> 只提供证据。
+        <code class="inline-code">/graph</code> 把一个任务（或 PRD / SPEC / Issue 集合）转化为<strong>有向无环图（DAG）</strong>，按依赖关系分层为若干<strong>超步（wave）</strong>，然后对每一层中相互独立的节点<strong>并发实现</strong>：每个节点由一个 subagent 在<strong>独立的 git worktree</strong> 中内联实现并 commit 到自己的分支；层与层之间用<strong>栅栏（fan-in barrier）</strong>汇聚——泄漏检查、逐节点过 <strong>evidence check</strong>、只合并 shipped 的节点、在集成后的树上跑门禁，然后<strong>评审一次、走查一次、ship 一次</strong>，并动态重规划下一层。PR body 与走查件与合并清单都由 <code class="inline-code">/ship-it</code> 唯一产出（它先写走查件，再由 body 采用）。
       </p>
 
       <div class="note">
@@ -1811,7 +1746,7 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
 内联实现 → 门禁自证 → commit 到自己的分支
 
 <span class="comment"># 每波末（只做一次）：</span>
-泄漏检查 → 逐节点 evidence check → 只合并 shipped 节点 → 集成后跑门禁 → <span class="cmd">/review-it</span> → <span class="cmd">/walkthrough</span> → <span class="cmd">/ship-it</span></code></pre>
+泄漏检查 → 逐节点 evidence check → 只合并 shipped 节点 → 集成后跑门禁 → <span class="cmd">/review-it</span> → <span class="cmd">/ship-it</span>（先写走查件）</code></pre>
 
       <h3>流水线集成</h3>
       <pre><code><span class="cmd">/prd</span> → <span class="cmd">/to-issues</span> ┬→ <span class="cmd">/loop-it</span>  <span class="comment"># 串行：一次一个节点</span>
@@ -1822,11 +1757,11 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       </div>
     </div>
 
-    <!-- Section 16: /understand -->
+    <!-- Section 15: /understand -->
     <div class="section" id="step-understand">
       <div class="section-title">
         <div class="section-dot coral"></div>
-        <h3>16. Bonus: /understand — 交互式变更审阅</h3>
+        <h3>15. Bonus: /understand — 交互式变更审阅</h3>
       </div>
       <p>
         <code class="inline-code">/understand</code> 把你刚生成的改动（通常是 AI 写的）变成一个单文件、可交互的审阅网页，帮你在审查或交付前真正吃透这次改了什么。它扫描仓库里未提交 / 分支变更，生成一个浅色主题的两栏页面：左侧是按真实项目布局排列的变更文件树，右侧是所选文件的语法高亮 diff，并在右侧边栏逐段给出<strong>相关单位需求</strong>与<strong>代码解释</strong>。
@@ -1865,11 +1800,11 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       </div>
     </div>
 
-    <!-- Section 18: /triage -->
+    <!-- Section 17: /triage -->
     <div class="section" id="step-triage">
       <div class="section-title">
         <div class="section-dot amber"></div>
-        <h3>17. Bonus: /triage — 外部 issue 分诊</h3>
+        <h3>16. Bonus: /triage — 外部 issue 分诊</h3>
       </div>
       <p>
         <code class="inline-code">/triage</code> 处理<strong>从外面进来的</strong>原始条目：bug 报告、用户反馈、别人提的需求。它先复现 / 理解，再给每条定一个角色，并把 <code class="inline-code">ready</code> 的补成 agent 可执行的卡片。<strong><code class="inline-code">/to-issues</code> 产出的卡片不要 triage</strong>——那些已经 agent-ready。
@@ -1898,11 +1833,11 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       </div>
     </div>
 
-    <!-- Section 19: /diagnose -->
+    <!-- Section 18: /diagnose -->
     <div class="section" id="step-diagnose">
       <div class="section-title">
         <div class="section-dot coral"></div>
-        <h3>18. Bonus: /diagnose — 排障循环</h3>
+        <h3>17. Bonus: /diagnose — 排障循环</h3>
       </div>
       <p>
         难 bug、偶发 flake 与性能回归的纪律：<strong>在有一条已经在「这个」bug 上变红的命令之前，不许开始推理</strong>——直接跳到「我觉得是这里」正是这个技能要防的失败。它<strong>不做 <code class="inline-code">/review-it</code> / <code class="inline-code">/ship-it</code></strong>，定位清楚后按单点改动回主线。
@@ -1931,11 +1866,11 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       </div>
     </div>
 
-    <!-- Section 20: /conflict -->
+    <!-- Section 19: /conflict -->
     <div class="section" id="step-conflict">
       <div class="section-title">
         <div class="section-dot plum"></div>
-        <h3>19. Bonus: /conflict — 解 merge / rebase 冲突</h3>
+        <h3>18. Bonus: /conflict — 解 merge / rebase 冲突</h3>
       </div>
       <p>
         <code class="inline-code">/conflict</code> 解<strong>进行中的</strong> git merge / rebase 冲突：先查清两边意图，再逐 hunk 解，跑项目门禁，把这次操作做完。<strong>永远解，不 <code class="inline-code">--abort</code></strong>。
@@ -1959,7 +1894,7 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
     <div class="section" id="vendor">
       <div class="section-title">
         <div class="section-dot violet"></div>
-        <h3>20. Vendor 技能与一键同步</h3>
+        <h3>19. Vendor 技能与一键同步</h3>
       </div>
       <p>
         <code class="inline-code">skills/vendor/</code> 放的是<strong>第三方技能的逐字副本</strong>：它们不是这套技能集写的，只是被收进来一起安装。谁、从哪个 commit 收的，由 <code class="inline-code">skills/vendor/vendor.json</code> 这份 manifest 记录，每个技能目录里还有一份 <code class="inline-code">NOTICE.md</code>（来源 / commit / 许可 / 同步日期）。
@@ -2001,7 +1936,7 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
     <div class="section" id="faq">
       <div class="section-title">
         <div class="section-dot terracotta"></div>
-        <h3>21. FAQ</h3>
+        <h3>20. FAQ</h3>
       </div>
 
       <h3>Q: 必须按顺序使用所有步骤吗？</h3>

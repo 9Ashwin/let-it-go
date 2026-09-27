@@ -27,6 +27,10 @@
 
 后缀在 [arms.json](arms.json)，`evalctl run --arm` 会去那里取。delta 就是这套技能的价值。
 
+> **`evalctl` 是这个 harness 自己的名字**（它的 usage 就自称 `evalctl`），仓库里并不预装它：
+> 平时用 Makefile 的 `$(EVAL)`，也就是 `go -C evals/harness run . <命令>`；
+> 想要一个真的叫 `evalctl` 的二进制就 `make eval-build`（产物落在 `evals/harness/evalctl`，已在 `.gitignore` 里）。
+
 ## 抄了 DSH 自己的三个模式
 
 `deepseek-harness` 仓库里 `apps/cli/tests/profiles/headless/tests/` 有自己的评测设施，
@@ -73,7 +77,7 @@ python ~/.agents/skills/skill-creator/eval-viewer/generate_review.py \
 
 | 用例 | 测什么 | 实测区分点 |
 |---|---|---|
-| [04-serial-batch](cases/04-serial-batch/case.json) | **串行批次**：三条有依赖边的 issue，`loop-it` 该建检查点、逐 issue 在自己的分支上做、推到 origin——这套技能区别于裸模型的那台机器 | **检查点／批次状态** |
+| [04-serial-batch](cases/04-serial-batch/case.json) | **串行批次**：三条有依赖边的 issue，`loop-it` 该建检查点、**整批在一条需求分支上**（每 issue 一个 commit）、批末推到 origin——这套技能区别于裸模型的那台机器 | **检查点／批次状态** |
 | [05-full-pipeline](cases/05-full-pipeline/case.json) | **全流程**：prompt 只给一个还没成形的业务诉求，看流程会不会自己走完 `prd → to-issues → loop-it`，并按技能规定的形状落盘 | **规划半边 + 产物形状** |
 
 ### 按需跑（护栏）
@@ -83,9 +87,13 @@ python ~/.agents/skills/skill-creator/eval-viewer/generate_review.py \
 | [01-single-unit](cases/01-single-unit/case.json) | 单单元任务也会不会建需求资料；不落到技能默认的 `tasks/` | 动了 `loop-it` 的单单元路径 |
 | [02-mid-flight-change](cases/02-mid-flight-change/case.json) | 同一轮内调整，而不是冻结计划或让两套并存 | 动了中途变更／follow-up 逻辑 |
 | [03-artifact-handoff](cases/03-artifact-handoff/case.json) | 一个全新会话只凭上一个会话留下的 `requirements/<scope>/` 能不能把待办的 issue-002 做对 | 动了 `prd`／产物的字段结构 |
+| [06-exception-path](cases/06-exception-path/case.json) | 打回的 issue 挪到 `feat/issue-N-*` 留档、检查点记成 `failed` 并写下那条分支 | 动了例外路径／失败处理 |
+| [07-parallel-waves](cases/07-parallel-waves/case.json) | 两个互不依赖的节点进同一个波、各自 worktree 与分支、fan-in 汇合；检查点与 `graph.html` 落在作用域根 | **动了 `graph`**（它零覆盖时最该跑的一条） |
 
-护栏不是没用的：它们各自护着**一条不同的路径**，只是不会每轮都告诉你「技能比裸模型强多少」。
-每轮全跑要 40–70 分钟，而其中三条的结论永远是「两条臂一样」。
+01/02/03 是**纯护栏**：两条臂分数一样，它们只告诉你「技能没把简单事做复杂」。
+**06 与 07 不一样——它们有区分度**（06 是 9/9 vs 6/9，07 是 10/10 vs 6/10，是七个用例里最大的差距），
+但不放进每轮：07 一次 `with_skill` 要付三次子代理生命周期（实测 210.8s / 1,568,225 tokens）。
+**改了对应路径就必须跑它们**，这正是它们存在的理由。
 
 ## 已知限制
 

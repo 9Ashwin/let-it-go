@@ -17,7 +17,7 @@ EVAL := $(GO) -C evals/harness run .
 
 .DEFAULT_GOAL := help
 .PHONY: help deps check test vendor vendor-check vendor-update vendor-list vendor-add \
-	eval-check eval-list
+	eval-build eval-check eval-list
 
 help:  ## List every target
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -34,6 +34,9 @@ test: check  ## Run the bundled scripts' self-tests, then validate
 	$(PY) skills/flow/loop-it/scripts/test_loop_state.py
 	$(PY) skills/flow/graph/scripts/test_graph_state.py
 	$(PY) skills/flow/graph/scripts/test_render_graph_html.py
+
+eval-build:  ## Build the harness to evals/harness/evalctl — the name the docs use for it
+	$(GO) -C evals/harness build -o evalctl .
 
 eval-check:  ## Self-check the eval workspace (case structure, no .git in fixtures, tamper_guard paths)
 	$(EVAL) selfcheck

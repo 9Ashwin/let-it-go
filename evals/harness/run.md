@@ -3,10 +3,11 @@
 一轮 = **每轮必跑的两条用例**（`04-serial-batch`、`05-full-pipeline`）× 两条臂，
 各跑一次，然后从外部机械核对。
 
-只有那两条在量技能的价值——实测里两条臂的分数**不同**。其余三条
-（`01-single-unit`、`02-mid-flight-change`、`03-artifact-handoff`）是护栏，
-各自护着一条不同的路径，**改了对应路径才跑**（见 [README 的用例表](../README.md#用例)）。
-每轮全跑要 40–70 分钟，而其中三条的结论永远是「两条臂一样」。
+只有那两条在量技能的价值——实测里两条臂的分数**不同**。其余五条
+（`01-single-unit`、`02-mid-flight-change`、`03-artifact-handoff`、`06-exception-path`、
+`07-parallel-waves`）**改了对应路径才跑**（见 [README 的用例表](../README.md#用例)）。
+其中 01/02/03 是纯护栏（两条臂一样），**06 与 07 有区分度**——07 的 10/10 vs 6/10 是七个用例里最大的差距，
+但它也最贵（一次 `with_skill` 要付三次子代理生命周期）。
 
 - `with_skill`：正常目录 + prompt 后缀「先加载并遵循 let-it-go 里对应的技能」
 - `without_skill`：同一 prompt + 后缀「不要加载任何技能，凭你自己的判断做」
