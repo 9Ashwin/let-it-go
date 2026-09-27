@@ -9,8 +9,15 @@
 SHELL := /bin/bash
 PY ?= python3
 
+# eval 的 harness 是 Go 写的（和它的 fixture 同一种语言，所以 `make eval-*` 只需要一套工具链）。
+# 本机的 go 可能只装在 mise 下、不在默认 PATH 里，所以和 fixture 的 Makefile 一样先解析再调用。
+GO ?= $(shell command -v go 2>/dev/null \
+	|| ls -d $$HOME/.local/share/mise/installs/go/*/bin/go 2>/dev/null | tail -1)
+EVAL := $(GO) -C evals/harness run .
+
 .DEFAULT_GOAL := help
-.PHONY: help deps check test vendor vendor-check vendor-update vendor-list vendor-add
+.PHONY: help deps check test vendor vendor-check vendor-update vendor-list vendor-add \
+	eval-check eval-list
 
 help:  ## List every target
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -21,11 +28,19 @@ deps:  ## Install the checkers' own dependencies (the skills need none)
 
 check:  ## Validate the skill set: layout, frontmatter, cross-references, patch, installer manifest
 	$(PY) scripts/check_skills.py
+	$(MAKE) --no-print-directory eval-check
 
 test: check  ## Run the bundled scripts' self-tests, then validate
 	$(PY) skills/flow/loop-it/scripts/test_loop_state.py
 	$(PY) skills/flow/graph/scripts/test_graph_state.py
 	$(PY) skills/flow/graph/scripts/test_render_graph_html.py
+
+eval-check:  ## Self-check the eval workspace (case structure, no .git in fixtures, tamper_guard paths)
+	$(EVAL) selfcheck
+
+eval-list:  ## List the eval cases
+	$(EVAL) list
+
 
 vendor:  ## Copy every vendored skill in at its pinned commit
 	$(PY) scripts/sync_vendor.py

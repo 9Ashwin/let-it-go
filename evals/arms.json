@@ -1,0 +1,9 @@
+{
+  "_comment": "两条臂共用的任务 prompt 来自 case.json 的 prompt 字段；这里只加臂特有的前缀/后缀。改这里就同时改了所有用例的两条臂。",
+  "with_skill": {
+    "suffix": "先加载并遵循 let-it-go 里对应的技能（技能目录在 ~/.agents/skills），按它的流程做这件事。"
+  },
+  "without_skill": {
+    "suffix": "不要加载任何技能，凭你自己的判断直接把这件事做完。"
+  }
+}

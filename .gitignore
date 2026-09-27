@@ -3,3 +3,8 @@
 .understand/
 __pycache__/
 *.pyc
+
+# eval：每轮的结果不进库，但那份快照台账（evals/results/README.md）要进
+evals/results/*
+!evals/results/README.md
+evals/harness/evalctl

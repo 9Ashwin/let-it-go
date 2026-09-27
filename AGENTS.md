@@ -1,0 +1,50 @@
+# let-it-go 协作入口
+
+这是一套研发工作流技能集（26 个技能，三桶）。本文件是维护这个仓库时的入口：
+**常驻的核心规则**。使用技能（而不是维护技能）时读 [README.md](README.md) 与
+[docs/index_cn.html](docs/index_cn.html)，不需要本文件。
+
+## 结构
+
+```
+skills/flow/     流水线本身：prd to-design to-issues loop-it graph review-it walkthrough ship-it
+skills/bonus/    中途伸手拿的：conflict diagnose modern-go refactor test-first triage understand
+skills/vendor/   第三方技能的逐字副本，由 vendor.json 钉住 commit
+scripts/         维护脚本（check_skills.py、sync_vendor.py）
+evals/           评测工作区：用真实代码示例跑一遍 flow，再机械核对（见 evals/AGENTS.md）
+docs/            使用指南（中英双份 HTML）
+```
+
+技能发现是**根目录下一层**扫描（`<root>/<name>/SKILL.md`），所以三个桶在
+`cordis.patch.yml` 里各列为一个 root，安装时拍平到 `~/.agents/skills/<name>`。
+
+## 门禁
+
+```bash
+make check   # 技能结构 + 交叉引用 + 安装清单 + eval 工作区自检
+make test    # 再跑各技能自带脚本的自测
+```
+
+改动之后必须绿。唯一允许的红是 `vendor/` 里上游技能的 description 超 500 字符
+（DSH 会在模型目录里截断）——那是上游的形态，不就地改。
+
+## 硬规则
+
+- **`skills/vendor/` 下是逐字副本，不要就地编辑。** 要改就改 `skills/vendor/vendor.json`
+  再 `make vendor`；否则下次 `make vendor-update` 会静默覆盖掉你的改动。
+- **技能正文写判断，算术写脚本。** 排序、分层、环检测、检查点状态机都在技能自带的
+  脚本里（纯标准库、带自测）；技能只写「什么时候用、边界在哪」。
+- **产物落点由技能定义、仓库只决定作用域根。** 六个会写产物的技能
+  （`prd` / `to-design` / `to-issues` / `walkthrough` / `loop-it` / `graph`）开头那段
+  「产物落点」是唯一正文，别在别处复述。
+- **面向模型的文字用中文**（description 里的英文触发词保留，那是路由信号）；
+  代码标识符、命令、路径不翻译。脚本注释也写中文。
+- **技能改名 / 新增 / 删除之后**：`scripts/check_skills.py` 会查死引用，
+  但 `README.md`、`README_EN.md`、两份 `docs/index_*.html`、`.claude-plugin/marketplace.json`
+  里的清单与计数要手动跟上（数量、目录字符数都要重算）。
+
+## 评测
+
+`evals/` 是这套技能的回归网：每个用例把一个真实代码示例（Go 写的 fixture）变成干净仓库，
+让 agent 真跑一遍 flow，然后**在 agent 之外**机械核对结果。改技能之前先看它的
+[README](evals/README.md)，改完用它验证——「感觉更好了」不是证据。
