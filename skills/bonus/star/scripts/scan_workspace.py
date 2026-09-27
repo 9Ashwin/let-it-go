@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import pathlib
 import re
 import subprocess
 import sys
@@ -158,6 +159,46 @@ def scan(root: str) -> dict:
     }
 
 
+# 体检项：(编号, 说明, 该满足什么)。查的是**结构性空洞**，不是文风。
+# 每项都对应一条真实的失败：缺了它，流程会按不存在的约定走，或者干脆退回默认。
+AUDIT_CHECKS = [
+    ("instructions", "有 AGENTS.md（流程读它才知道作用域根与门禁）", "exists:AGENTS.md"),
+    ("precedence", "AGENTS.md 给了冲突裁决顺序（红线 > 用户指令 > 项目约定 > 模块决策 > 建议）",
+     "text:AGENTS.md:红线"),
+    ("startup", "AGENTS.md 有开工清单：先确认基线是绿的，再动新范围",
+     "text:AGENTS.md:开工"),
+    ("scope-root", "AGENTS.md 声明了作用域根", "text:AGENTS.md:作用域根"),
+    ("gate", "AGENTS.md 声明了门禁命令", "text:AGENTS.md:门禁"),
+    ("constraints", "有 CONSTRAINTS.md（边界与资料归属）", "exists:CONSTRAINTS.md"),
+    ("rules", "有 RULES.md 且是登记表形状（编号 / 来源 / 优先级 / 适用 / 过期 / 状态）",
+     "text:RULES.md:过期条件"),
+    ("requirements", "有 requirements/README.md（目录索引与资料约定）", "exists:requirements/README.md"),
+    ("closeout", "AGENTS.md 有收尾固定动作（做完自查什么）", "text:AGENTS.md:收尾"),
+]
+
+
+def audit(root: str) -> list[dict]:
+    """体检一个已有约定的工作区，报结构性空洞。
+
+    与 `scan` 的分工：`scan` 回答「铺之前需要知道什么」，`audit` 回答「已经铺的缺什么」。
+    已经铺过约定的仓库不该重铺（那会覆盖掉人家写的红线），但**该体检**。
+    """
+    root = os.path.abspath(root)
+    findings = []
+    for key, description, rule in AUDIT_CHECKS:
+        kind, _, rest = rule.partition(":")
+        if kind == "exists":
+            ok = os.path.exists(os.path.join(root, rest))
+            evidence = rest if ok else f"缺 {rest}"
+        else:  # text:<file>:<needle>
+            target, _, needle = rest.partition(":")
+            body = read(os.path.join(root, target))
+            ok = needle in body
+            evidence = f"{target} 里有「{needle}」" if ok else f"{target} 里找不到「{needle}」"
+        findings.append({"check": key, "description": description, "passed": ok, "evidence": evidence})
+    return findings
+
+
 def self_test() -> int:
     import tempfile
 
@@ -187,6 +228,22 @@ def self_test() -> int:
         expect(got["already_initialised"] is False, "还没铺约定，不该报已初始化")
         expect(got["conventions"]["AGENTS.md"] is False, "AGENTS.md 不该存在")
 
+        # audit：没铺过约定的仓库应该大部分不满足；铺好之后应该全满足
+        before = audit(tmp)
+        expect(sum(1 for f in before if f["passed"]) < len(before) // 2,
+               f"空仓库不该通过大半体检：{sum(1 for f in before if f['passed'])}/{len(before)}")
+        (pathlib.Path(tmp) / "AGENTS.md").write_text(
+            "# x 协作入口\n\n## 底线\n\n红线：暂无\n\n## 开工\n\n先跑门禁看基线。\n\n"
+            "作用域根是 requirements/<scope>/，门禁是 make check。\n\n## 收尾\n\n自查。\n",
+            encoding="utf-8")
+        (pathlib.Path(tmp) / "CONSTRAINTS.md").write_text("# 约束\n", encoding="utf-8")
+        (pathlib.Path(tmp) / "RULES.md").write_text(
+            "| 编号 | 规则 | 来源 | 优先级 | 适用条件 | 过期条件 | 状态 |\n", encoding="utf-8")
+        (pathlib.Path(tmp) / "requirements" / "README.md").write_text("# 需求目录\n", encoding="utf-8")
+        after = audit(tmp)
+        expect(all(f["passed"] for f in after),
+               "铺好之后体检应全过：" + str([f["check"] for f in after if not f["passed"]]))
+
     if failures:
         for message in failures:
             print("FAIL:", message, file=sys.stderr)
@@ -200,10 +257,21 @@ def main() -> int:
     parser.add_argument("--root", default=".", help="工作区根（默认当前目录）")
     parser.add_argument("--json", action="store_true", help="输出 JSON")
     parser.add_argument("--self-test", action="store_true", help="跑自测")
+    parser.add_argument("--audit", action="store_true", help="体检一个已有约定的工作区")
     args = parser.parse_args()
 
     if args.self_test:
         return self_test()
+
+    if args.audit:
+        findings = audit(args.root)
+        passed = sum(1 for f in findings if f["passed"])
+        for f in findings:
+            print(f"  {'✓' if f['passed'] else '✗'} {f['description']}")
+            if not f["passed"]:
+                print(f"      {f['evidence']}")
+        print(f"\n  {passed}/{len(findings)} 项满足")
+        return 0 if passed == len(findings) else 1
 
     result = scan(args.root)
     if args.json:
