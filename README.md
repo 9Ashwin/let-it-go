@@ -47,8 +47,8 @@ let-it-go 的核心是 [`skills/flow`](skills/flow) 中的 7 个研发工作流�
 ### 方式一：作为技能目录安装（推荐）
 
 ```bash
-npx skills add 9Ashwin/let-it-go       # 安装到全局（~/.agents/skills）
-npx skills update -g                    # 之后按来源更新
+# 24 个技能拍平到 ~/.agents/skills。重跑这条就是更新——它会提示覆盖已安装的
+npx skills add 9Ashwin/let-it-go
 ```
 
 技能会落到 `~/.agents/skills`，这条装法不必动任何 profile 依赖。

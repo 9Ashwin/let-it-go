@@ -47,8 +47,9 @@ Skills decide the steps and boundaries. Python scripts with self-tests handle or
 ### Option 1: Install as a skill directory (recommended)
 
 ```bash
-npx skills add 9Ashwin/let-it-go       # installs globally (~/.agents/skills)
-npx skills update -g                    # update from source later
+# 24 skills, flattened into ~/.agents/skills. Re-running this is the update —
+# it reports which installs it is about to overwrite.
+npx skills add 9Ashwin/let-it-go
 ```
 
 The skills land in `~/.agents/skills`, and this route changes nothing in any profile's dependencies.

@@ -863,11 +863,8 @@
       <p>两条安装路径，二选一即可。</p>
 
       <h3>方式一（推荐）：作为 skill 目录安装</h3>
-      <pre><code><span class="comment"># 安装全部 skills 到 ~/.agents/skills</span>
-<span class="cmd">npx skills add</span> <span class="value">9Ashwin/let-it-go</span>
-
-<span class="comment"># 之后按来源更新</span>
-<span class="cmd">npx skills update</span> <span class="flag">-g</span></code></pre>
+      <pre><code><span class="comment"># 全部 skills 拍平到 ~/.agents/skills；重跑这条就是更新（会提示覆盖已安装的）</span>
+<span class="cmd">npx skills add</span> <span class="value">9Ashwin/let-it-go</span></code></pre>
       <ul class="step-list">
         <li>skills 落到 <code class="inline-code">~/.agents/skills</code>，这条装法不必动任何 profile 依赖。</li>
         <li><code class="inline-code">npx skills</code> 递归扫描，安装时把 <code class="inline-code">skills/&lt;桶&gt;/&lt;技能&gt;</code> <strong>拍平</strong>成 <code class="inline-code">~/.agents/skills/&lt;技能&gt;</code>——技能根只扫一层，所以必须拍平。</li>

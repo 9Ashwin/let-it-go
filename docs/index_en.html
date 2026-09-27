@@ -896,17 +896,14 @@
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">ui-ux-pro-max</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">web-design-guidelines</span>
 
-<span class="comment"># Global install (available for all projects)</span>
+<span class="comment"># Global install (available for all projects); re-running it is the update</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">-g</span>
-
-<span class="comment"># Update from the same source later</span>
-<span class="cmd">npx skills update</span> <span class="flag">-g</span>
 
 <span class="comment"># Install to one agent only (universal = the ~/.agents/skills location above)</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">-g</span> <span class="flag">-a</span> <span class="value">universal</span></code></pre>
       <p>Skills land in <code class="inline-code">~/.agents/skills</code>. This is the least-effort route: nothing to change in a profile, and it applies to every profile.</p>
 
-      <p><code class="inline-code">npx skills</code> scans recursively and flattens <code class="inline-code">skills/&lt;bucket&gt;/&lt;skill&gt;</code> into <code class="inline-code">~/.agents/skills/&lt;skill&gt;</code> on install — a skill root is scanned only one level deep, so the flattening is required. The picker groups the <strong>27 entries into Let It Go Flow / Bonus / Vendor</strong> using the root <code class="inline-code">.claude-plugin/marketplace.json</code>; what lands in <code class="inline-code">~/.agents/skills</code> is still flat, so the bucket exists in the repo only. Copying by hand means doing the flattening step yourself:</p>
+      <p><code class="inline-code">npx skills</code> scans recursively and flattens <code class="inline-code">skills/&lt;bucket&gt;/&lt;skill&gt;</code> into <code class="inline-code">~/.agents/skills/&lt;skill&gt;</code> on install — a skill root is scanned only one level deep, so the flattening is required. The picker groups the <strong>24 entries into Let It Go Flow / Bonus / Vendor</strong> using the root <code class="inline-code">.claude-plugin/marketplace.json</code>; what lands in <code class="inline-code">~/.agents/skills</code> is still flat, so the bucket exists in the repo only. Copying by hand means doing the flattening step yourself:</p>
       <pre><code><span class="comment"># flattened, not the bucket</span>
 <span class="cmd">cp -R</span> <span class="value">&lt;let-it-go&gt;/skills/flow/graph</span> <span class="value">~/.agents/skills/graph</span></code></pre>
 
