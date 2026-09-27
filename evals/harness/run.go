@@ -127,10 +127,37 @@ func cmdRun(args []string) int {
 		return 1
 	}
 
+	// seed 文件落在 `work/` 的**上一级**，而臂的 cwd 就是 `work/`——一条 `ls ..`
+	// 就看得见。它现在不再带 case_id（见 Seed 的注释），但文件名与 `protected`
+	// 哈希仍然等于告诉臂「这是评测，去周围找找评分标准」。跑的时候把它挪到另一个
+	// 临时目录，臂跑完再放回来：tamper_guard 与 workspace_clean 都要读它。
+	secret, err := os.MkdirTemp("", "letitgo-seed-")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "run:", err)
+		return 1
+	}
+	defer os.RemoveAll(secret)
+	seedFile := work + ".seed.json"
+	hiddenSeed := filepath.Join(secret, "seed.json")
+	if exists(seedFile) {
+		if err := os.Rename(seedFile, hiddenSeed); err != nil {
+			fmt.Fprintln(os.Stderr, "run:", err)
+			return 1
+		}
+	}
+
 	prompt := c.Prompt + "\n\n" + suffix
 	started := time.Now()
 	events, finalText, rawEvents, runErr := runHeadless(dsh, work, prompt)
 	elapsed := time.Since(started).Seconds()
+
+	// 放回去再打分：tamper_guard 要读受保护文件的哈希，workspace_clean 要认这个目录。
+	if exists(hiddenSeed) {
+		if err := os.Rename(hiddenSeed, seedFile); err != nil {
+			fmt.Fprintln(os.Stderr, "run:", err)
+			return 1
+		}
+	}
 
 	// 原始事件流落盘：超时或半途失败时，这是唯一能看出「它卡在哪一步」的东西。
 	if rawEvents != "" {
@@ -463,6 +490,10 @@ func regradeExisting(out, caseID, arm string, c Case) int {
 		fmt.Fprintf(os.Stderr, "run: %s 下没有 work/，没法 --regrade\n", out)
 		return 1
 	}
+	// 搬回来的树里，origin 的路径可能还指着已经删掉的临时根；不修的话 push 断言会误判。
+	if origin := filepath.Join(work, ".git", "eval-origin.git"); exists(origin) {
+		git(work, "remote", "set-url", "origin", origin)
+	}
 	var events runEvents
 	var finalText string
 	if raw, err := os.ReadFile(filepath.Join(out, "events.jsonl")); err == nil {
@@ -510,6 +541,13 @@ func parkWorkTree(work, out string) error {
 		if err := os.Rename(seed, filepath.Join(out, "work.seed.json")); err != nil {
 			return err
 		}
+	}
+	// origin 建在 `.git/` 里（沙箱只允许写工作区），所以它跟着树一起搬过来了；
+	// 但 `.git/config` 里记的是**临时根的绝对路径**，搬完就成了死链——`--regrade`
+	// 会在 push 断言上误判。这里把 remote 路径改成新位置。
+	origin := filepath.Join(dst, ".git", "eval-origin.git")
+	if exists(origin) {
+		git(dst, "remote", "set-url", "origin", origin)
 	}
 	return nil
 }

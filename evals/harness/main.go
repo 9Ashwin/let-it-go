@@ -207,11 +207,11 @@ func caseDirs() []string {
 // 写在 workdir **外面**，免得 eval 基础设施漏进被测仓库。
 // ---------------------------------------------------------------------------
 
+// Seed 只放断言真正要读的东西。它曾经还带 case_id / case_name / workdir /
+// seed_commit，但没有任何地方读——纯粹是**写给被测臂看的线索**：实测有臂读到
+// case_id 之后 `find $HOME -maxdepth 6 -name 04-serial-batch`，直接找到了用例
+// 定义（断言就在里面），然后照着期望值做。
 type Seed struct {
-	CaseID           string            `json:"case_id"`
-	CaseName         string            `json:"case_name"`
-	Workdir          string            `json:"workdir"`
-	SeedCommit       string            `json:"seed_commit"`
 	Protected        map[string]string `json:"protected"`
 	ProtectedMissing []string          `json:"protected_missing_at_seed"`
 }
@@ -759,10 +759,12 @@ func cmdMaterialize(args []string) int {
 	}
 	for _, command := range [][]string{
 		{"init", "-q"},
-		{"config", "user.email", "eval@let-it-go.local"},
-		{"config", "user.name", "let-it-go eval"},
+		// 身份与提交信息都要中性：`let-it-go eval` / `seed: eval fixture` 等于
+		// 在第一条命令（`git log`）里就告诉臂「你在被评测」，那是在邀请它去找评分标准。
+		{"config", "user.email", "dev@example.com"},
+		{"config", "user.name", "dev"},
 		{"add", "-A"},
-		{"commit", "-q", "-m", "seed: eval fixture at its starting state"},
+		{"commit", "-q", "-m", "chore: initial import"},
 	} {
 		if out, code := git(dest, command...); code != 0 {
 			fmt.Fprintf(os.Stderr, "materialize: git %s 失败：%s\n", strings.Join(command, " "), out)
@@ -794,16 +796,10 @@ func cmdMaterialize(args []string) int {
 		}
 	}
 
-	commit, _ := git(dest, "rev-parse", "HEAD")
 	seed := Seed{
-		CaseID:           caseID,
-		CaseName:         c.Name,
-		SeedCommit:       strings.TrimSpace(commit),
 		Protected:        map[string]string{},
 		ProtectedMissing: []string{},
 	}
-	abs, _ := filepath.Abs(dest)
-	seed.Workdir = abs
 	for _, rel := range c.TamperGuard {
 		hash, err := hashFile(filepath.Join(dest, rel))
 		if err != nil {
@@ -812,6 +808,7 @@ func cmdMaterialize(args []string) int {
 		}
 		seed.Protected[rel] = hash
 	}
+	abs, _ := filepath.Abs(dest)
 	if err := os.WriteFile(seedPath(dest), mustJSON(seed), 0o644); err != nil {
 		fmt.Fprintln(os.Stderr, "materialize:", err)
 		return 1
