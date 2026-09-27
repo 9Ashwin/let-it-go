@@ -81,8 +81,6 @@ python3 <SKILL_DIR>/scripts/scan_workspace.py --json
 所以骨架里那条清单的第一件事是**先跑门禁看基线**，并且明写：**基线是红的就先修基线，
 不要加新范围**——否则新工作会盖在一层已经红了的测试上，之后没人分得清是谁弄红的。
 
-这条是 `harness-creator`（walkinglabs/learn-harness-engineering）的设计，值得照抄。
-
 ## 反模式
 
 - **把模板整段抄进去**，包括与本仓库无关的条目——一份带别人约定的入口比没有更糟。
