@@ -16,7 +16,13 @@ go -C evals/harness run . bench results/iteration-N --skill-name flow
 
 **iteration-1 … iteration-6 的原始结果文件已删**，只留这个文件里的结论。理由：那几轮是
 **旧 fixture + 手工派子代理**条件下收的，条件已经变了，留着会有人拿它当可比数据。
-**iteration-7 起作为新基线完整保留。**
+**iteration-7 起作为新基线完整保留**，例外是 **iteration-8（隔离有漏洞，整轮作废，见下）**。
+
+⚠️ **隔离是这条流水线的前提，不是细节。** 臂和评测仓库在同一台机器上，所以只要有任何一处
+把 `case_id`、`evals/` 路径或「你在被评测」的暗示留在它能读到的地方，它就会去找评分标准。
+iteration-8 与 iteration-9 各因此废掉一条臂。下面每一条都记了当时漏在哪——**这类漏洞一次都
+不能静默放过**，所以 harness 里有一条污染检查，命中就写 `contaminated.json` 并在 stderr 报警，
+那一轮的分数按不可信处理。
 
 ---
 
@@ -52,6 +58,110 @@ fixture 改完之后，把两条护栏（单次运行，各一条臂）重跑了
 2. **`workspace_clean` 量的是环境仓库，不是臂。** 它拿 let-it-go 工作树的脏状态当基准，
    两次把 Lead 的动作记成臂的越界。DSH 自己的 `benchmarks/AGENTS.md` 明说不要用
    ambient repositories。已改成只看 fixture 的父目录。
+
+## iteration-8：作废——臂读到了答案键
+
+跑完 8 条臂之后逐条审计 tool call，发现 **4 条爬出了自己的 fixture**：
+
+- 1 条读了 `arms.json`、**另一条臂的检查点**、它的 README 与 `stock.go`，然后照抄那份检查点——
+  它是唯一一条产出检查点的 `without_skill` 臂，靠抄拿到了 9/9
+- 3 条读了 `evals/cases/<case>/case.json`，也就是**它正在被打分的那些断言**；其中一条还把探针
+  复制进了自己的树
+
+两个原因，都是我的：
+
+1. **工作树铺在 `evals/results/` 里**，`../../..` 就爬到 `evals/`。DSH 自己的
+   `benchmarks/AGENTS.md` 写着要用 private `mkdtemp` roots——我读过那一行，没照做。
+   现在工作树建在仓库外的私有临时根，**打完分才搬回 `results/`**，跑的时候周围什么都没有。
+2. **fixture 的 `AGENTS.md` 自称「这是一个评测用的真实代码示例」**——等于在第一条命令之前
+   就告诉臂「你在被评测」。现在它只描述这个服务。
+
+**结果文件已删**（8 条里 4 条污染，其中一条的满分是抄来的）。这一轮没有可用的数字。
+
+## iteration-9：隔离修好之后的第一轮干净数据
+
+`04` 两条臂各 3 次、`05` 两条臂各 1 次。
+
+| 用例 | with_skill | without_skill | 区分点 |
+|---|---|---|---|
+| 04-serial-batch | 9/9、9/9、8/9 → 0.963 | 8/9、8/9、8/9 → 0.889 | **检查点** |
+| 05-full-pipeline | 见下（首次 5/9，是测量天花板） | 7/9 | **PRD + issue 卡** |
+
+### 修隔离时又抓出四个同类漏洞
+
+前两个修完之后，`04` 的 `without_skill` 仍然被标记污染，于是顺着事件流一路查下去，又找到四个：
+
+3. **seed 文件落在 `work/` 的上一级**，而臂的 cwd 就是 `work/`——一条 `ls ..` 就看见。
+   它当时还带着 `case_id` / `case_name` / `workdir` / `seed_commit`，**没有任何地方读它们**，
+   纯是写给臂看的线索。实测路径：`read ../work.seed.json` → 拿到 `case_id` →
+   `find $HOME -maxdepth 6 -name 04-serial-batch` → 找到 `case.json`（断言就在里面）。
+   现在 seed 在跑的时候被挪到另一个临时目录，跑完放回来（`tamper_guard` 要读它的哈希）。
+4. **fixture 的第一个 commit 署名 `let-it-go eval <eval@let-it-go.local>`，信息写着
+   `seed: eval fixture at its starting state`**——臂的第一条命令就是 `git log`。
+   现在是 `dev <dev@example.com>` / `chore: initial import`。
+5. **早退路径不清理临时根**（preflight 不合格、写文件失败都直接 `return 1`），于是 `$TMPDIR`
+   里躺着上一次运行留下的 `letitgo-eval-*`，里面是**旧格式的 seed**。一条 05 的臂 `ls $TMPDIR`
+   翻到了它，再顺着找到仓库。现在清理挂在 `defer` 上。
+
+修完之后的 `04` 六条臂**没有一条带污染标记**。
+
+### case 04：区分点收窄到检查点，而且这次是 3/3 vs 0/3
+
+`without_skill` 三次都**只挂同一条断言**：「串行批次产生了检查点，且落在
+`requirements/<scope>/issues/` 下」；`with_skill` 三次都产出了检查点。批次状态是这套技能
+唯一稳定的区分点——和 iteration-4 的结论一致，但那次是单次运行，而且当时 fixture 还在
+自己规定 scope 形状。
+
+其余断言（门禁、防篡改、分支形状、不越界、批末 push）两边都能过：**它们是护栏，不是区分点。**
+
+### case 05：没加载技能的臂不做规划，加载了技能的臂停下来问人
+
+`without_skill` 7/9，挂的正好是两条**规划**断言：没产出 PRD、没产出 issue 卡。它把代码做对了
+（阈值可配置、回退默认、门禁绿），但直接从「一句话诉求」跳到写代码。
+
+`with_skill` 第一次只有 **5/9、30.6s、12 次工具调用**——它按 `/prd` 把 4 个带推荐答案的澄清
+问题**用散文写出来，然后结束回合等人回答**。headless 里没有人在场，运行就到此为止。
+
+**这不是技能被用错了，是技能漏了一种环境**：`ask_user_question` **根本不在 headless 的工具
+列表里**（实测：让一条 headless 会话列可用工具，里面没有它——headless 刻意不带 Host / 浏览器
+插件）。而 `/prd` 当时只说了「澄清必须在能问到人的上下文里做」，没说「问不到人时该怎么办」。
+停在「等你回复」上是唯一一定错的做法。已补上（见下）。
+
+### 一个后台子代理吃掉了整个运行
+
+`04/with_skill` run1 停在 8/9，唯一没过的断言是它自己在结尾说的「收到结论后继续批末收尾与 push」。
+事件流写得很清楚：
+
+```
+thinking: Still running. I'll wait. I need to end the turn.
+text:     （等待后台评审返回，收到结论后继续批末收尾与 push。）
+status:   turn_end reason=completed
+```
+
+它按 `/review-it` 把批末对抗性评审派给一个全新子代理——**做法是对的**——然后结束回合等它。
+DSH 的 `subagent` 默认后台跑，而后台子代理**不会让本回合保持忙碌**：交互式会话里完成通知会
+唤醒它，headless 里进程先退出了。批末收尾与 push 都没发生。
+
+### 成本
+
+| | with_skill | without_skill |
+|---|---|---|
+| 04 平均耗时 | 288.3s | 100.9s |
+| 04 平均 tokens | 2,310,418 | 863,438 |
+| 05 耗时 / tokens | 446.0s / 3,782,560（污染轮，仅作量级参考） | 105.8s / 485,540 |
+
+技能让它多花 2–8 倍。换来的是**批次状态**与**规划产物**——单次小改动不值（iteration-1…3
+已经说明），有依赖边的批次与没成形的诉求值。
+
+### 这一轮改了什么
+
+- `57ae748` — **要拿到结果才能继续时传 `run_in_background: false`**。`review-it`、`loop-it`、
+  `walkthrough`、`graph` 各自在它规定的委托旁边写了这一条。`graph` 的波级派发本来就用
+  `workflow`（自己 await 全部 thunk），所以没有这个问题。
+- `prd` — **澄清用 `ask_user_question`，不要用散文；问不到人就不要停。** 工具不在列表里
+  （无人值守部署）、调用被拒（子代理）、或用户已经说了「怎么落地你定」，三种情况都**自己定、
+  写进 PRD、标 `[Assumption]`，照常产出**。
+- `670481c` — 早退路径也清理临时根（`defer`）。
 
 ## iteration-6：一个负结果——fixture 在替技能干活
 
@@ -180,5 +290,7 @@ harness 刚搭好时用「参考解的真实 grading + 一条手工造的 withou
 - `notes.md` — 臂最后说了什么；以及**断言无效**的原因（例如 Lead 在跑臂期间改了仓库）
 - `work/` — 臂的工作副本，scratch，不进库；分数在 `grading.json` 里，产物在 `work/` 里
 
-⚠️ **跑臂期间冻结仓库。** `workspace_clean` 拿 materialize 时的脏快照比，
-Lead 顺手改一行 `.gitignore` 就会被记成那条臂的越界（iteration-6 就这么中过一次）。
+⚠️ **跑臂期间冻结 harness 与技能集。** `workspace_clean` 已经不量环境仓库了（它只看 fixture 的
+父目录，见 iteration-7 第 2 条），所以顺手改仓库不再污染分数。**但改 `evals/harness/` 或重新安装
+技能仍然会污染**：`go run` 每次调用都重新编译，所以同一条命令里的第 3 条臂可能跑的是你刚改完的
+代码；技能则是在臂启动时从 `~/.agents/skills/` 读的。要改，就等这一轮跑完。
