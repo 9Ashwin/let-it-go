@@ -13,6 +13,34 @@ go -C evals/harness run . bench results/iteration-N --skill-name flow
 
 ---
 
+## iteration-5
+
+| 用例 | with_skill | without_skill | 区分点 |
+|---|---|---|---|
+| 05-full-pipeline | 8/9 | 7/9 | **PRD** |
+
+**这是第一个测到规划半边的用例**——前面四个全部从流水线中段进入，需求是我给到手里的。
+
+prompt 只给一个没成形的诉求（「我们要能按仓库配低库存阈值……怎么落地你定」），fixture 里没有
+需求资料、没有 issue 卡、没有 PRD。两条臂都自己建了 scope 目录与 issue 卡，**但只有
+`with_skill` 产出了 PRD**：
+
+- `with_skill`：scope README + `documents/prd-*.md` + issue 卡 + `notes/walkthrough-*.md`
+- `without_skill`：scope README + issue 卡（没有 PRD，也没有走查件）
+
+### ⚠️ 这条用例的探针是坏的（我的设计错误）
+
+两条臂都挂在「阈值真的能按仓库配置」上，但**不是它们做错了**：prompt 说「怎么落地你定」，
+于是两条臂都选了 `config/low_stock_thresholds.json`（不是探针写死的 `config/thresholds.json`），
+其中 `with_skill` 还用 `go:embed` 把配置编译进二进制——**探针「写配置文件再观察」的做法
+对 embed 实现根本不成立**。
+
+修法：要么让任务**把机制定下来**（加一条验收条件：「运维改配置后不重新构建就生效」——
+这本来就是真实诉求），要么让探针去 `config/` 下自己找那份配置。前者更诚实：**探针能测什么，
+取决于任务有没有把验收条件说清楚**，而不是取决于实现者挑了什么机制。
+
+这条断言对两条臂**同等失效**，所以 PRD 那个区分点仍然成立。
+
 ## iteration-4
 
 | 用例 | with_skill | without_skill | 区分点 |
