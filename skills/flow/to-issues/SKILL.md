@@ -25,7 +25,7 @@ This is the rule that matters most, and the one models break most often.
 
 **Consumption contract:** a **fresh child** does NOT see this conversation, so an Issue body must be self-contained. That is the "agent-ready by construction" rule above, now enforced by the runtime instead of by convention. A **forked child** inherits context — use it only for follow-ups, never as a substitute for a well-written Issue.
 
-> Keep this skill in the **same context window** as `/prd-to-spec`. Don't clear or compact between them, or the SPEC has to be re-fetched and may truncate.
+> **The Issue body is the contract.** There is no separate SPEC document to keep in context: goal, non-goals, acceptance criteria, external boundary, required evidence, definition of done and open questions all live in the body, so a fresh child can act on it without this conversation. Keep those fields honest — a criterion with no observation that would prove it is not a criterion.
 
 ---
 
@@ -87,15 +87,30 @@ Generate the Issue list. Rules:
 ```
 Issue #N: [Title — a behaviour, not a layer]
 ---
-Description: [What behaviour this delivers, end to end, and why]
+Goal: [What behaviour this delivers, end to end, and why]
+Non-goals: [What this explicitly does not do — the scope fence]
 Demo path: [The one thing you can show working when this lands]
 Acceptance Criteria:
 - [ ] [Falsifiable — names an observation that fails at the base commit]
 - [ ] ...
+Evidence required: [For each criterion, the observation that proves it — test name, command, page, query. Never "tests pass".]
+External boundary: [What must be real for this to count — running service, database, third-party API, human check. "None" if the change is local.]
+Definition of done: [Gates green + every criterion carries evidence + the demo path was actually run]
+Open questions: [Unresolved items that must not be silently guessed — or None]
 Blocked by: [None / Issue #X, #Y]
 Priority: [high / medium / low]
-SPEC Reference: [Section X.Y — contracts only, no file paths; only if SPEC available]
 ```
+
+**Contract quality checks** — run these before publishing anything:
+
+- [ ] Every acceptance criterion maps to an **observable** piece of evidence, not "tests pass"
+- [ ] No `TBD` / `TODO` left — resolve it now or move it to Open questions
+- [ ] Failure paths have a place in the criteria; not only the happy path
+- [ ] Non-goals are stated, or the implementation will expand scope on its own
+- [ ] The external boundary says what must be *real* to count — a local fake only proves the local contract
+- [ ] Definition of done includes "the demo path was actually run", not "the code looks right"
+
+Anti-patterns: restating the request in different words as a criterion; writing an algorithm section for CRUD with no special logic; choosing technology without reading what the project already uses; listing behaviour that is already true at the base commit.
 
 ---
 
@@ -152,7 +167,7 @@ Your choice:
    ```bash
    gh issue create \
      --title "[Title]" \
-     --body "[Description + Demo path + Acceptance Criteria + SPEC Reference]" \
+     --body "[Goal + Non-goals + Demo path + Acceptance Criteria + Evidence required + External boundary + Definition of done + Open questions]" \
      --label "priority: [priority]" \
      --blocked-by [comma-separated blocker numbers, if any] \
      --parent [spec issue number, if creating as sub-issues]
@@ -175,8 +190,11 @@ Where should I save the Issue files? (default: .autoresearch/issues/[feature-slu
    ```markdown
    # [Title — a behaviour]
 
-   ## Description
+   ## Goal
    [What behaviour this delivers, end to end, and why]
+
+   ## Non-goals
+   [What this explicitly does not do]
 
    ## Demo path
    [The one thing you can show working when this lands]
@@ -185,14 +203,23 @@ Where should I save the Issue files? (default: .autoresearch/issues/[feature-slu
    - [ ] [Falsifiable criterion 1]
    - [ ] [Falsifiable criterion 2]
 
+   ## Evidence required
+   [Per criterion: the observation that proves it — test name, command, page, query]
+
+   ## External boundary
+   [What must be real for this to count; "None" if local]
+
+   ## Definition of done
+   [Gates green + every criterion carries evidence + the demo path was run]
+
+   ## Open questions
+   [Unresolved items — or None]
+
    ## Blocked by
    [None / #NN, #NN]
 
    ## Priority
    [high / medium / low]
-
-   ## SPEC Reference
-   [Section X.Y — contracts only; omit if no SPEC]
    ```
 3. Report created file paths in dependency order.
 
@@ -246,7 +273,7 @@ Two caveats to state out loud:
 - A long-running objective may not auto-close the ticket — update its state yourself when done.
 - Parallel dispatch is only safe when the frontier's Issues do **not** edit the same files. `/graph` enforces that with one worktree per node plus a fan-in barrier; if scopes overlap, run those Issues sequentially instead.
 
-Host-specific tool names for the "One Issue, right now" row, and how each host discovers and invokes this skill, are in [`references/dsh-runtime.md`](references/dsh-runtime.md) (DSH), [`references/codex-runtime.md`](references/codex-runtime.md) (Codex) and [`references/claude-code-runtime.md`](references/claude-code-runtime.md) (Claude Code).
+DSH tool names for the "One Issue, right now" row, and how DSH discovers and invokes this skill, are in [`references/dsh-runtime.md`](references/dsh-runtime.md).
 
 ---
 
@@ -284,15 +311,14 @@ Host-specific tool names for the "One Issue, right now" row, and how each host d
 ## Relationship to Other Skills
 
 ```
-/prd  →  /prd-to-spec (optional)  →  /to-issues ─┬─→ /loop-it  (serial: one Issue at a time)
- │              │                        │        └─→ /graph    (parallel: whole wave at once)
- │  Requirements │  Technical design     │  Vertical        │
- │  (what)       │  (how)                │  tickets         │  Implementation (code)
+/prd  →  /to-issues ─┬─→ /loop-it  (serial: one Issue at a time)
+ │            │        └─→ /graph    (parallel: whole wave at once)
+ │ Requirements│  Vertical        │
+ │  (what)     │  tickets         │  Implementation (code)
 ```
 
-- **/prd** — produces the PRD (input to this skill)
-- **/prd-to-spec** — produces the SPEC (optional; keep in the same context window as this skill)
-- **/to-issues** — produces the vertically-sliced Issues (this skill)
+- **/prd** — produces the PRD (input to this skill); optional for a small change that is already well specified
+- **/to-issues** — produces the vertically-sliced Issues, each carrying its own contract block (this skill)
 - **/loop-it** — implements Issues sequentially with checkpoint/resume
 - **/graph** — implements the dependency graph in parallel waves, one worktree per node
-- **/goal** — a human-facing client command (persisted objective with autonomous rounds); not something the model invokes
+- **/goal** — a human-facing client command for a persisted objective with autonomous rounds. Its gate is authority, not wording: `create_goal` runs only in a direct top-level human turn, so a subagent cannot mint one — but when the human hands over a long-running batch, creating the goal is the designed behaviour and is what keeps the session working between turns

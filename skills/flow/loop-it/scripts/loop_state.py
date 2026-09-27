@@ -19,7 +19,17 @@ Subcommands (all accept `--state <path>`, default `.loop-state.json`):
   set --issue N --status <pending|in_progress|shipped|failed|skipped|blocked>
       [--error-class X] [--error TEXT] [--branch B] [--phase P]
       Record one transition, stamp times, increment `attempts` when an attempt
-      starts, write the checkpoint, and print what to do next.
+      starts, write the checkpoint, and print what to do next. Marking an issue
+      `shipped` warns when it still has no `decisions` / `verification` / `open`
+      recorded — a shipped row without them says a thing happened, not what
+      proved it.
+
+  note --issue N [--progress TEXT] [--decisions TEXT] [--verification TEXT]
+       [--open TEXT]
+      Record the four things a checkpoint must not lose, appended verbatim
+      rather than summarized: what happened, what was decided and why, what was
+      run and what it proved, and what is still open. These are what make a
+      finished batch auditable months later.
 
   next
       Print the next actionable issue (all deps shipped) and why the others
@@ -37,13 +47,15 @@ resumes:
     "issues": {"3": {"status": ..., "branch": ..., "phase": ...,
                      "error_class": ..., "attempts": 0, "started_at": ...,
                      "updated_at": ..., "completed_at": ..., "last_error": ...
-                     "title": ..., "deps": [1, 5]}}
+                     "title": ..., "deps": [1, 5],
+                     "notes": {"decisions": [{"at": ..., "text": ...}], ...}}}
   }
 
 `title` and `deps` are additive per-issue fields written by `scan` so `next`
-and `summary` can explain what is waiting without re-reading GitHub. An old
-file that lacks them still resumes; it only loses titles and waiting reasons
-until the next `scan` refreshes them.
+and `summary` can explain what is waiting without re-reading GitHub. `notes` is
+additive too — written by the `note` subcommand, absent until something is
+recorded. An old file that lacks any of them still resumes; it only loses
+titles, waiting reasons and notes until the next write.
 
 Ordering: repeatedly take the lowest-numbered issue whose in-batch deps are all
 placed (lexicographically smallest topological order). When that stalls, the
@@ -69,6 +81,14 @@ STATUSES = ("pending", "in_progress", "shipped", "failed", "skipped", "blocked")
 DONE = ("shipped", "skipped")
 RUNNABLE = ("pending", "in_progress")
 DEFAULT_STATE = ".loop-state.json"
+
+# The four things a checkpoint must not lose, kept verbatim rather than summarized. They are
+# why a finished batch can still be audited months later: a status says a thing shipped, not
+# what was decided, what proved it, or what was left open. `progress` is not enforced because
+# the status and timestamps already carry it; the other three are, because a `shipped` row
+# without them is an assertion with no trail.
+NOTE_CATEGORIES = ("progress", "decisions", "verification", "open")
+REQUIRED_NOTES = ("decisions", "verification", "open")
 
 DEP_TRIGGER = re.compile(r"(?:dependencies|depends\s+on|requires)\s*:?", re.IGNORECASE)
 REF = re.compile(r"#(\d+)")
@@ -535,6 +555,15 @@ def cmd_set(args: argparse.Namespace) -> int:
 
     detail = f" (attempts {entry.get('attempts', 0)})" if args.status == "in_progress" else ""
     print(f"{ref(args.issue)}: {previous} -> {args.status}{detail}")
+    if args.status == "shipped":
+        missing = missing_notes(entry)
+        if missing:
+            print(
+                f"  ! no {', '.join(missing)} recorded for {ref(args.issue)} — a shipped row "
+                f"without them says a thing happened, not what proved it. Record it with "
+                f"`note --issue {args.issue} …`.",
+                file=sys.stderr,
+            )
     print(render_next(state))
     if not any(issues[str(n)].get("status") not in DONE for n in order_of(state)):
         print("\n🎉 全部 issue 处理完毕 — 现在做批末收尾：/review-it 审整批 diff，然后 /ship-it 一次 PR。")
@@ -544,6 +573,41 @@ def cmd_set(args: argparse.Namespace) -> int:
 def cmd_next(args: argparse.Namespace) -> int:
     state = load_state(args.state, required=True)
     print(render_next(state))
+    return 0
+
+
+def missing_notes(entry: dict) -> list[str]:
+    """Which required category this issue has nothing recorded for."""
+    notes = entry.get("notes") or {}
+    return [category for category in REQUIRED_NOTES if not notes.get(category)]
+
+
+def cmd_note(args: argparse.Namespace) -> int:
+    state = load_state(args.state, required=True)
+    key = str(args.issue)
+    issues = state["issues"]
+    if key not in issues:
+        die(f"{ref(args.issue)} is not tracked in {args.state} — run the `scan` subcommand first")
+    entry = issues[key]
+    notes = entry.setdefault("notes", {})
+    stamp = now()
+
+    written = []
+    for category in NOTE_CATEGORIES:
+        text = getattr(args, category)
+        if not text:
+            continue
+        # Append rather than replace: a decision taken early is exactly what a later step
+        # tends to overwrite, and losing it is the failure this field exists to prevent.
+        notes.setdefault(category, []).append({"at": stamp, "text": text})
+        written.append(category)
+
+    if not written:
+        die("nothing to record — pass at least one of "
+            + ", ".join(f"--{category}" for category in NOTE_CATEGORIES))
+    entry["updated_at"] = stamp
+    save_state(state, args.state)
+    print(f"{ref(args.issue)}: recorded {', '.join(written)}")
     return 0
 
 
@@ -578,6 +642,15 @@ def main(argv: list[str] | None = None) -> int:
     nxt = sub.add_parser("next", help="print the next actionable issue")
     nxt.add_argument("--state", default=DEFAULT_STATE)
     nxt.set_defaults(func=cmd_next)
+
+    note = sub.add_parser("note", help="record the four things the checkpoint must not lose")
+    note.add_argument("--issue", type=int, required=True)
+    note.add_argument("--progress", help="what happened")
+    note.add_argument("--decisions", help="what was decided, and why")
+    note.add_argument("--verification", help="what was run, and what it proved")
+    note.add_argument("--open", help="what is still open")
+    note.add_argument("--state", default=DEFAULT_STATE)
+    note.set_defaults(func=cmd_note)
 
     summary = sub.add_parser("summary", help="print the progress table")
     summary.add_argument("--state", default=DEFAULT_STATE)

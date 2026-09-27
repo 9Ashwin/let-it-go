@@ -1,10 +1,9 @@
 {
-  "name": "stream-it-skills",
+  "name": "let-it-go-skills",
   "version": "1.0.0",
-  "description": "A from-PRD-to-delivery development workflow skill set for coding agents.",
+  "description": "A from-PRD-to-delivery development workflow skill set for the DeepSeek Harness.",
   "license": "MIT",
   "files": [
-    ".claude-plugin",
     "cordis.patch.yml",
     "skills",
     "README.md",
@@ -20,7 +19,6 @@
     "skills",
     "workflow",
     "prd",
-    "codex",
     "dsh",
     "deepseek-harness",
     "agent-skills"

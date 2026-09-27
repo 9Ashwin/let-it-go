@@ -229,6 +229,50 @@ def test_untracked_dependency_waits():
         check("untracked dep blocks next", "📊 next: (无可执行项)" in out, out)
 
 
+def test_notes_are_kept_verbatim():
+    """The four categories are the reason a finished batch stays auditable."""
+    with tempfile.TemporaryDirectory() as tmp:
+        state_path = os.path.join(tmp, ".loop-state.json")
+        issues = write_issues(tmp, [(1, "Only", "no deps")])
+        run("scan", "--issues", issues, "--state", state_path, "--repo", "o/r")
+
+        code, out, err = run("note", "--issue", 1, "--state", state_path)
+        check("a note with nothing to record is refused", code == 1, out)
+
+        code, out, err = run("note", "--issue", 1, "--decisions", "chose X over Y",
+                             "--verification", "go test ./... exit 0", "--open", "none",
+                             "--state", state_path)
+        check("note exits 0", code == 0, err)
+        notes = read_state(state_path)["issues"]["1"]["notes"]
+        check("decisions recorded", notes["decisions"][0]["text"] == "chose X over Y", str(notes))
+        check("progress stays optional", "progress" not in notes, str(notes))
+
+        run("note", "--issue", 1, "--decisions", "and later Z", "--state", state_path)
+        kept = [entry["text"] for entry in read_state(state_path)["issues"]["1"]["notes"]["decisions"]]
+        check("notes append instead of replacing", kept == ["chose X over Y", "and later Z"], str(kept))
+
+        code, out, err = run("set", "--issue", 1, "--status", "shipped", "--state", state_path)
+        check("shipping with the record in place does not warn", "no decisions" not in err, err)
+
+
+def test_shipping_without_evidence_warns():
+    """A `shipped` row with no decisions, verification or open items is a claim, not a record."""
+    with tempfile.TemporaryDirectory() as tmp:
+        state_path = os.path.join(tmp, ".loop-state.json")
+        issues = write_issues(tmp, [(1, "Only", "no deps")])
+        run("scan", "--issues", issues, "--state", state_path, "--repo", "o/r")
+
+        code, out, err = run("set", "--issue", 1, "--status", "shipped", "--state", state_path)
+        check("the transition itself still succeeds", code == 0, err)
+        check("all three missing categories are named",
+              "no decisions, verification, open recorded" in err, err)
+
+        run("note", "--issue", 1, "--decisions", "d", "--state", state_path)
+        code, out, err = run("set", "--issue", 1, "--status", "shipped", "--state", state_path)
+        check("a partial record still warns about the rest",
+              "no verification, open recorded" in err, err)
+
+
 def main() -> int:
     print("loop_state.py tests")
     for test in (
@@ -239,6 +283,8 @@ def main() -> int:
         test_corrupt_state_is_refused,
         test_blocked_and_next_computation,
         test_untracked_dependency_waits,
+        test_notes_are_kept_verbatim,
+        test_shipping_without_evidence_warns,
     ):
         print(f"- {test.__name__}")
         test()

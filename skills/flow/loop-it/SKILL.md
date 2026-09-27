@@ -21,17 +21,18 @@ description: "Serial GitHub issue loop with checkpoint/resume: order open issues
 
 ## 批处理模型
 
-默认（也是推荐）模式：**review 和 ship 都只在批末做一次**。
+默认（也是推荐）模式：**每个 issue 过一次 supervisor 检查，ship 只在批末做一次**。
 
 ```
-每个 issue（N 次）:  内联实现 → 用项目门禁自证 → 在该 issue 的分支上 commit
-批末（1 次）:        /review-it 审整批合并 diff → /ship-it → 1 个 PR → merge → 关闭本批满足的 issue
+每个 issue（N 次）:  内联实现 → 用项目门禁自证 → supervisor 检查 → 在该 issue 的分支上 commit
+批末（1 次）:        /review-it 审整批合并 diff → /walkthrough → /ship-it → 1 个 PR → merge → 关闭本批满足的 issue
 ```
 
 - 每个 issue 用自己的分支，命名不变：`feat/issue-N-slug`（与 `/ship-it` 一致）。**不 push、不开 PR。**
 - 「项目门禁」= 目标仓库自己的构建/测试/lint（如 `go build ./...`、`go test ./...`、`pnpm lint`、`mise run check`），以 issue 所属项目为准。
-- 为什么批末统一 review：**审自己刚写完的代码是最弱的评审**；per-issue review 审的是可能根本活不过集成的代码。批末一次看的是集成后的完整 diff。
-- 为什么批末统一 ship：per-issue PR = N 个 PR、N 次 CI、N 次 merge 争用。默认不做。
+- 为什么逐 issue 过一次检查：**审自己刚写完的代码是最弱的评审**，但把反馈全推到批末同样有代价——批末才发现的方向性错误，会让前面每个 issue 跟着返工。逐 issue 的检查由**另一个上下文**做，判据是证据。
+- 为什么 ship 仍然只在批末做：per-issue PR = N 个 PR、N 次 CI、N 次 merge 争用。默认不做。
+- 批末那次 review 不因此取消：它看集成后的完整 diff，专找逐 issue 检查看不见的**结合部**缺陷（共享接口、装配文件、配置与状态）。
 - 批末把各 issue 分支汇总到一条批次分支（`git merge --no-ff` 各分支，或直接在累积分支上顺序 commit；**`failed` 的分支不要并入**），`/review-it` 看这条分支相对默认分支（`main` 或 `master`，先解析，别假设）的 diff，`/ship-it` 从它开一个 PR。批末 PR 关闭多个 issue，因此按 `/ship-it` 的「多个 issue 共用一个 PR」逐项列出 commit / 关闭的 issue / 验收证据 / 人工验收状态——否则单个 issue 的实现无法追溯与回滚。
 - **per-issue PR 模式**（仅当用户明确要求）：每个 issue 都走 `/review-it` + `/ship-it`，成本是 N 个 PR / N 次 CI / N 次 merge；这就是「昂贵模式」，用户没点名就用默认。
 
@@ -102,6 +103,26 @@ git checkout -b feat/issue-N-slug
 
 然后**内联实现**：读 issue 标题与正文，提取全部验收条件；正文引用的 PRD/SPEC（如 `tasks/prd-*.md`）一并读；按目标仓库既有风格改代码；跑该项目的门禁自证；长时间构建/测试作为**后台任务**运行。持续到验收条件全部满足、门禁通过，然后在该 issue 的分支上 commit。
 
+**commit 之后、记结果之前，过一次 supervisor 检查。** 这一步不是自审：刚写完这段代码的就是你，你的判断是这一环里最弱的一环。把证据交给一个**全新上下文**的评审者（怎么交、交给谁由宿主决定，见 `references/*-runtime.md`），它看不到本次实现过程，只看得到证据。
+
+四条判据：
+
+1. **判据是证据，不是 diff 观感。** 这次实现声明的每条验收条件，各自对应哪一条实际证据（测试输出 / 运行态 / 数据库 / 外部边界 / 人工验证）。拿不出证据的验收条件就是没做完——"代码看起来对"不算证据。
+2. **能跑起来看就跑起来看。** 起服务、点界面、查库、打接口，优先于读 diff。静态审查最容易漏的是"接线断了"：每个部分单独看都对，合起来不通。
+3. **发现必须具体到不用再查就能动手**：`file:line` + 根因 + 该改成什么。宽泛意见（"建议补测试"、"可以考虑重构"）不算发现，不进打回清单。
+4. **深度随任务条件化。** 任务落在当前模型能独立做稳的范围内，检查就该便宜——核一遍证据即可；越接近能力边界越要往下钻。不要为了走流程把简单任务拖成长检查。
+
+结论四选一：
+
+| 结论 | 含义 |
+|------|------|
+| `accept` | 证据齐、验收条件逐条对上，进下一个 issue |
+| `revise` | 打回本 issue 修改，改完**重跑检查**（不是重跑一遍自证就算过） |
+| `retry` | 实现方向错了，重做而不是补丁 |
+| `follow-up` | 本 issue 可放行，但新发现要记成后续任务，别丢 |
+
+**打回或重做的 issue 不进批次分支**：`set --status failed` 记下原因并保留分支，继续下一个。**ship 仍然只在批末做一次**——每个 issue 一次 PR 是这条流水线明确排除的。
+
 收尾时记录结果（脚本据此重算下一项）：
 
 ```bash
@@ -110,6 +131,17 @@ python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status skipped
 python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status blocked
 python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status failed --error-class build_failure --error "<message>"
 ```
+
+**`shipped` 之前先把检查点填成一条记录，而不是一个状态。** 检查点要原样保留四类内容，不压成摘要——进度、关键决策以及为什么这么决策、验证记录、未决事项。`set --status shipped` 在缺 `decisions` / `verification` / `open` 时会告警，那条告警说的是「这一行只说明发生了事，没说明什么证明了它」：
+
+```bash
+python3 <SKILL_DIR>/scripts/loop_state.py note --issue N \
+  --decisions "<选了什么、放弃了什么、为什么>" \
+  --verification "<跑了什么命令、退出码、证明了哪条验收条件>" \
+  --open "<还没解决或要交出去的>"          # 没有就写"无"，别省这一步
+```
+
+四类都是**追加**而不是覆盖，所以后面推翻前面的决定时，前面那条还在——被覆盖掉的决策正是这份记录存在的理由。内容长到不适合放进检查点时，写进仓库约定的笔记位置，在 `--verification` 里给出路径。
 
 - **跳过**：提问/讨论、纯文档、已实现、重复、带 `wontfix`/`question`/`discussion`/`invalid` 标签、无验收条件且推不出需求。
 - **blocked**：依赖未 `shipped`（`next` 已经给出，不要自己判断）。依赖不在本批（issue 已关闭）也按未 `shipped` 处理；确实要放行就 `set --issue <dep> --status shipped` 手工补记。
@@ -130,7 +162,7 @@ python3 <SKILL_DIR>/scripts/loop_state.py summary
 
 批末评审同样**逐 issue 分节**过一遍合并 diff，重点看 issue 之间的结合部（共享接口、装配文件、配置与状态），而不是每个 issue 的内部实现。
 
-`walkthrough` 也只在批末做一次，理由与评审相同：它证明的是集成后的整体，而逐 issue 走查会为每个可能活不过集成的 diff 各付一轮截图；它的 Review Gate 产出的正是这个批次 PR 的 body 与合并清单。`note-it` 是唯一留在 issue 级的——它一份 issue 一份 `docs/issue#NNNN.md`，且不付截图成本。PR body 按 `/ship-it` 的「多个 issue 共用一个 PR」逐项列出每个 issue 的 commit、关闭编号、验收证据与人工验收状态。`failed` 的 issue 不进批次分支，也不进这张表。
+`walkthrough` 也只在批末做一次，理由与评审相同：它证明的是集成后的整体，而逐 issue 走查会为每个可能活不过集成的 diff 各付一轮截图。PR body 由 `/ship-it` 产出——它是唯一产出者，`/walkthrough` 只提供证据。批级的**设计决策/偏离/权衡/待确认**四类由 `/ship-it` 的实现总结评论承载一次；**逐 issue 的四类**（进度/关键决策/验证记录/未决事项）落在检查点里（上面的 `note`），不另出笔记文件——只有仓库约定要求时才另写一份，并把路径写进 `--verification`。批末 PR 按 `/ship-it` 的「多个 issue 共用一个 PR」逐项列出每个 issue 的 commit、关闭编号、验收证据与人工验收状态。`failed` 的 issue 不进批次分支，也不进这张表。
 
 `/ship-it` 之后保留 `.loop-state.json` 作为记录，由用户决定何时删除。
 
@@ -146,25 +178,24 @@ python3 <SKILL_DIR>/scripts/loop_state.py summary
 - 长构建/测试作为**后台任务**运行，不要阻塞在单次调用里。
 - 严格串行：一次只处理一个 issue（实现会改工作树）。依赖图里有真并行分支时改用 `/graph`。
 
-宿主侧的工具名与配置键见 [`references/dsh-runtime.md`](references/dsh-runtime.md)（DSH）、[`references/codex-runtime.md`](references/codex-runtime.md)（Codex）与 [`references/claude-code-runtime.md`](references/claude-code-runtime.md)（Claude Code）。
+宿主侧的工具名与配置键见 [`references/dsh-runtime.md`](references/dsh-runtime.md)。
 
 ## References
 
 - [`references/error-recovery.md`](references/error-recovery.md) — 错误分类表与恢复协议。
 - [`references/edge-cases.md`](references/edge-cases.md) — 边界情况处理表。
 - [`references/dsh-runtime.md`](references/dsh-runtime.md) — DSH 侧的发现/调用方式与委派工具映射。
-- [`references/codex-runtime.md`](references/codex-runtime.md) — Codex 侧的发现/调用方式与委派工具映射。
-- [`references/claude-code-runtime.md`](references/claude-code-runtime.md) — Claude Code 侧的发现/调用方式、`Agent` 委派、任务清单与后台工作，以及缺失的续跑/审计原语。
-- `scripts/loop_state.py` — `scan` / `set` / `next` / `summary`，顺序与检查点的唯一实现。
+- `scripts/loop_state.py` — `scan` / `set` / `note` / `next` / `summary`，顺序与检查点的唯一实现。
 - `scripts/test_loop_state.py` — 自测：`python3 <SKILL_DIR>/scripts/test_loop_state.py`。
 
 ## 与其他 skill 的关系
 
 ```
-/prd → /prd-to-spec → /to-issues ─┬─→ /loop-it  (串行，一次一个 issue)
+/prd（可选）→ /to-issues ─┬─→ /loop-it  (串行，一次一个 issue)
                                    └─→ /graph    (并行，波次 fan-out)
 
-每个 issue / 每个节点:  内联实现 → 门禁自证 → commit 到自己的分支
+每个 issue:  内联实现 → 门禁自证 → supervisor 检查 → commit 到自己的分支
+每个节点:    内联实现 → 门禁自证 → commit 到自己的分支（节点不自审，评审留波末）
 批末 / 波末（各一次）:  /review-it → /walkthrough → /ship-it
-                        （/note-it 逐 issue 产出 docs/issue#NNNN.md）
+                        （决策/偏离/权衡由 /ship-it 的 issue 评论承载一次）
 ```

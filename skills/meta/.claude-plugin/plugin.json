@@ -1,9 +1,0 @@
-{
-  "name": "stream-it-meta",
-  "version": "1.0.0",
-  "description": "The router that describes the set itself.",
-  "license": "MIT",
-  "skills": [
-    "./ask-flow"
-  ]
-}

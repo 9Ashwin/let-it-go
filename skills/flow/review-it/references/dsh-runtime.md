@@ -42,18 +42,20 @@ detects DSH from `DSH_SESSION_ID` / `DSH_HOME` and falls back to DSH when no hos
 ## Delegation and completion
 
 `subagent` starts a fresh child that does not see this conversation; `subagent_fork` is the
-variant that inherits it. Calls run in the background by default and return a durable child id
-immediately, so several calls in one assistant message are concurrent. A background child reports
+variant that inherits it. Calls to `subagent` run in the background by default and return a durable
+child id immediately, so several calls in one assistant message are concurrent
+(`subagent_fork` is one-shot and foreground instead). A background child reports
 back through a settle notice the runtime injects into the parent — never poll for it, never
 busy-wait. Continue a child with `send_message(child_id, ...)`, stop one with
 `interrupt_agent(child_id)`, and audit the whole tree with `list_agents(scope="descendants")`.
 
-Delegation depth is capped at 3, so the orchestrator is depth 0, a node is depth 1, and a node
-must not delegate further. A child joins the parent's composition (same system prompt, tool
-schemas and skill catalog); only the deployment can trim it, because `toolFilter` and `persona`
-are plugin config on the subagent row and the model-facing `subagent` tool accepts no such
-argument. Child approval is pinned to `never`. There is no per-child cwd or worktree argument and
-every bash call is a fresh shell, so hand a child absolute paths.
+Delegation depth is capped at **1**, so a node — depth 1 — cannot delegate at all. A child joins the
+parent's composition (same system prompt, tool schemas and skill catalog); only the deployment can
+trim it, because `toolFilter` and `persona` are plugin config on the subagent row and the
+model-facing `subagent` tool accepts no such argument. A child cannot escalate its own permissions;
+under the read-only and workspace-write policies its approval policy is pinned to `never`. There is
+no per-child cwd or worktree argument and every bash call is a fresh shell, so hand a child absolute
+paths.
 
 | Need | Tool |
 |---|---|

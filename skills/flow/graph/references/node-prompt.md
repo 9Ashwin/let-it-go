@@ -55,38 +55,24 @@ Constraints:
 - If you cannot satisfy a criterion, STOP and report what's blocking — don't fake it. A
   clean FAIL with a precise reason is worth more than a green claim the gates contradict.
 
-Return your report in two parts.
+Your report goes through the `structured_output` tool, not through prose.
 
-**Prose first**, for the human reading it: what you did, anything that surprised you, and
-anything the orchestrator needs to know that the block below cannot carry.
+The runtime hands you that tool and tells you to finish with it; **that call is the report**. Call
+it exactly once, when the work is done, with these keys and nothing else — the orchestrator reads
+the object, not your prose:
 
-**Then the structured block**, as the very last thing in your reply: a fenced ```json block
-holding the six keys shown in the example below — `node`, `status`, `commit`, `files`, `gates`,
-`new_work` — and nothing else. Name them exactly; do not add keys of your own, because the block
-is parsed by key name and a substituted set reads as missing data. It has to be valid JSON and it
-has to be last — a missing key, a second block after it, or prose after it means the orchestrator
-has to read the whole report by hand, which is the cost this block exists to remove.
+| Key | Value |
+|---|---|
+| `node` | your node id |
+| `status` | `"shipped"` if every acceptance criterion is met and the gates are green; `"failed"` if not; `"blocked"` if you could not finish because an input you depend on is missing |
+| `commit` | the commit sha on your branch, or `""` if you did not commit |
+| `files` | every file you changed, as repo-relative paths |
+| `gates` | the exact commands you ran and their exit codes, as one string: `python3 -m unittest discover -s tests -q -> exit 0` |
+| `new_work` | work you found that the graph does not capture, as one short line; `"none"` is the normal answer — do not invent entries to look thorough |
+| `summary` | what you did, anything that surprised you, and anything the orchestrator needs that the keys above cannot carry. This is the prose channel; a report without it is unreadable to the human |
 
-```json
-{
-  "node": 3,
-  "status": "PASS",
-  "commit": "a1b2c3d",
-  "files": ["src/text.py", "tests/test_text.py"],
-  "gates": [{"command": "python3 -m unittest discover -s tests -q", "exit": 0}],
-  "new_work": []
-}
-```
-
-- `node` — the node id, as a number.
-- `status` — `"PASS"` only if every acceptance criterion is met and the gates are green.
-  Anything else is `"FAIL"`, with the reason in your prose.
-- `commit` — the commit sha on your branch, or `null` if you did not commit.
-- `files` — every file you changed, as repo-relative paths.
-- `gates` — the exact commands you ran and their exit codes. Empty only if the project has no
-  gates, and then say so in the prose.
-- `new_work` — titles of work you discovered that the graph does not capture, or `[]`. Do not
-  invent entries to look thorough; `[]` is the normal answer.
+A `"failed"` or `"blocked"` status is a real answer, not a failure of the exercise: a clean FAIL
+with a precise reason is worth more than a green claim the gates contradict.
 ```
 
 ## Filling the placeholders
@@ -109,6 +95,10 @@ has to read the whole report by hand, which is the cost this block exists to rem
 ## Reading the report
 
 A node report is evidence, not a verdict. Before merging: the gate command it names should be
-the project's real gate, the leak check should be clean, and `NEW_WORK:` lines drive the
-re-plan. If a node reports PASS while the integrated gates fail, treat the integration as the
-truth — the node tested its worktree, not the combination.
+the project's real gate, the leak check should be clean, and `new_work` drives the re-plan. If a
+node reports `"shipped"` while the integrated gates fail, treat the integration as the truth — the
+node tested its worktree, not the combination.
+
+A node that came back as `null` produced no valid object at all: it failed, or it finished without
+calling `structured_output`. Both need the same handling — retry it in place, or mark it `failed`
+and block its dependents.

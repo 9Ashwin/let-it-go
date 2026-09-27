@@ -681,6 +681,21 @@ def cmd_set(args: argparse.Namespace) -> int:
         node["branch"] = args.branch
     if args.commit:
         node["commit"] = args.commit
+    # The node's structured report is the only place its evidence lives once the wave's
+    # workflow call has returned, so it is written into the checkpoint instead of being left
+    # in the transcript. `files` is what the fan-in diffstat gets compared against — the
+    # cheapest catch there is, and it only works if both sides are written down.
+    #
+    # Read with a default: the CLI parser always supplies all four, while a caller that only
+    # wants to move a status (a test fixture, a re-plan script) should not have to name them.
+    for field, value in (("files", getattr(args, "files", None)),
+                         ("gates", getattr(args, "gates", None)),
+                         ("summary", getattr(args, "summary", None)),
+                         ("new_work", getattr(args, "new_work", None))):
+        if not value:
+            continue
+        node[field] = [name.strip() for name in value.split(",") if name.strip()] \
+            if field == "files" else value
     if args.error:
         node["error"] = args.error
         node["attempts"] = int(node.get("attempts", 0)) + 1
@@ -700,6 +715,14 @@ def cmd_set(args: argparse.Namespace) -> int:
     if board_note:
         print(board_note)
     print(f"node #{key}: {previous} -> {args.status}")
+    if args.status == "shipped":
+        missing = [field for field in ("files", "gates", "summary") if not node.get(field)]
+        if missing:
+            print(
+                f"  ! no {', '.join(missing)} recorded for node #{key} — a shipped node without "
+                f"them says it finished, not what proved it. Pass the report fields to `set`.",
+                file=sys.stderr,
+            )
     print(render(state))
 
     if node_wave is None:  # unreachable for a well-formed state, but stay honest
@@ -742,7 +765,13 @@ def node_slug(title: str, node_id: str) -> str:
 
 
 def worktree_root(override: str | None) -> str:
-    """Where node worktrees go: a sibling of the repo root, matching the skill's recipe."""
+    """Where node worktrees go: inside the repo, matching the skill's recipe.
+
+    Inside rather than beside it: DSH's `workspace-write` sandbox denies writes outside the
+    session's working directory, so a sibling `.graph-worktrees` is refused there with an
+    error that does not read like a path problem. The skill commits an ignore rule for this
+    path before the first wave, which keeps `git status` clean for the leak check.
+    """
     if override:
         return os.path.abspath(override)
     try:
@@ -750,7 +779,7 @@ def worktree_root(override: str | None) -> str:
                              capture_output=True, text=True).stdout.strip()
     except (OSError, subprocess.CalledProcessError):
         die("not inside a git repository — pass --worktrees to say where the worktrees go")
-    return os.path.join(os.path.dirname(top), ".graph-worktrees")
+    return os.path.join(top, ".graph-worktrees")
 
 
 def load_template(override: str | None) -> str:
@@ -883,12 +912,17 @@ def main() -> int:
     setter.add_argument("--commit")
     setter.add_argument("--branch", help="record the branch this node actually lives on")
     setter.add_argument("--error")
+    setter.add_argument("--files", help="comma-separated files the node changed, from its report")
+    setter.add_argument("--gates", help="the gate commands it ran and their exit codes")
+    setter.add_argument("--summary", help="what it did and what surprised it")
+    setter.add_argument("--new-work", dest="new_work",
+                        help="work it found that the graph does not capture")
     setter.set_defaults(func=cmd_set)
 
     prompt = sub.add_parser("prompt", help="render one node's dispatch prompt from the checkpoint")
     prompt.add_argument("--state", default=STATE_DEFAULT)
     prompt.add_argument("--node", required=True)
-    prompt.add_argument("--worktrees", help="worktree root (default: <repo parent>/.graph-worktrees)")
+    prompt.add_argument("--worktrees", help="worktree root (default: <repo>/.graph-worktrees)")
     prompt.add_argument("--template", help="override the node prompt template path")
     prompt.set_defaults(func=cmd_prompt)
 

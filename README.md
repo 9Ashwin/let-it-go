@@ -4,29 +4,28 @@
 </div>
 
 <div align="center">
-  <h1>stream-it</h1>
+  <h1>let-it-go</h1>
   <p>把一整套研发工作流装进你的编码 Agent：需求 → 设计 → 拆解 → 并行实现 → 审查 → 交付。<br>
   技能只负责判断，排序与检查点交给带测试的脚本；实现交给各自隔离在 git worktree 里的子代理。</p>
   <div align="center">
-    <a href="https://9ashwin.github.io/stream-it/"><img src="https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E6%96%87%E6%A1%A3-9ashwin.github.io-d97757" alt="Online docs" /></a>
-    <img src="https://img.shields.io/github/license/9Ashwin/stream-it" alt="License" />
-    <img src="https://img.shields.io/github/stars/9Ashwin/stream-it?style=social" alt="Stars" />
-    <img src="https://img.shields.io/github/forks/9Ashwin/stream-it?style=social" alt="Forks" />
-    <img src="https://img.shields.io/github/last-commit/9Ashwin/stream-it" alt="Last commit" />
+    <a href="https://9ashwin.github.io/let-it-go/"><img src="https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E6%96%87%E6%A1%A3-9ashwin.github.io-d97757" alt="Online docs" /></a>
+    <img src="https://img.shields.io/github/license/9Ashwin/let-it-go" alt="License" />
+    <img src="https://img.shields.io/github/stars/9Ashwin/let-it-go?style=social" alt="Stars" />
+    <img src="https://img.shields.io/github/forks/9Ashwin/let-it-go?style=social" alt="Forks" />
+    <img src="https://img.shields.io/github/last-commit/9Ashwin/let-it-go" alt="Last commit" />
   </div>
   <h3>
-    <a href="https://9ashwin.github.io/stream-it/">在线文档</a> ·
+    <a href="https://9ashwin.github.io/let-it-go/">在线文档</a> ·
     <a href="#快速开始">安装</a> ·
     <a href="#技能">技能</a> ·
     <a href="#它是怎么跑起来的">工作流</a> ·
     <a href="#项目状态">项目状态</a>
   </h3>
-  <img src="docs/workflow.png" alt="stream-it 工作流信息图" width="1000">
 </div>
 
-## stream-it 是什么
+## let-it-go 是什么
 
-stream-it 是一套研发工作流技能集：26 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。你说想做什么，剩下的交给 Agent：澄清问题、写 PRD、拆成有阻塞关系的 Issue、在隔离的工作树里并行实现、审查、开 PR、合入。
+let-it-go 是一套研发工作流技能集：25 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。你说想做什么，剩下的交给 Agent：澄清问题、写 PRD、拆成带契约字段的 Issue、在隔离的工作树里并行实现、审查、开 PR、合入。
 
 **实现节点是子代理**，每个节点一个独立 git worktree，职责到「实现 → 跑通项目门禁自证 → commit 到自己分支」为止。泄漏检查、集成、集成后的门禁、评审、交付收成一件事，**按波次各做一次**：一个 PR 关闭这一波满足的全部 Issue。
 
@@ -37,7 +36,7 @@ stream-it 是一套研发工作流技能集：26 个技能，把「想法 → �
 ### 方式一：作为技能目录安装（推荐）
 
 ```bash
-npx skills add 9Ashwin/stream-it       # 安装到全局（~/.agents/skills）
+npx skills add 9Ashwin/let-it-go       # 安装到全局（~/.agents/skills）
 npx skills update -g                    # 之后按来源更新
 ```
 
@@ -46,31 +45,17 @@ npx skills update -g                    # 之后按来源更新
 `npx skills` 递归扫描、安装时把 `skills/<桶>/<技能>` 拍平成 `~/.agents/skills/<技能>`——技能根只扫一层，所以必须拍平。手动拷贝时要自己完成这一步：
 
 ```bash
-cp -R <stream-it>/skills/flow/graph ~/.agents/skills/graph   # 拍平，不要连桶一起拷
+cp -R <let-it-go>/skills/flow/graph ~/.agents/skills/graph   # 拍平，不要连桶一起拷
 ```
 
-Codex 也会发现 `~/.agents/skills`，所以这条路径同样可用；想按 Codex 原生的四个插件分组安装时用方式二。
+### 方式二：作为 DSH bundle 安装（可选）
 
-### 方式二：作为 Codex 插件安装
-
-```bash
-codex plugin marketplace add 9Ashwin/stream-it
-codex plugin add stream-it-flow --marketplace stream-it
-codex plugin add stream-it-practice --marketplace stream-it
-codex plugin add stream-it-meta --marketplace stream-it
-codex plugin add stream-it-bonus --marketplace stream-it
-```
-
-四个插件分别对应 `flow` / `practice` / `meta` / `bonus` 四个桶，按需单独安装即可。仓库里的 `.claude-plugin/marketplace.json` 和每个桶的 `.claude-plugin/plugin.json` 同时是 Codex 使用的插件清单，不需要额外维护 `.codex-plugin` 副本。安装后在 Codex 里用 **`$graph`**、**`$loop-it`** 这样显式调用技能，而不是 `/graph`、`/loop-it`。
-
-### 方式三：作为 DSH bundle 安装（可选）
-
-还可以作为**部署层配置**安装（随包携带 preset、`toolFilter`、persona，可锁定 commit）——安装命令与参数说明见文档站：**<https://9ashwin.github.io/stream-it/#install>**。
+还可以作为**部署层配置**安装（随包携带 preset、`toolFilter`、persona，可锁定 commit）——安装命令与参数说明见文档站：**<https://9ashwin.github.io/let-it-go/#install>**。
 
 > [!TIP]
-> 不记得该用哪个技能？Claude Code / DSH 里直接敲 **`/ask-flow`**，Codex 里敲 **`$ask-flow`**——它给出下一步该敲什么，以及那一步里哪些决定得你来拍。
+> 不记得该用哪个技能？直接敲 **`/ask-flow`**——它挑出该走的那一步**并直接开始**，只有两条路真接近时才停下来问。
 >
-> 完整使用指南（安装、每一步怎么触发、验收标准、FAQ）在 **<https://9ashwin.github.io/stream-it/>**，会自动按浏览器语言跳转到中文或英文版；仓库内是 [docs/index_cn.html](docs/index_cn.html) 与 [docs/index_en.html](docs/index_en.html)。
+> 完整使用指南（安装、每一步怎么触发、验收标准、FAQ）在 **<https://9ashwin.github.io/let-it-go/>**，会自动按浏览器语言跳转到中文或英文版；仓库内是 [docs/index_cn.html](docs/index_cn.html) 与 [docs/index_en.html](docs/index_en.html)。
 
 ## 它是怎么跑起来的
 
@@ -79,8 +64,8 @@ codex plugin add stream-it-bonus --marketplace stream-it
 | 作用域 | 做什么 | 不做什么 |
 | --- | --- | --- |
 | **节点** | 在自己的 worktree 里实现、用项目门禁自证、**只 commit 到自己的分支** | 不 push、不开 PR、不合并、不自审 |
-| **波次** | 泄漏检查 → 只合并已完成的节点 → 在集成后的树上跑门禁 → **评审一次**（逐节点分节，重点看节点之间的结合部）→ **走查一次**（改了什么、跑了什么、证明了什么，产出 PR body 与合并清单）→ **交付一次**（一个 PR，带逐项证据表） | 不做节点级 PR；不做节点级走查 |
-| **批次** | `/loop-it` 的串行路径同理：一次一个 Issue 内联实现并 commit，批末统一评审、走查与交付 | — |
+| **波次** | 泄漏检查 → 只合并已完成的节点 → 在集成后的树上跑门禁 → **评审一次**（逐节点分节，重点看节点之间的结合部）→ **走查一次**（只提供证据：改了什么、跑了什么、证明了什么）→ **交付一次**（PR body 与合并清单在这里唯一产出，一个 PR，带逐项证据表） | 不做节点级 PR；不做节点级走查 |
+| **批次** | `/loop-it` 的串行路径同理：一次一个 Issue 内联实现、过一次 supervisor 检查（判据是证据不是 diff 观感）并 commit，批末统一评审、走查与交付 | — |
 
 几个刻意设计的地方：
 
@@ -89,56 +74,73 @@ codex plugin add stream-it-bonus --marketplace stream-it
 - **失败节点先原地重试。** 用一条追加消息复用该节点自己的上下文，而不是重开一个全新子代理；重试仍失败就重跑、再失败则从波分支剔除——它的兄弟节点本来就相互独立，其余照常交付。
 - **一批多 Issue 共用一个 PR 时必须逐项列证据**：commit、关闭的 Issue、证明它的测试名、人工验收状态。squash 之后那些 commit 在 `main` 上就看不见了，没有这张表就无法单独回滚或审计。
 
-## 为什么是 stream-it
+## 为什么是 let-it-go
 
 - **按波次算成本，而不是按节点。** 每个子代理都要为它的整个生命周期付父级的 system prompt、工具 schema 与技能目录；一个节点一次 `/review-it` + `/ship-it` 意味着 N 个 PR、N 次 CI、N 次卡在合并冲突上的机会。所以节点止于 commit，评审与交付收在波次上。
-- **算术下沉到脚本。** 依赖排序、波次分层、scope 冲突串行化、检查点状态机都在 `scripts/` 里，每个都带自测；技能写的是「什么时候用、边界在哪」，不是算法复述。
+- **算术下沉到脚本。** 依赖排序、波次分层、scope 冲突串行化、检查点状态机都随技能放在 `skills/<桶>/<技能>/scripts/` 里，每个都带自测（仓库根的 `scripts/` 只放维护脚本：`check_skills.py` 与 `sync_vendor.py`）；技能写的是「什么时候用、边界在哪」，不是算法复述。
 - **为真实约束设计，而不是理想模型。** 子代理没有自己的 cwd、每次 shell 都是新 shell、委派深度有上限、技能目录对每个子代理都收费——这些在技能里都落成了硬约束（绝对路径纪律 + 共享检出泄漏检查、节点不得再派子代理、可选的[节点瘦身补丁](skills/flow/graph/references/lean-subagent.md)）。
 
 ## 技能
 
-下表用技能短名；Claude Code / DSH 的前缀是 `/`，Codex 的前缀是 `$`（例如 `$ask-flow`、`$graph`）。
+下表用技能短名，前缀统一是 `/`（DSH）。
 
-**不知道该用哪个？先调用 `ask-flow`** —— 它只回答下一步该敲什么，不替你动手。
+**不知道该用哪个？先调用 `ask-flow`** —— 它路由之后**直接开始**那一步，而不是只报一个名字让你再敲一遍。
 
 | 阶段 | 技能 | 做什么 |
 | --- | --- | --- |
-| 入口 | `/ask-flow` | 不知道该用哪个技能、这套流程该怎么走时问它（只路由，不替你动手） |
-| 需求与设计 | `/prd` · `/prd-to-spec` · `/to-design` · `/design-it` | 需求文档 → 技术 SPEC → Go 风格设计提案 → 固定风格的 HTML 设计文档 |
-| 拆解与分诊 | `/to-issues` · `/triage` | 把自己的 PRD/SPEC 拆成垂直切片 · 把**外面进来的**原始 issue 分流成可执行卡片 |
-| 实现 | `/implement` · `/test-first` · `/graph` · `/loop-it` | 单个单元内联做完 · 红-绿写测试 · DAG 波次并行（每节点独立 worktree）· issue 依赖序串行（检查点可恢复） |
+| 入口 | `/ask-flow` | 不知道该用哪个技能、这套流程该怎么走时问它：它在技能图上路由，**然后直接开始那一步**（模型可调用；只有两条路真接近时才停下来问） |
+| 需求与设计 | `/prd` · `/to-design` | 需求文档 → 设计提案（**只在跨两个及以上服务、改数据模型或迁移、涉及两条以上对外契约时写**；Markdown 是主产物，HTML 只是可选呈现层） |
+| 拆解与分诊 | `/to-issues` · `/triage` | 把自己的 PRD 拆成垂直切片，**每条 Issue 正文就是契约**（目标/非目标/验收条件/必须收集的证据/外部边界/完成定义/未决问题）· 把**外面进来的**原始 issue 分流成可执行卡片 |
+| 实现 | `/implement` · `/test-first` · `/graph` · `/loop-it` | 单个单元内联做完 · 红-绿写测试 · DAG 波次并行（每节点独立 worktree，节点在 fan-in 时过 evidence check）· issue 依赖序串行（每 issue 一次 supervisor 检查，检查点可恢复） |
 | 排障 | `/diagnose` · `/conflict` | 先拿到一条会变红的命令再推理的排查循环 · 逐 hunk 按意图解 merge/rebase 冲突 |
-| 审查与交付 | `/review-it` · `/walkthrough` · `/ship-it` · `/note-it` | 双轴评审（Spec + 8 维度标准）· 合并前交出「改了什么 + 什么被验证过」的走查件 · 提交/PR/合入/关闭 Issue · 为 Issue 留实现笔记 |
-| 代码质量 | `/smell` · `/refactor` · `/modern-go` | 架构坏味道与复杂度热点 · Fowler 重构目录 · Go 1.0→1.27+ 现代化 |
-| 逆向与文档 | `/code-to-spec` · `/understand` · `/insight-diagram` | 从代码逆向出 SPEC · 把本次改动变成可交互审阅网页 · UML/架构图 |
-| 内容 | `/humanize-it` · `/article-icons` · `/listenhub-tts` | 去 AI 味改写 · 文章配图 · 文本转语音 |
+| 审查与交付 | `/review-it` · `/walkthrough` · `/ship-it` | 双轴评审（Spec + 8 维度标准）· 合并前交出「改了什么 + 什么被验证过」的走查件（**只提供证据，不产 PR body**）· **PR body 的唯一产出者**，提交/PR/合入/关闭 Issue，并一次写出实现总结评论 |
+| 代码质量 | `/refactor` · `/modern-go` | 两种模式（`audit` 只报不改 / `fix` 按 Fowler 目录重构）· Go 1.0→1.27+ 现代化 |
+| 文档与制图 | `/understand` · `/svg-diagram`（vendor） | 把本次改动变成可交互审阅网页 · SVG 制图规范 + 12 项机械校验（自带 `svg-lint`） |
+| 第三方（`skills/vendor/`，逐字副本） | `/find-skills` · `/frontend-design` · `/humanizer-zh` · `/pptx` · `/resume-optimizer` · `/skill-creator` · `/teach` · `/ui-ux-pro-max` · `/web-design-guidelines` | 发现并安装生态里的技能 · 前端视觉设计方向 · 中文文本去模板化润色 · `.pptx` / `.potx` 的读写与编辑 · 简历审计与优化（成果型改写、按目标 JD 调整）· 创建/改进技能并跑评测 · 以教学方式讲清一个概念 · 可检索的 UI/UX 设计知识库 · 按 Web Interface Guidelines 审 UI 代码 |
 
-标了 `disable-model-invocation` 的 5 个技能（`ask-flow` · `insight-diagram` · 最后一行三个内容工具）**不进模型目录**：模型不会主动挑它们，你直接调用就行——省下的是每个会话和**每个子代理**都要付的那份固定成本。当前 26 个技能、目录总量 5077 字符，模型实际看到 **3806 字符**。这 5 个技能还各带一份 `agents/openai.yaml`（`policy.allow_implicit_invocation: false`）。
+`ask-flow` 是**模型可调用**的：它路由之后**直接开始**那一步，只有两条路真接近时才停下来问——把每一步都变成「请确认」，等于把该由 agent 做的判断推回给人。当前 27 个技能（flow 10 / bonus 7 / vendor 10），目录总量 6446 字符，模型实际看到 **6385 字符**。唯一带 `disable-model-invocation` 的是 vendor 的 `teach`，那是上游的选择，不进模型目录。
 
-`/goal` 是宿主的**命令**（不是技能）：DSH 与当前 Codex 都由人类在命令行创建一个带自动续跑轮次的持久目标。模型侧是 `create_goal` / `update_goal`，但 `create_goal` 只应在用户明确要求时使用——子代理和编排中途不能自行铸造长期目标。
+`/goal` 是宿主的**命令**（不是技能）。模型侧是 `create_goal` / `update_goal`，门禁是 **authority 而不是措辞**：`create_goal` 只在**顶层 agent 的直接人类回合**有效，所以子代理和编排中途建不了——但**人类不必说 "goal"**，他直接交出一个长期目标（"把这批 issue 全做完"）时就该建，这正是它被设计的用法。长批次里 goal 是**会话级驱动**（一个回合结束后把会话重新推起来），检查点（`.loop-state.json` / `.graph_state.json`）是**仓库级状态**（记到哪了）——两者互补，计数也各算各的（`maxGoalRounds` 管续跑轮数，`attempts` 管单个 issue 的重试）。
 
 ## 仓库结构
 
 ```
 skills/
-├── flow/       # PRD → 交付这条链上的一环，按顺序跑（10 个）
-├── practice/   # 流程中途随时单独触发的工程实践（7 个）
-├── meta/       # 关于这套技能集本身：路由（1 个）
-└── bonus/      # 产出非代码工件：设计文档、图表、规格逆向、内容（8 个）
+├── flow/          # PRD → 交付这条链上的一环，按顺序跑（10 个）
+├── bonus/         # 流程中途随时单独触发的工程实践与产物（7 个）
+└── vendor/        # 第三方技能的逐字副本，由 manifest 钉住 commit（10 个）
+scripts/           # check_skills.py（布局 / frontmatter / 交叉引用 / patch 校验）
+                   # sync_vendor.py（vendor 同步与新增）
+Makefile           # make check / test / vendor-* 的入口
+cordis.patch.yml   # DSH bundle patch：三个桶各列为一个 customSkillDirs root
 ```
 
-判据是「它在这条链上扮演什么角色」：`flow` 是流水线本身；`practice` 是你在中途因为「出事了 / 要保证质量」伸手拿的（测试方法、排障、冲突、外部分诊、质量巡检）；`meta` 是描述整套技能集自身的（`/ask-flow` 这个路由）；`bonus` 产生的是非代码工件。
+判据是「它在这条链上扮演什么角色」：`flow` 是流水线本身；`bonus` 是你在中途因为「出事了 / 要保证质量 / 需要一个非代码产物」伸手拿的（测试方法、排障、冲突、外部分诊、重构、设计文档、审阅页）；`vendor` 不产生新技能，只是把上游第三方技能逐字收进来，每个目录带一份 `NOTICE.md`（来源 / commit / 许可 / 同步日期）。
 
-DSH 的技能根**只扫一层**（`<root>/<name>/SKILL.md`），所以 `cordis.patch.yml` 把四个桶各列为一个 root，而不是指向 `skills/`。`npx skills add` 是递归扫描、安装时拍平，无论走哪条安装路径，得到的技能集完全相同。`scripts/check_skills.py` 守着两个静默失败面：**技能被放回顶层**（四个 root 都覆盖不到它），以及**某个桶漏进 patch**（那一桶会整体消失，且不报错）。
+DSH 的技能根**只扫一层**（`<root>/<name>/SKILL.md`），所以 `cordis.patch.yml` 把三个桶各列为一个 root，而不是指向 `skills/`。`npx skills add` 是递归扫描、安装时拍平，无论走哪条安装路径，得到的技能集完全相同。`scripts/check_skills.py` 守着两个静默失败面：**技能被放回顶层**（三个 root 都覆盖不到它），以及**某个桶漏进 patch**（那一桶会整体消失，且不报错）。
+
+## 维护
+
+```bash
+make check          # 布局、frontmatter、交叉引用、bundle patch
+make test           # 先 check，再跑各脚本自测
+make vendor         # 按 vendor.json 里钉住的 commit 同步
+make vendor-check   # 报告上游是否已前进
+make vendor-update  # 重新钉到上游默认分支 HEAD、同步、再校验
+make vendor-list    # 列出已 vendor 的技能与 commit
+make vendor-add URL=<git url> SKILL="名字 [名字...]"   # 新增（对应 npx skills add <url> --skill <name> 的形态）
+```
+
+`skills/vendor/vendor.json` 是 manifest，每个技能记录 `source` / `sourceUrl` / `path` / `ref`（钉到 commit）/ `license`。**`skills/vendor/` 下是逐字副本，不要就地编辑**——要改就改 manifest，再 `make vendor`。
 
 ## 项目状态
 
-![License](https://img.shields.io/github/license/9Ashwin/stream-it) ![Last Commit](https://img.shields.io/github/last-commit/9Ashwin/stream-it) ![Commit Activity](https://img.shields.io/github/commit-activity/m/9Ashwin/stream-it) ![Issues](https://img.shields.io/github/issues/9Ashwin/stream-it) ![Pull Requests](https://img.shields.io/github/issues-pr/9Ashwin/stream-it)
+![License](https://img.shields.io/github/license/9Ashwin/let-it-go) ![Last Commit](https://img.shields.io/github/last-commit/9Ashwin/let-it-go) ![Commit Activity](https://img.shields.io/github/commit-activity/m/9Ashwin/let-it-go) ![Issues](https://img.shields.io/github/issues/9Ashwin/let-it-go) ![Pull Requests](https://img.shields.io/github/issues-pr/9Ashwin/let-it-go)
 
 ## 社区与反馈
 
-- 🌐 [**在线文档**](https://9ashwin.github.io/stream-it/) — 中文 / English 使用指南
-- 🐛 [**Issues**](https://github.com/9Ashwin/stream-it/issues) — 报错、需求、技能改进建议
+- 🌐 [**在线文档**](https://9ashwin.github.io/let-it-go/) — 中文 / English 使用指南
+- 🐛 [**Issues**](https://github.com/9Ashwin/let-it-go/issues) — 报错、需求、技能改进建议
 
 ## 许可
 

@@ -1,6 +1,6 @@
 # PRD Generator Skill
 
-Generate structured Product Requirements Documents (PRD) for new features. Focused solely on producing a clear, implementable PRD — Issue decomposition and technical design are handled by separate skills.
+Generate structured Product Requirements Documents (PRD) for new features. Focused solely on producing a clear, implementable PRD — Issue decomposition is handled by `/to-issues`.
 
 ## Features
 
@@ -13,15 +13,14 @@ Generate structured Product Requirements Documents (PRD) for new features. Focus
 
 ## Workflow
 
-The PRD skill is the first step in a three-stage pipeline:
+The PRD skill is the first step in a two-stage pipeline:
 
 | Stage | Skill | Purpose |
 |-------|-------|---------|
 | 1. Requirements | `/prd` (this skill) | Define *what* to build |
-| 2. Technical design (optional) | `/prd-to-spec` | Define *how* to build it |
-| 3. Decomposition | `/to-issues` | Break into implementable tickets (GitHub / Local) |
+| 2. Decomposition | `/to-issues` | Break into implementable tickets, each carrying its own contract block (GitHub / Local) |
 
-After a PRD is confirmed, run `/prd-to-spec` for complex features, then `/to-issues` — or go straight to `/to-issues`.
+After a PRD is confirmed, run `/to-issues`. There is no separate technical-design document: each Issue body carries goal, non-goals, acceptance criteria, required evidence, external boundary, definition of done and open questions.
 
 ## Usage
 

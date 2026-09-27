@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>stream-it 使用指南</title>
+  <title>let-it-go 使用指南</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * {
@@ -495,10 +495,10 @@
     <div class="header">
       <div class="header-row">
         <div class="pulse-dot"></div>
-        <h1>stream-it 使用指南</h1>
+        <h1>let-it-go 使用指南</h1>
       </div>
       <p class="subtitle">AI-driven development workflow — from PRD to shipped code</p>
-      <p class="subtitle" style="margin-top: 0.25rem;"><a href="https://github.com/9Ashwin/stream-it" style="color: #D97757; text-decoration: none;"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle; margin-right: 3px;"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>github.com/9Ashwin/stream-it</a></p>
+      <p class="subtitle" style="margin-top: 0.25rem;"><a href="https://github.com/9Ashwin/let-it-go" style="color: #D97757; text-decoration: none;"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle; margin-right: 3px;"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>github.com/9Ashwin/let-it-go</a></p>
       <p class="diagram-desc"><b>Usage Guide</b> — 六步闭环研发工作流：规划、设计、拆解、实现、审查、交付。</p>
     </div>
 
@@ -510,28 +510,24 @@
         <li><a href="#install">2. 安装</a></li>
         <li><a href="#workflow">3. 工作流总览</a></li>
         <li><a href="#step-prd">4. Step 1: /prd — 需求规划</a></li>
-        <li><a href="#step-prd-to-spec">5. Step 1.5: /prd-to-spec — PRD 转技术方案</a></li>
-        <li><a href="#step-to-issues">6. Step 1.6: /to-issues — 拆解 Issue 卡片</a></li>
-        <li><a href="#step-impl">7. Step 2: /implement · /loop-it · /graph — 功能实现</a></li>
-        <li><a href="#step-review">8. Step 3: /review-it — 代码审查</a></li>
-        <li><a href="#step-ship">9. Step 4: /ship-it — 提交交付</a></li>
-        <li><a href="#step-humanize">10. Bonus: /humanize-it — 去 AI 味改写</a></li>
-        <li><a href="#step-diagram">11. Bonus: /insight-diagram — UML 与架构图</a></li>
-        <li><a href="#step-refactor">12. Bonus: /refactor — 专家级代码重构</a></li>
-        <li><a href="#step-modern-go">13. Bonus: /modern-go — Go 代码现代化改造</a></li>
-        <li><a href="#step-note-it">14. Bonus: /note-it — 实现笔记记录</a></li>
-        <li><a href="#step-walkthrough">15. Bonus: /walkthrough — 交付前走查</a></li>
-        <li><a href="#step-code-to-spec">16. Bonus: /code-to-spec — 逆向生成规格文档</a></li>
-        <li><a href="#step-smell">17. Bonus: /smell — 架构坏味道检测</a></li>
-        <li><a href="#step-loop-it">18. Bonus: /loop-it — 自动化 Issue 批量实现循环</a></li>
-        <li><a href="#step-to-design">19. Bonus: /to-design — PRD 转设计文档</a></li>
-        <li><a href="#step-graph">20. Bonus: /graph — 任务图并发实现</a></li>
-        <li><a href="#step-understand">21. Bonus: /understand — 交互式变更审阅</a></li>
-        <li><a href="#step-ask-flow">22. Bonus: /ask-flow — 不知道该用哪个技能</a></li>
-        <li><a href="#step-triage">23. Bonus: /triage — 外部 issue 分诊</a></li>
-        <li><a href="#step-diagnose">24. Bonus: /diagnose — 排障循环</a></li>
-        <li><a href="#step-conflict">25. Bonus: /conflict — 解 merge / rebase 冲突</a></li>
-        <li><a href="#faq">26. FAQ</a></li>
+        <li><a href="#step-to-issues">5. Step 1.5: /to-issues — 拆解 Issue 卡片</a></li>
+        <li><a href="#step-impl">6. Step 2: /implement · /loop-it · /graph — 功能实现</a></li>
+        <li><a href="#step-review">7. Step 3: /review-it — 代码审查</a></li>
+        <li><a href="#step-ship">8. Step 4: /ship-it — 提交交付</a></li>
+        <li><a href="#step-svg-diagram">9. Vendor: /svg-diagram — SVG 制图规范与机械校验</a></li>
+        <li><a href="#step-refactor">10. Bonus: /refactor — 专家级代码重构</a></li>
+        <li><a href="#step-modern-go">11. Bonus: /modern-go — Go 代码现代化改造</a></li>
+        <li><a href="#step-walkthrough">12. Bonus: /walkthrough — 交付前走查</a></li>
+        <li><a href="#step-loop-it">13. Bonus: /loop-it — 自动化 Issue 批量实现循环</a></li>
+        <li><a href="#step-to-design">14. Bonus: /to-design — PRD 转设计文档</a></li>
+        <li><a href="#step-graph">15. Bonus: /graph — 任务图并发实现</a></li>
+        <li><a href="#step-understand">16. Bonus: /understand — 交互式变更审阅</a></li>
+        <li><a href="#step-ask-flow">17. Bonus: /ask-flow — 不知道该用哪个技能</a></li>
+        <li><a href="#step-triage">18. Bonus: /triage — 外部 issue 分诊</a></li>
+        <li><a href="#step-diagnose">19. Bonus: /diagnose — 排障循环</a></li>
+        <li><a href="#step-conflict">20. Bonus: /conflict — 解 merge / rebase 冲突</a></li>
+        <li><a href="#vendor">21. Vendor 技能与一键同步</a></li>
+        <li><a href="#faq">22. FAQ</a></li>
       </ul>
     </div>
 
@@ -542,13 +538,13 @@
         <h3>1. 概述</h3>
       </div>
       <p>
-        <strong>stream-it</strong> 是一套研发工作流技能集：26 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。
+        <strong>let-it-go</strong> 是一套研发工作流技能集：27 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。
       </p>
       <p>
         它让 AI Agent 能够像一个有经验的工程师一样——从理解需求、拆解任务、编写代码、审查质量，到最终提交合入——全流程自主完成。你只需描述功能想法，剩下的交给工作流。
       </p>
       <div class="tip">
-        <strong>入口：</strong>不记得该用哪个技能？直接敲 <code class="inline-code">/ask-flow</code>——说清你现在的处境（一个还没成形的想法、一堆进来的 issue、一段调不通的代码、一次漫长的实现），它只回答「下一步敲什么」以及那一步里哪些决定要你来拍，<strong>不替你动手</strong>。
+        <strong>入口：</strong>不记得该用哪个技能？直接敲 <code class="inline-code">/ask-flow</code>——说清你现在的处境（一个还没成形的想法、一堆进来的 issue、一段调不通的代码、一次漫长的实现），它挑出该走的那一步<strong>并直接开始</strong>，只有两条路真接近、或下一步越过人的判断边界（开 PR、合入、产品验收）时才停下来问。
       </div>
 
       <div class="cards">
@@ -557,11 +553,11 @@
             <div class="card-dot terracotta"></div>
             <h4>/ask-flow</h4>
           </div>
-          <p>技能路由（入口）：只给下一步，不执行</p>
+          <p>技能路由（入口）：路由之后直接开始那一步</p>
           <ul>
-            <li>在技能图上做路由，回答「下一步敲什么」</li>
-            <li>只建议、不执行：不写 spec、不改文件</li>
-            <li>不进模型目录（user-only）</li>
+            <li>在技能图上做路由，然后读该技能的正文并照着做</li>
+            <li>只有两条路真接近、或下一步越过人的判断边界（开 PR / 合入 / 产品验收）时才停下来问</li>
+            <li>模型可调用：没有 <code class="inline-code">disable-model-invocation</code></li>
           </ul>
         </div>
         <div class="card">
@@ -573,19 +569,7 @@
           <ul>
             <li>澄清问题 → 结构化 PRD（可验证的验收标准）</li>
             <li>审阅确认后保存到 tasks/prd-*.md</li>
-            <li>交给 /prd-to-spec（可选）与 /to-issues 继续</li>
-          </ul>
-        </div>
-        <div class="card">
-          <div class="card-header">
-            <div class="card-dot terracotta"></div>
-            <h4>/prd-to-spec</h4>
-          </div>
-          <p>PRD 转技术设计方案</p>
-          <ul>
-            <li>PRD 需求 → 架构 + API + 数据模型</li>
-            <li>错误处理 + 安全 + 性能策略</li>
-            <li>Issue 映射 + 实施计划</li>
+            <li>交给 /to-issues 拆解为 Issue</li>
           </ul>
         </div>
         <div class="card">
@@ -593,7 +577,7 @@
             <div class="card-dot coral"></div>
             <h4>/to-issues</h4>
           </div>
-          <p>拆解 PRD/SPEC 为垂直切片 Issue</p>
+          <p>把 PRD 拆成垂直切片 Issue（正文即契约）</p>
           <ul>
             <li>垂直切片（tracer bullet），非按层拆分</li>
             <li>显式依赖边 + 阻塞者优先创建</li>
@@ -643,9 +627,9 @@
           </div>
           <p>提交 → PR → 合入 → 关闭</p>
           <ul>
-            <li>Commit 关联 Issue 编号</li>
+            <li>PR body 的唯一产出者</li>
             <li>Squash merge + delete branch</li>
-            <li>添加实现总结并关闭卡片</li>
+            <li>一次写出实现总结评论（设计决策 / 偏离 / 权衡 / 待确认）并关闭卡片</li>
           </ul>
         </div>
         <div class="card">
@@ -662,26 +646,14 @@
         </div>
         <div class="card">
           <div class="card-header">
-            <div class="card-dot amber"></div>
-            <h4>/humanize-it</h4>
-          </div>
-          <p>迭代式去 AI 味改写</p>
-          <ul>
-            <li>自动选择最佳人性化策略</li>
-            <li>三路 skill 迭代直到达标</li>
-            <li>最多 42 轮智能切换</li>
-          </ul>
-        </div>
-        <div class="card">
-          <div class="card-header">
             <div class="card-dot violet"></div>
-            <h4>/insight-diagram</h4>
+            <h4>/svg-diagram</h4>
           </div>
-          <p>UML 与架构图生成器</p>
+          <p>SVG 制图规范与机械校验（vendor）</p>
           <ul>
-            <li>分析代码库结构</li>
-            <li>UML / 架构图 / 流程图</li>
-            <li>渲染为 HTML+SVG</li>
+            <li>布局 / 连接线 / 箭头 / 配色 / CJK 字体栈</li>
+            <li>XML 转义、重叠与裁切等硬约束</li>
+            <li>自带 <code class="inline-code">tools/svg-lint</code>（12 项检查）</li>
           </ul>
         </div>
         <div class="card">
@@ -689,11 +661,11 @@
             <div class="card-dot coral"></div>
             <h4>/refactor</h4>
           </div>
-          <p>专家级代码重构</p>
+          <p>专家级代码重构（audit / fix 两种模式）</p>
           <ul>
-            <li>22 种代码坏味道识别</li>
-            <li>40+ 种重构手法 (Fowler 目录)</li>
-            <li>五阶段安全协议</li>
+            <li><code class="inline-code">audit</code> 只报不改：列出坏味道与架构问题</li>
+            <li><code class="inline-code">fix</code>（默认）：按 Fowler 目录重构</li>
+            <li>22 种代码坏味道 + 40+ 种重构手法 + 安全协议</li>
           </ul>
         </div>
         <div class="card">
@@ -710,50 +682,14 @@
         </div>
         <div class="card">
           <div class="card-header">
-            <div class="card-dot slate"></div>
-            <h4>/note-it</h4>
-          </div>
-          <p>实现笔记记录</p>
-          <ul>
-            <li>设计决策 / 偏离 / 权衡</li>
-            <li>待确认问题追踪</li>
-            <li>保存为 Markdown：<code class="inline-code">docs/issue#NNNN.md</code></li>
-          </ul>
-        </div>
-        <div class="card">
-          <div class="card-header">
             <div class="card-dot teal"></div>
             <h4>/walkthrough</h4>
           </div>
-          <p>交付前走查</p>
+          <p>交付前走查（只提供证据）</p>
           <ul>
             <li>变更摘要 + 真实验证输出</li>
             <li>demo 路径的视觉证据</li>
-            <li>评审闸门：diff stat / PR 草稿 / 合并清单</li>
-          </ul>
-        </div>
-        <div class="card">
-          <div class="card-header">
-            <div class="card-dot sage"></div>
-            <h4>/code-to-spec</h4>
-          </div>
-          <p>逆向生成项目规格文档</p>
-          <ul>
-            <li>分析代码、配置、测试、结构</li>
-            <li>生成 12 章节完整 SPEC</li>
-            <li>支持多层深度分析</li>
-          </ul>
-        </div>
-        <div class="card">
-          <div class="card-header">
-            <div class="card-dot gold"></div>
-            <h4>/smell</h4>
-          </div>
-          <p>架构坏味道检测</p>
-          <ul>
-            <li>8 大类、50+ 反模式和坏味道</li>
-            <li>涵盖架构、耦合、内聚、设计、代码、测试、命名、复杂度</li>
-            <li>输出详细 Markdown 报告与重构路线图</li>
+            <li>风险点 + 人工验收状态（PR body 与合并清单归 /ship-it）</li>
           </ul>
         </div>
         <div class="card">
@@ -763,7 +699,7 @@
           </div>
           <p>自动化 Issue 批量实现循环</p>
           <ul>
-            <li>获取 Issue → 依赖拓扑排序 → 内联实现 → commit；批末统一评审、走查 + 交付</li>
+            <li>获取 Issue → 依赖拓扑排序 → 内联实现 → supervisor 检查 → commit；批末统一评审、走查 + 交付</li>
             <li>检查点恢复（<code class="inline-code">.loop-state.json</code>），crash 不丢进度</li>
             <li>10 类错误分类，结构化恢复策略</li>
           </ul>
@@ -773,11 +709,12 @@
             <div class="card-dot terracotta"></div>
             <h4>/to-design</h4>
           </div>
-          <p>PRD 转设计文档（Go 提案风格）</p>
+          <p>PRD 转设计文档（Go 提案风格），主线的有条件第 2 步</p>
           <ul>
-            <li>输出"为什么这么做"的决策文档</li>
+            <li>只在跨两个及以上服务、改数据模型或迁移、涉及两条以上对外契约时写；不命中就跳过</li>
+            <li>主产物是 Markdown 设计提案</li>
+            <li>HTML 只是可选的呈现层</li>
             <li>主动列出被放弃的方案及理由</li>
-            <li>区别于 SPEC：是决策文档而非实现契约</li>
           </ul>
         </div>
         <div class="card">
@@ -842,45 +779,116 @@
         </div>
         <div class="card">
           <div class="card-header">
-            <div class="card-dot violet"></div>
-            <h4>/design-it</h4>
-          </div>
-          <p>固定风格的 HTML 设计文档</p>
-          <ul>
-            <li>需求/规格 → 单文件 HTML 设计文档</li>
-            <li>目录 + 架构/序列 SVG + 代码块</li>
-            <li>决策面板 + 测试用例 + 代码索引</li>
-          </ul>
-        </div>
-        <div class="card">
-          <div class="card-header">
             <div class="card-dot amber"></div>
-            <h4>/listenhub-tts</h4>
+            <h4>/find-skills</h4>
           </div>
-          <p>ListenHub 文本转语音（TTS）</p>
+          <p>发现并安装生态里的技能（vendor）</p>
           <ul>
-            <li>快速合成 / 多角色脚本 / 长文本流式</li>
-            <li>音色未指定时自动获取音色列表</li>
-            <li>默认音色 chat-girl-105-cn（晓曼）</li>
+            <li>「有没有能做 X 的技能」时用它</li>
+            <li>检索 open agent skills 生态</li>
+            <li>来源：vercel-labs/skills</li>
           </ul>
         </div>
         <div class="card">
           <div class="card-header">
             <div class="card-dot coral"></div>
-            <h4>/article-icons</h4>
+            <h4>/frontend-design</h4>
           </div>
-          <p>为文章配 itshover 风格图标</p>
+          <p>前端视觉设计方向（vendor）</p>
           <ul>
-            <li>抓取图标并转为干净的内联 SVG</li>
-            <li>布置在标题、要点、列表与标注处</li>
-            <li>适用于 Markdown / HTML 文档</li>
-            <li>唯一会在运行时访问第三方服务的技能（<code class="inline-code">itshover.com</code>）：请求限定在该域名，返回的标记按白名单重建后才内联，异常即报错不输出</li>
+            <li>新 UI 或改造现有界面时的审美取向</li>
+            <li>排版与视觉决策</li>
+            <li>避开模板化的默认样式</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-dot amber"></div>
+            <h4>/humanizer-zh</h4>
+          </div>
+          <p>中文文本去模板化润色（vendor）</p>
+          <ul>
+            <li>删空话、去重复与模板化表达</li>
+            <li>保留事实、确定程度与作者声音</li>
+            <li>只润色文本，不做 AI 检测判定</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-dot teal"></div>
+            <h4>/pptx</h4>
+          </div>
+          <p>PowerPoint 读写与编辑（vendor）</p>
+          <ul>
+            <li>创建、解析、编辑 <code class="inline-code">.pptx</code> / <code class="inline-code">.potx</code></li>
+            <li>模板、版式、演讲者备注与评论</li>
+            <li>拆分 / 合并幻灯片文件</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-dot sage"></div>
+            <h4>/skill-creator</h4>
+          </div>
+          <p>创建与改进技能（vendor）</p>
+          <ul>
+            <li>从零写一个新技能，或优化现有技能</li>
+            <li>跑评测、做方差分析</li>
+            <li>优化 description 的触发准确率</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-dot blue"></div>
+            <h4>/ui-ux-pro-max</h4>
+          </div>
+          <p>可检索的 UI/UX 设计知识库（vendor）</p>
+          <ul>
+            <li>风格、产品配色与字体搭配</li>
+            <li>UX 规范、图标、GSAP 预设、图表类型</li>
+            <li>覆盖 22 种技术栈的实现建议</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-dot violet"></div>
+            <h4>/web-design-guidelines</h4>
+          </div>
+          <p>按 Web Interface Guidelines 审 UI（vendor）</p>
+          <ul>
+            <li>审 UI 代码的无障碍与交互规范</li>
+            <li>对照最佳实践做设计审计</li>
+            <li>来源：vercel-labs/agent-skills</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-dot amber"></div>
+            <h4>/resume-optimizer</h4>
+          </div>
+          <p>简历审计与优化（vendor）</p>
+          <ul>
+            <li>把职责型表述改写成成果型表述，突出量化结果与业务价值</li>
+            <li>结合目标岗位 JD 调整关键词、项目重点与职业叙事</li>
+            <li>产出修改后的简历草稿与行动清单，按需压成一页</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-dot sage"></div>
+            <h4>/teach</h4>
+          </div>
+          <p>以教学方式讲清一个概念（vendor）</p>
+          <ul>
+            <li>把当前目录当教学工作区，学习状态落成文件</li>
+            <li>每课一份自包含 HTML，围绕 MISSION.md 里的学习动机</li>
+            <li>按 learning-records 判断最近发展区，跨会话持续推进</li>
           </ul>
         </div>
       </div>
 
       <div class="note">
-        <strong>技能分组：</strong>26 个技能按「在流程里扮演什么角色」分四个桶——<code class="inline-code">flow</code>（流水线本身，10 个）、<code class="inline-code">practice</code>（中途因为出事了或要保证质量伸手拿的，7 个）、<code class="inline-code">meta</code>（描述这套技能集自身的路由，1 个）、<code class="inline-code">bonus</code>（产出非代码工件，8 个）。
+        <strong>技能分组：</strong>27 个技能按「在流程里扮演什么角色」分三个桶——<code class="inline-code">flow</code>（流水线本身，10 个）、<code class="inline-code">bonus</code>（中途因为出事了、要保证质量、或需要一个非代码产物伸手拿的，7 个）、<code class="inline-code">vendor</code>（第三方技能的逐字副本，由 manifest 钉住 commit，10 个）。
       </div>
     </div>
 
@@ -894,36 +902,36 @@
 
       <h3>方式一（推荐）：作为 skill 目录安装</h3>
       <pre><code><span class="comment"># 安装全部 skills 到 ~/.agents/skills</span>
-<span class="cmd">npx skills add</span> <span class="value">9Ashwin/stream-it</span>
+<span class="cmd">npx skills add</span> <span class="value">9Ashwin/let-it-go</span>
 
 <span class="comment"># 之后按来源更新</span>
 <span class="cmd">npx skills update</span> <span class="flag">-g</span></code></pre>
       <ul class="step-list">
         <li>skills 落到 <code class="inline-code">~/.agents/skills</code>，这条装法不必动任何 profile 依赖。</li>
         <li><code class="inline-code">npx skills</code> 递归扫描，安装时把 <code class="inline-code">skills/&lt;桶&gt;/&lt;技能&gt;</code> <strong>拍平</strong>成 <code class="inline-code">~/.agents/skills/&lt;技能&gt;</code>——技能根只扫一层，所以必须拍平。</li>
-        <li>选择技能时按桶分成 <strong>4 组</strong>（flow / practice / meta / bonus），不是 26 项平铺：分组来自 <code class="inline-code">.claude-plugin/marketplace.json</code> 里「每桶一个 plugin」的声明；没有归属声明的技能会掉进兜底的 <code class="inline-code">Other</code> 组。</li>
+        <li>选择技能时看到的是<strong>拍平后的 27 项</strong>，仓库里没有插件清单，所有技能平铺在同一层：<code class="inline-code">skills/&lt;桶&gt;/&lt;技能&gt;</code> 只用来组织仓库，安装后不再有桶这一层。</li>
         <li>这是最省事的一条路：不必动 profile 的依赖，对所有 profile 都生效。</li>
       </ul>
       <p>手动拷贝时要自己完成<strong>拍平</strong>这一步——不要连桶一起拷：</p>
       <pre><code><span class="comment"># 拍平到 ~/.agents/skills/&lt;技能&gt;</span>
-<span class="cmd">cp -R</span> <span class="value">&lt;stream-it&gt;/skills/flow/graph</span> <span class="value">~/.agents/skills/graph</span></code></pre>
+<span class="cmd">cp -R</span> <span class="value">&lt;let-it-go&gt;/skills/flow/graph</span> <span class="value">~/.agents/skills/graph</span></code></pre>
 
       <h3>方式二（可选）：作为 bundle 安装</h3>
       <pre><code><span class="comment"># 安装到 web profile</span>
-<span class="cmd">dsh plugin</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="cmd">add</span> <span class="flag">-w</span> <span class="value">github:9Ashwin/stream-it</span>
+<span class="cmd">dsh plugin</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="cmd">add</span> <span class="flag">-w</span> <span class="value">github:9Ashwin/let-it-go</span>
 
 <span class="comment"># 生产环境建议锁定到某个 commit</span>
-<span class="cmd">dsh plugin</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="cmd">add</span> <span class="flag">-w</span> <span class="value">github:9Ashwin/stream-it#&lt;sha&gt;</span>
+<span class="cmd">dsh plugin</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="cmd">add</span> <span class="flag">-w</span> <span class="value">github:9Ashwin/let-it-go#&lt;sha&gt;</span>
 
 <span class="comment"># 验证安装</span>
-<span class="cmd">dsh</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="flag">--dump-config</span> | <span class="cmd">grep</span> <span class="flag">-A3</span> <span class="value">stream-it</span></code></pre>
+<span class="cmd">dsh</span> <span class="flag">--profile</span> <span class="value">web</span> <span class="flag">--dump-config</span> | <span class="cmd">grep</span> <span class="flag">-A3</span> <span class="value">let-it-go</span></code></pre>
       <ul class="step-list">
         <li><code class="inline-code">-w</code> 不能省略：DSH 把 profile 当作 pnpm workspace 根，pnpm 9 缺少该标志时会报 <code class="inline-code">ERR_PNPM_ADDING_TO_ROOT</code>。</li>
-        <li>包里的 <code class="inline-code">dsh.bundle</code> 声明会让 <code class="inline-code">dsh</code> 把它追加进 profile 的 <code class="inline-code">bundles</code> 层，技能由<strong>包内自带的 provider</strong> 提供，不依赖 <code class="inline-code">~/.agents/skills</code> 是否在技能根里。</li>
+        <li>包里的 <code class="inline-code">dsh.bundle</code> 声明会让 <code class="inline-code">dsh</code> 把它追加进 profile 的 <code class="inline-code">bundles</code> 层，技能由<strong>包内自带的 provider</strong> 提供，不依赖 <code class="inline-code">~/.agents/skills</code> 是否在技能根里。provider 的 patch 把 <code class="inline-code">skills/flow</code>、<code class="inline-code">skills/bonus</code>、<code class="inline-code">skills/vendor</code> <strong>各列为一个技能根</strong>——技能根只扫一层，漏掉一个桶那一桶就会整体消失。</li>
         <li>本包是 <strong>config-only bundle</strong>（纯配置包，没有构建脚本），因此<strong>不需要</strong> <code class="inline-code">allowBuilds</code> 授权。</li>
-        <li>生产环境建议锁定 commit：<code class="inline-code">github:9Ashwin/stream-it#&lt;sha&gt;</code>。</li>
-        <li>验证：<code class="inline-code">dsh --profile web --dump-config | grep -A3 stream-it</code>，应看到 <code class="inline-code"># == stream-it-skills</code> 层。</li>
-        <li>本地 checkout 联调：<code class="inline-code">dsh plugin --profile demo add -w /path/to/stream-it</code>。</li>
+        <li>生产环境建议锁定 commit：<code class="inline-code">github:9Ashwin/let-it-go#&lt;sha&gt;</code>。</li>
+        <li>验证：<code class="inline-code">dsh --profile web --dump-config | grep -A3 let-it-go</code>，应看到 <code class="inline-code"># == let-it-go-skills</code> 层。</li>
+        <li>本地 checkout 联调：<code class="inline-code">dsh plugin --profile demo add -w /path/to/let-it-go</code>。</li>
       </ul>
 
       <div class="note">
@@ -939,11 +947,11 @@
       </table>
 
       <div class="tip">
-        <strong>Tip：</strong>安装后输入 <code class="inline-code">/ask-flow</code>、<code class="inline-code">/prd</code>、<code class="inline-code">/prd-to-spec</code>、<code class="inline-code">/to-issues</code>、<code class="inline-code">/triage</code>、<code class="inline-code">/implement</code>、<code class="inline-code">/test-first</code>、<code class="inline-code">/loop-it</code>、<code class="inline-code">/graph</code>、<code class="inline-code">/diagnose</code>、<code class="inline-code">/conflict</code>、<code class="inline-code">/review-it</code>、<code class="inline-code">/ship-it</code>、<code class="inline-code">/refactor</code>、<code class="inline-code">/modern-go</code>、<code class="inline-code">/note-it</code>、<code class="inline-code">/walkthrough</code>、<code class="inline-code">/code-to-spec</code>、<code class="inline-code">/humanize-it</code>、<code class="inline-code">/insight-diagram</code>、<code class="inline-code">/smell</code>、<code class="inline-code">/to-design</code>、<code class="inline-code">/design-it</code>、<code class="inline-code">/listenhub-tts</code>、<code class="inline-code">/article-icons</code>、<code class="inline-code">/understand</code> 即可直接调用对应技能。其中 <code class="inline-code">/goal</code> 是 DSH 的命令（不是 skill）：模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但只在顶层直接的人类回合执行。
+        <strong>Tip：</strong>安装后输入 <code class="inline-code">/ask-flow</code>、<code class="inline-code">/prd</code>、<code class="inline-code">/to-design</code>、<code class="inline-code">/to-issues</code>、<code class="inline-code">/implement</code>、<code class="inline-code">/loop-it</code>、<code class="inline-code">/graph</code>、<code class="inline-code">/review-it</code>、<code class="inline-code">/walkthrough</code>、<code class="inline-code">/ship-it</code>（flow 10 个）、<code class="inline-code">/test-first</code>、<code class="inline-code">/triage</code>、<code class="inline-code">/diagnose</code>、<code class="inline-code">/conflict</code>、<code class="inline-code">/refactor</code>、<code class="inline-code">/modern-go</code>、<code class="inline-code">/understand</code>（bonus 7 个）、<code class="inline-code">/svg-diagram</code>、<code class="inline-code">/find-skills</code>、<code class="inline-code">/frontend-design</code>、<code class="inline-code">/humanizer-zh</code>、<code class="inline-code">/pptx</code>、<code class="inline-code">/resume-optimizer</code>、<code class="inline-code">/skill-creator</code>、<code class="inline-code">/teach</code>、<code class="inline-code">/ui-ux-pro-max</code>、<code class="inline-code">/web-design-guidelines</code>（vendor 10 个）即可直接调用对应技能。其中 <code class="inline-code">/goal</code> 是 DSH 的命令（不是 skill）：模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但只在顶层直接的人类回合执行。
       </div>
 
       <div class="note">
-        <strong>让技能不进模型目录：</strong>5 个技能（<code class="inline-code">/ask-flow</code>、<code class="inline-code">/insight-diagram</code>、<code class="inline-code">/article-icons</code>、<code class="inline-code">/humanize-it</code>、<code class="inline-code">/listenhub-tts</code>）标记为不进模型目录，省下每个会话与<strong>每个子代理</strong>都要付的那份固定成本。这 5 个技能还各带一份 <code class="inline-code">agents/openai.yaml</code>（<code class="inline-code">policy.allow_implicit_invocation: false</code>）。
+        <strong>模型目录：</strong>27 个技能的目录总量是 6446 字符，模型实际看到 <strong>6385 字符</strong>。唯一带 <code class="inline-code">disable-model-invocation</code> 的是 vendor 的 <code class="inline-code">/teach</code>（上游的选择，不进模型目录），省下每个会话与<strong>每个子代理</strong>都要付的那份固定成本；<code class="inline-code">/ask-flow</code> 是模型可调用的。
       </div>
     </div>
 
@@ -955,10 +963,6 @@
       </div>
       <p>从需求到交付的闭环工作流：</p>
 
-      <div style="text-align: center; margin: 1.5rem 0;">
-        <img src="workflow.png" alt="stream-it Infographic" style="max-width: 100%; border-radius: 12px; border: 1px solid #E8E4DE; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
-      </div>
-
       <div class="flow-arrow">
         <div class="flow-step">
           <span class="step-num n1">1</span>
@@ -966,12 +970,7 @@
         </div>
         <span class="flow-connector">&rarr;</span>
         <div class="flow-step">
-          <span class="step-num n5">1.5</span>
-          /prd-to-spec
-        </div>
-        <span class="flow-connector">&rarr;</span>
-        <div class="flow-step">
-          <span class="step-num n7">1.6</span>
+          <span class="step-num n7">1.5</span>
           /to-issues
         </div>
         <span class="flow-connector">&rarr;</span>
@@ -996,13 +995,13 @@
         </div>
       </div>
 
-      <pre><code><span class="cmd">/prd</span> → <span class="cmd">/prd-to-spec</span> <span class="comment">（可选）</span> → <span class="cmd">/to-issues</span> ─┬─→ <span class="cmd">/implement</span>  <span class="comment">（单单元：内联实现 → 门禁自证 → /review-it → /ship-it）</span>
+      <pre><code><span class="cmd">/prd</span> → <span class="comment">[跨两个及以上服务 / 改数据模型或迁移 / 两条以上对外契约 → </span><span class="cmd">/to-design</span><span class="comment">]</span> → <span class="cmd">/to-issues</span> ─┬─→ <span class="cmd">/implement</span>  <span class="comment">（单单元：内联实现 → 门禁自证 → /review-it → /ship-it）</span>
                                              ├─→ <span class="cmd">/loop-it</span>    <span class="comment">（串行：一次一个 Issue，带检查点恢复）</span>
                                              └─→ <span class="cmd">/graph</span>      <span class="comment">（并行：按波次 fan-out，每节点独立 git worktree，波次间 fan-in 屏障）</span>
                                                      节点：内联实现 → 门禁自证 → commit；波末：集成 → <span class="cmd">/review-it</span> → <span class="cmd">/walkthrough</span> → <span class="cmd">/ship-it</span></code></pre>
 
       <div class="diagram-box">
-        <svg viewBox="0 0 1140 220" style="min-width: 1030px;">
+        <svg viewBox="0 0 980 220" style="min-width: 870px;">
           <defs>
             <pattern id="dots-flow" width="24" height="24" patternUnits="userSpaceOnUse">
               <circle cx="2" cy="2" r="0.6" fill="#E0DCD6"/>
@@ -1024,58 +1023,47 @@
           <!-- Arrow 1→1.5 -->
           <line x1="140" y1="110" x2="170" y2="110" stroke="#C5C0BA" stroke-width="1.5" marker-end="url(#arrowhead)"/>
 
-          <!-- Step 1.5: /prd-to-spec -->
-          <rect x="170" y="40" width="130" height="140" rx="10" fill="#FFF5F0" stroke="#D4A843" stroke-width="1.5" stroke-dasharray="4 2"/>
-          <text x="235" y="68" fill="#D4A843" font-size="11" font-weight="700" text-anchor="middle">1.5: /prd-to-spec</text>
+          <!-- Step 1.5: /to-issues -->
+          <rect x="170" y="40" width="130" height="140" rx="10" fill="#FFF5F0" stroke="#E8624F" stroke-width="1.5"/>
+          <text x="235" y="68" fill="#E8624F" font-size="11" font-weight="700" text-anchor="middle">1.5: /to-issues</text>
           <text x="235" y="90" fill="#4A4540" font-size="9" text-anchor="middle">读取 PRD</text>
-          <text x="235" y="108" fill="#4A4540" font-size="9" text-anchor="middle">技术澄清</text>
-          <text x="235" y="126" fill="#4A4540" font-size="9" text-anchor="middle">生成 SPEC</text>
-          <text x="235" y="150" fill="#8B8680" font-size="8" text-anchor="middle">Output: SPEC (opt)</text>
+          <text x="235" y="108" fill="#4A4540" font-size="9" text-anchor="middle">拆解 Issue</text>
+          <text x="235" y="126" fill="#4A4540" font-size="9" text-anchor="middle">创建卡片</text>
+          <text x="235" y="150" fill="#8B8680" font-size="8" text-anchor="middle">Output: Issues</text>
 
-          <!-- Arrow 1.5→1.6 -->
+          <!-- Arrow 1.5→2 -->
           <line x1="300" y1="110" x2="330" y2="110" stroke="#C5C0BA" stroke-width="1.5" marker-end="url(#arrowhead)"/>
 
-          <!-- Step 1.6: /to-issues -->
-          <rect x="330" y="40" width="130" height="140" rx="10" fill="#FFF5F0" stroke="#E8624F" stroke-width="1.5"/>
-          <text x="395" y="68" fill="#E8624F" font-size="11" font-weight="700" text-anchor="middle">1.6: /to-issues</text>
-          <text x="395" y="90" fill="#4A4540" font-size="9" text-anchor="middle">读取 PRD/SPEC</text>
-          <text x="395" y="108" fill="#4A4540" font-size="9" text-anchor="middle">拆解 Issue</text>
-          <text x="395" y="126" fill="#4A4540" font-size="9" text-anchor="middle">创建卡片</text>
-          <text x="395" y="150" fill="#8B8680" font-size="8" text-anchor="middle">Output: Issues</text>
-
-          <!-- Arrow 1.6→2 -->
-          <line x1="460" y1="110" x2="490" y2="110" stroke="#C5C0BA" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-
           <!-- Step 2: /loop-it · /graph -->
-          <rect x="490" y="40" width="130" height="140" rx="10" fill="#F5F8F6" stroke="#5B8A72" stroke-width="1.5"/>
-          <text x="555" y="62" fill="#5B8A72" font-size="11" font-weight="700" text-anchor="middle">Step 2</text>
-          <text x="555" y="80" fill="#5B8A72" font-size="10" font-weight="700" text-anchor="middle">/loop-it · /graph</text>
-          <text x="555" y="100" fill="#4A4540" font-size="9" text-anchor="middle">读取 Issue / DAG</text>
-          <text x="555" y="118" fill="#4A4540" font-size="9" text-anchor="middle">内联实现</text>
-          <text x="555" y="136" fill="#4A4540" font-size="9" text-anchor="middle">运行测试</text>
-          <text x="555" y="156" fill="#8B8680" font-size="8" text-anchor="middle">Output: Code</text>
+          <rect x="330" y="40" width="130" height="140" rx="10" fill="#F5F8F6" stroke="#5B8A72" stroke-width="1.5"/>
+          <text x="395" y="62" fill="#5B8A72" font-size="11" font-weight="700" text-anchor="middle">Step 2</text>
+          <text x="395" y="80" fill="#5B8A72" font-size="10" font-weight="700" text-anchor="middle">/loop-it · /graph</text>
+          <text x="395" y="100" fill="#4A4540" font-size="9" text-anchor="middle">读取 Issue / DAG</text>
+          <text x="395" y="118" fill="#4A4540" font-size="9" text-anchor="middle">内联实现</text>
+          <text x="395" y="136" fill="#4A4540" font-size="9" text-anchor="middle">运行测试</text>
+          <text x="395" y="156" fill="#8B8680" font-size="8" text-anchor="middle">Output: Code</text>
 
           <!-- Arrow 2→3 -->
-          <line x1="620" y1="110" x2="650" y2="110" stroke="#C5C0BA" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <line x1="460" y1="110" x2="490" y2="110" stroke="#C5C0BA" stroke-width="1.5" marker-end="url(#arrowhead)"/>
 
           <!-- Step 3: /review-it -->
-          <rect x="650" y="40" width="130" height="140" rx="10" fill="#F5F3F8" stroke="#8B6F8A" stroke-width="1.5"/>
-          <text x="715" y="68" fill="#8B6F8A" font-size="11" font-weight="700" text-anchor="middle">Step 3: /review-it</text>
-          <text x="715" y="90" fill="#4A4540" font-size="9" text-anchor="middle">自动审查</text>
-          <text x="715" y="108" fill="#4A4540" font-size="9" text-anchor="middle">验证发现</text>
-          <text x="715" y="126" fill="#4A4540" font-size="9" text-anchor="middle">迭代修复</text>
-          <text x="715" y="150" fill="#8B8680" font-size="8" text-anchor="middle">Output: ✓ Review</text>
+          <rect x="490" y="40" width="130" height="140" rx="10" fill="#F5F3F8" stroke="#8B6F8A" stroke-width="1.5"/>
+          <text x="555" y="68" fill="#8B6F8A" font-size="11" font-weight="700" text-anchor="middle">Step 3: /review-it</text>
+          <text x="555" y="90" fill="#4A4540" font-size="9" text-anchor="middle">自动审查</text>
+          <text x="555" y="108" fill="#4A4540" font-size="9" text-anchor="middle">验证发现</text>
+          <text x="555" y="126" fill="#4A4540" font-size="9" text-anchor="middle">迭代修复</text>
+          <text x="555" y="150" fill="#8B8680" font-size="8" text-anchor="middle">Output: ✓ Review</text>
 
           <!-- Arrow 3→4 -->
-          <line x1="780" y1="110" x2="810" y2="110" stroke="#C5C0BA" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <line x1="620" y1="110" x2="650" y2="110" stroke="#C5C0BA" stroke-width="1.5" marker-end="url(#arrowhead)"/>
 
           <!-- Step 4: /ship-it -->
-          <rect x="810" y="40" width="130" height="140" rx="10" fill="#F0F4F8" stroke="#4A6FA5" stroke-width="1.5"/>
-          <text x="875" y="68" fill="#4A6FA5" font-size="11" font-weight="700" text-anchor="middle">Step 4: /ship-it</text>
-          <text x="875" y="90" fill="#4A4540" font-size="9" text-anchor="middle">Commit + Push</text>
-          <text x="875" y="108" fill="#4A4540" font-size="9" text-anchor="middle">Create PR</text>
-          <text x="875" y="126" fill="#4A4540" font-size="9" text-anchor="middle">Merge + Close</text>
-          <text x="875" y="150" fill="#8B8680" font-size="8" text-anchor="middle">Output: Shipped</text>
+          <rect x="650" y="40" width="130" height="140" rx="10" fill="#F0F4F8" stroke="#4A6FA5" stroke-width="1.5"/>
+          <text x="715" y="68" fill="#4A6FA5" font-size="11" font-weight="700" text-anchor="middle">Step 4: /ship-it</text>
+          <text x="715" y="90" fill="#4A4540" font-size="9" text-anchor="middle">Commit + Push</text>
+          <text x="715" y="108" fill="#4A4540" font-size="9" text-anchor="middle">Create PR</text>
+          <text x="715" y="126" fill="#4A4540" font-size="9" text-anchor="middle">Merge + Close</text>
+          <text x="715" y="150" fill="#8B8680" font-size="8" text-anchor="middle">Output: Shipped</text>
         </svg>
       </div>
 
@@ -1088,15 +1076,9 @@
           <td>PRD 文档（交给 <code class="inline-code">/to-issues</code> 拆解）</td>
         </tr>
         <tr>
-          <td><span class="badge badge-plan">1.5 设计</span></td>
-          <td><code class="inline-code">/prd-to-spec</code></td>
-          <td>PRD 文档</td>
-          <td>技术 SPEC（可选）</td>
-        </tr>
-        <tr>
-          <td><span class="badge badge-plan">1.6 拆解</span></td>
+          <td><span class="badge badge-plan">1.5 拆解</span></td>
           <td><code class="inline-code">/to-issues</code></td>
-          <td>PRD / SPEC 文档</td>
+          <td>PRD / 需求描述</td>
           <td>Issue 卡片</td>
         </tr>
         <tr>
@@ -1104,12 +1086,6 @@
           <td><code class="inline-code">/implement</code> / <code class="inline-code">/loop-it</code> / <code class="inline-code">/graph</code></td>
           <td>一个或多个 Issue 卡片</td>
           <td>可运行的代码实现</td>
-        </tr>
-        <tr>
-          <td><span class="badge badge-impl">2.5 笔记</span></td>
-          <td><code class="inline-code">/note-it</code></td>
-          <td>已实现并审查的变更</td>
-          <td><code class="inline-code">docs/issue#NNNN.md</code> 实现笔记（可选）</td>
         </tr>
         <tr>
           <td><span class="badge badge-review">3. 审查</span></td>
@@ -1160,14 +1136,13 @@
         <li>根据回答生成结构化 PRD（用户故事、功能需求、非目标、验收标准）</li>
         <li>展示 PRD 供审阅，确认或调整</li>
         <li>保存 PRD 到 <code class="inline-code">tasks/prd-[feature-name].md</code></li>
-        <li>建议下一步：<code class="inline-code">/prd-to-spec</code>（可选）与 <code class="inline-code">/to-issues</code></li>
+        <li>建议下一步：<code class="inline-code">/to-issues</code> 拆解为 Issue</li>
       </ul>
 
       <h3>输出示例</h3>
       <pre><code><span class="comment"># 保存 PRD 后给出的下一步</span>
 <span class="value">✅ PRD saved to tasks/prd-priority-system.md</span>
 
-<span class="cmd">/prd-to-spec</span>  <span class="comment">（可选：复杂功能才需要技术方案）</span>
 <span class="cmd">/to-issues</span>    <span class="comment">（把 PRD 拆成有阻塞关系的 Issue）</span></code></pre>
 
       <div class="tip">
@@ -1175,80 +1150,19 @@
       </div>
     </div>
 
-    <!-- Section 5: /prd-to-spec -->
-    <div class="section" id="step-prd-to-spec">
-      <div class="section-title">
-        <div class="section-dot terracotta"></div>
-        <h3>5. Step 1.5: /prd-to-spec — PRD 转技术方案</h3>
-      </div>
-      <p>
-        <code class="inline-code">/prd-to-spec</code> 将产品需求文档（PRD）转化为可实施的技术设计方案（SPEC）。PRD 说明"做什么"，SPEC 说明"怎么做"。
-      </p>
-
-      <h3>触发方式</h3>
-      <pre><code><span class="comment"># 直接输入</span>
-<span class="cmd">/prd-to-spec</span> <span class="value">tasks/prd-priority-system.md</span>
-
-<span class="comment"># 或使用触发词</span>
-<span class="cmd">需求转设计：</span><span class="value">将优先级 PRD 转为技术方案</span>
-<span class="cmd">技术方案：</span><span class="value">基于 prd-user-auth.md 生成 SPEC</span></code></pre>
-
-      <h3>PRD → SPEC 映射</h3>
-      <table>
-        <tr><th>PRD 元素</th><th>SPEC 章节</th><th>转化方式</th></tr>
-        <tr><td>User Stories</td><td>业务逻辑 + 测试映射</td><td>故事 → 算法 + 测试用例</td></tr>
-        <tr><td>Functional Requirements</td><td>API 设计 + 业务逻辑</td><td>FR → 端点 + 实现逻辑</td></tr>
-        <tr><td>Acceptance Criteria</td><td>测试策略</td><td>标准 → 具体测试场景</td></tr>
-        <tr><td>Non-Goals</td><td>开放问题</td><td>明确排除范围</td></tr>
-        <tr><td>Technical Considerations</td><td>架构 + 性能</td><td>约束 → 设计决策</td></tr>
-      </table>
-
-      <h3>SPEC 输出结构（11 章节）</h3>
-      <table>
-        <tr><th>#</th><th>章节</th><th>内容</th></tr>
-        <tr><td>1</td><td>Summary</td><td>覆盖范围、PRD 引用、设计决策摘要</td></tr>
-        <tr><td>2</td><td>Architecture</td><td>系统上下文、组件设计、文件结构</td></tr>
-        <tr><td>3</td><td>Data Model</td><td>Schema 变更、实体定义、迁移计划</td></tr>
-        <tr><td>4</td><td>API Design</td><td>端点表、请求响应 Schema、错误响应</td></tr>
-        <tr><td>5</td><td>Business Logic</td><td>核心算法、校验规则、状态机、边界情况</td></tr>
-        <tr><td>6</td><td>Error Handling</td><td>错误分类、重试策略、降级方案</td></tr>
-        <tr><td>7</td><td>Security</td><td>认证授权、输入校验、数据保护</td></tr>
-        <tr><td>8</td><td>Performance</td><td>预期负载、优化策略、数据库考量</td></tr>
-        <tr><td>9</td><td>Testing Strategy</td><td>单元/集成/E2E 测试 + 验收标准映射</td></tr>
-        <tr><td>10</td><td>Implementation Plan</td><td>实施阶段、Issue 映射、渐进交付</td></tr>
-        <tr><td>11</td><td>Open Questions & Risks</td><td>未决问题、技术风险、假设前提</td></tr>
-      </table>
-
-      <h3>工作流程</h3>
-      <ul class="step-list">
-        <li>定位 PRD 文件（自动扫描 tasks/ 或手动指定）</li>
-        <li>（可选）分析现有代码库：架构、技术栈、模式、约定（无代码库时跳过，从零提出架构）</li>
-        <li>提出 3-5 个技术澄清问题（带选项）</li>
-        <li>生成完整 SPEC 文档</li>
-        <li>展示供审阅，确认或迭代</li>
-        <li>保存到 <code class="inline-code">tasks/spec-[feature-name].md</code></li>
-      </ul>
-
-      <div class="note">
-        <strong>Note：</strong><code class="inline-code">/prd-to-spec</code> 是一个<strong>可选步骤</strong>。对于大多数中小型功能，PRD 中的 Functional Requirements 和 Acceptance Criteria 已经足够让 AI agent 在实现阶段自主做出技术决策——agent 会自动分析代码库、理解架构、选择合适的实现路径，不需要一份预先写好的 SPEC。仅在以下场景才建议先跑 <code class="inline-code">/prd-to-spec</code>：
-        <ul class="step-list" style="margin-top: 0.5rem;">
-          <li>多人或多 agent 并行开发，需要共享技术约定</li>
-          <li>跨多个服务/模块的大型改动，架构决策影响面大</li>
-          <li>团队有合规或评审流程要求设计文档</li>
-          <li>PRD 写得较模糊，需要提前补足技术细节降低理解偏差</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Section 6: /to-issues -->
+    <!-- Section 5: /to-issues -->
     <div class="section" id="step-to-issues">
       <div class="section-title">
         <div class="section-dot coral"></div>
-        <h3>6. Step 1.6: /to-issues — 拆解 Issue 卡片</h3>
+        <h3>5. Step 1.5: /to-issues — 拆解 Issue 卡片</h3>
       </div>
       <p>
-        <code class="inline-code">/to-issues</code> 将 PRD 和/或 SPEC 拆解为<strong>垂直切片</strong>的可独立实施 Issue，并创建到你选择的平台。可独立使用，不需要先运行 <code class="inline-code">/prd</code>。
+        <code class="inline-code">/to-issues</code> 把 PRD（或任何一段需求描述）拆解为<strong>垂直切片</strong>的可独立实施 Issue，并创建到你选择的平台。可独立使用，不需要先运行 <code class="inline-code">/prd</code>。
       </p>
+
+      <div class="note">
+        <strong>每条 Issue 正文就是契约。</strong>目标、非目标、验收条件、必须收集的证据、外部边界、完成定义、未决问题都写在正文里——所以流程里<strong>没有「先写一份 SPEC 文档」这一步</strong>。一个不共享本次对话上下文的子代理，凭这条正文就能独立开工。
+      </div>
 
       <div class="note">
         <strong>核心原则：垂直切片，而非按层拆分。</strong>每个 Issue 是一条贯穿各层（schema + API + UI + 测试）的窄而完整的<em>可演示</em>路径，落地即可单独演示；而不是"后端一张卡、前端一张卡"。检验标准：<em>"完成后我能演示什么？"</em>——答案若是某一层而非一个行为，就要重新切。若整个改动放得下一个上下文窗口，则无需拆 Issue，直接由 agent 内联实现。
@@ -1260,16 +1174,15 @@
 
 <span class="comment"># 或使用触发词</span>
 <span class="cmd">创建issue：</span><span class="value">基于 prd-user-auth.md 创建 Issue</span>
-<span class="cmd">拆解issue：</span><span class="value">从 SPEC 拆解可实施的卡片</span>
-<span class="cmd">生成卡片：</span><span class="value">将 PRD 和 SPEC 一起拆成 Issue</span></code></pre>
+<span class="cmd">拆解issue：</span><span class="value">把这段需求拆成可实施的卡片</span>
+<span class="cmd">生成卡片：</span><span class="value">把 PRD 拆成带阻塞关系的 Issue</span></code></pre>
 
       <h3>输入来源</h3>
       <table>
         <tr><th>选项</th><th>说明</th></tr>
-        <tr><td>自动检测</td><td>扫描 <code class="inline-code">tasks/</code> 目录，列出可用的 PRD 和 SPEC</td></tr>
+        <tr><td>自动检测</td><td>扫描 <code class="inline-code">tasks/</code> 目录，列出可用的 PRD</td></tr>
         <tr><td>指定 PRD</td><td>只基于 PRD 的 User Stories 拆解</td></tr>
-        <tr><td>指定 SPEC</td><td>使用 SPEC 的 Issue Mapping 章节作为主指导</td></tr>
-        <tr><td>PRD + SPEC</td><td>（推荐）PRD 提供需求，SPEC 提供技术约定，Issue 最完整</td></tr>
+        <tr><td>直接粘贴</td><td>没有 PRD 时，直接给一段需求描述也能拆</td></tr>
       </table>
 
       <h3>创建平台</h3>
@@ -1281,9 +1194,9 @@
 
       <h3>工作流程</h3>
       <ul class="step-list">
-        <li>定位输入文件（自动检测或手动指定 PRD/SPEC）</li>
+        <li>定位输入（自动检测 PRD、手动指定，或直接粘贴需求描述）</li>
         <li>先识别 prefactoring（"让改动变简单"的铺垫工作），排在最前</li>
-        <li>拆解为垂直切片 Issue，标注 <em>demo path</em> 与显式 <em>Blocked by</em> 依赖边，按依赖顺序编号</li>
+        <li>拆解为垂直切片 Issue，把契约字段（目标 / 非目标 / 验收条件 / 必须收集的证据 / 外部边界 / 完成定义 / 未决问题）写进正文，标注 <em>demo path</em> 与显式 <em>Blocked by</em> 依赖边，按依赖顺序编号</li>
         <li>quiz 用户复核：粒度、依赖边、demo path 是否为行为而非某一层</li>
         <li>选择创建平台（GitHub / Local）</li>
         <li>阻塞者优先创建，逐条落地并输出汇总报告（含可立即开始的 frontier）</li>
@@ -1298,14 +1211,14 @@
       </div>
 
       <h3>边界：/triage 只管从外面进来的条目</h3>
-      <p><code class="inline-code">/to-issues</code> 拆的是<strong>你自己</strong>的需求，产出已经是 agent-ready 的卡片；从外面进来的 bug 报告、用户反馈、别人提的需求归 <code class="inline-code">/triage</code>——先复现 / 理解，再定角色（<code class="inline-code">ready</code> / <code class="inline-code">needs-info</code> / <code class="inline-code">bug-confirmed</code> / <code class="inline-code">duplicate</code> / <code class="inline-code">wontfix</code>），并把 <code class="inline-code">ready</code> 的补成 agent 可执行的卡片。<strong>不要 triage <code class="inline-code">/to-issues</code> 产出的卡片。</strong>详见 <a href="#step-triage" style="color: #E8624F; text-decoration: none;">22. /triage</a>。</p>
+      <p><code class="inline-code">/to-issues</code> 拆的是<strong>你自己</strong>的需求，产出已经是 agent-ready 的卡片；从外面进来的 bug 报告、用户反馈、别人提的需求归 <code class="inline-code">/triage</code>——先复现 / 理解，再定角色（<code class="inline-code">ready</code> / <code class="inline-code">needs-info</code> / <code class="inline-code">bug-confirmed</code> / <code class="inline-code">duplicate</code> / <code class="inline-code">wontfix</code>），并把 <code class="inline-code">ready</code> 的补成 agent 可执行的卡片。<strong>不要 triage <code class="inline-code">/to-issues</code> 产出的卡片。</strong>详见 <a href="#step-triage" style="color: #E8624F; text-decoration: none;">18. /triage</a>。</p>
     </div>
 
-    <!-- Section 7: Implementation (/loop-it & /graph) -->
+    <!-- Section 6: Implementation (/loop-it & /graph) -->
     <div class="section" id="step-impl">
       <div class="section-title">
         <div class="section-dot sage"></div>
-        <h3>7. Step 2: /implement · /loop-it · /graph — 功能实现</h3>
+        <h3>6. Step 2: /implement · /loop-it · /graph — 功能实现</h3>
       </div>
       <p>
         实现步骤由正在运行的 agent <strong>内联</strong>完成：它读取 Issue 的标题、正文与验收标准（含其中引用的 PRD/SPEC），自己写代码、跑测试与 lint，直到验收条件全部满足。技能提供三条实现路线：只有<strong>一个单元</strong>时内联走 <code class="inline-code">/implement</code>，串行走 <code class="inline-code">/loop-it</code>，并行走 <code class="inline-code">/graph</code>。
@@ -1342,7 +1255,7 @@
       <ul class="step-list">
         <li>获取仓库中所有打开的 GitHub Issue</li>
         <li>解析 Issue 正文里的依赖关系，做依赖感知的拓扑排序，得到可安全开始的顺序</li>
-        <li>一次一个 Issue <strong>内联实现</strong>（读需求 → 写代码 → 跑门禁自证），在该 Issue 自己的分支上 commit；<strong>不 push、不开 PR</strong></li>
+        <li>一次一个 Issue <strong>内联实现</strong>（读需求 → 写代码 → 跑门禁自证），随后过一次 <strong>supervisor 检查</strong>——判据是证据（命令与真实输出），不是 diff 观感——再在该 Issue 自己的分支上 commit；<strong>不 push、不开 PR</strong></li>
         <li>批末把各 Issue 分支汇总成一条批次分支（<strong>不并入 failed 的分支</strong>），只做一次 <code class="inline-code">/review-it</code>、一次 <code class="inline-code">/walkthrough</code> 与一次 <code class="inline-code">/ship-it</code></li>
         <li>每次状态变更立即写入 <code class="inline-code">.loop-state.json</code> 检查点，崩溃或中断后可从断点恢复</li>
       </ul>
@@ -1353,10 +1266,10 @@
         <li>把一个任务（或 PRD / SPEC / Issue 集合）转化为<strong>有向无环图（DAG）</strong>，按依赖关系分层为若干<strong>波次（wave）</strong></li>
         <li>每个波次里相互独立的节点由一个子代理 <strong>并发实现</strong>，<strong>每个节点独占一个 git worktree</strong>，并行编辑互不污染工作树</li>
         <li>节点只 commit 到自己的分支；波次之间设<strong>强制 fan-in 屏障</strong>（BSP 语义）——等齐本波<strong>所有</strong>节点的完成通知后才收尾</li>
-        <li>屏障到达后统一收尾：泄漏检查 → 集成（<strong>只合并 shipped 的节点</strong>，failed 的绝不合并）→ 在<strong>集成后的树</strong>上跑门禁 → <strong>评审一次</strong>（逐节点分节）→ <strong>ship 一次</strong>（一个 PR，关闭该波满足的 Issue）</li>
+        <li>屏障到达后统一收尾：泄漏检查 → 对每个节点过 <strong>evidence check</strong>（判据是节点报上来的证据：命令与真实输出，不是 diff 观感）→ 集成（<strong>只合并 shipped 的节点</strong>，failed 的绝不合并）→ 在<strong>集成后的树</strong>上跑门禁 → <strong>评审一次</strong>（逐节点分节）→ <strong>ship 一次</strong>（一个 PR，关闭该波满足的 Issue）</li>
         <li>每波写入 <code class="inline-code">.graph_state.json</code> 检查点，并据此重新渲染 <code class="inline-code">graph.html</code> 实时看板</li>
       </ul>
-      <p>适合 DAG 中存在真正并行度（相互独立的子系统）的场景。单节点波没有可集成的对象，跳过 wave 分支与 merge 仪式，直接对该节点分支 review + ship。详见 <a href="#step-loop-it" style="color: #5B8A72; text-decoration: none;">17. /loop-it</a> 与 <a href="#step-graph" style="color: #5B8A72; text-decoration: none;">19. /graph</a>。</p>
+      <p>适合 DAG 中存在真正并行度（相互独立的子系统）的场景。单节点波没有可集成的对象，跳过 wave 分支与 merge 仪式，直接对该节点分支 review + ship。详见 <a href="#step-loop-it" style="color: #5B8A72; text-decoration: none;">13. /loop-it</a> 与 <a href="#step-graph" style="color: #5B8A72; text-decoration: none;">15. /graph</a>。</p>
 
       <h3>失败节点：原地重试 → 重跑 → 剔除</h3>
       <ul class="step-list">
@@ -1369,11 +1282,11 @@
       </div>
     </div>
 
-    <!-- Section 8: /review-it -->
+    <!-- Section 7: /review-it -->
     <div class="section" id="step-review">
       <div class="section-title">
         <div class="section-dot plum"></div>
-        <h3>8. Step 3: /review-it — 代码审查</h3>
+        <h3>7. Step 3: /review-it — 代码审查</h3>
       </div>
       <p>
         <code class="inline-code">/review-it</code> 是提交前的审查收尾：<strong>先跑门禁自证，再评审 diff</strong>，发现真实问题并迭代修复，直到没有可操作的发现。在当前契约里它<strong>按波 / 批调用一次</strong>，审的是集成后的 diff，而不是每个节点各自审自己刚写完的代码。
@@ -1440,20 +1353,16 @@
         <li>这是这一波<strong>唯一的评审</strong>：绝不跳过，也绝不让某一个特性的小节吃掉整个 pass</li>
         <li>采纳的发现先修复，再在集成后的树上重跑门禁，直到没有可操作的发现</li>
       </ul>
-
-      <div class="tip">
-        <strong>Tip：</strong>其它 CLI 的审查命令表放在 <code class="inline-code">references/other-clis.md</code>。
-      </div>
     </div>
 
     <!-- Section 8: /ship-it -->
     <div class="section" id="step-ship">
       <div class="section-title">
         <div class="section-dot blue"></div>
-        <h3>9. Step 4: /ship-it — 提交交付</h3>
+        <h3>8. Step 4: /ship-it — 提交交付</h3>
       </div>
       <p>
-        <code class="inline-code">/ship-it</code> 是实现完成后的标准收尾流程：提交代码、创建 PR、合入、添加实现总结、关闭 Issue。在 <code class="inline-code">/graph</code> 一波或 <code class="inline-code">/loop-it</code> 一批的收尾里，它<strong>只调用一次</strong>：一个分支、一个 PR、一次 CI、一次 merge，关闭该波 / 该批满足的多个 Issue。
+        <code class="inline-code">/ship-it</code> 是实现完成后的标准收尾流程：提交代码、创建 PR、合入、关闭 Issue，并<strong>一次写出实现总结评论</strong>（设计决策 / 偏离 / 权衡 / 待确认）。它是 <strong>PR body 的唯一产出者</strong>——<code class="inline-code">/walkthrough</code> 只提供证据，由它一次写进 body。在 <code class="inline-code">/graph</code> 一波或 <code class="inline-code">/loop-it</code> 一批的收尾里，它<strong>只调用一次</strong>：一个分支、一个 PR、一次 CI、一次 merge，关闭该波 / 该批满足的多个 Issue。
       </p>
 
       <h3>触发方式</h3>
@@ -1508,7 +1417,7 @@
       </table>
 
       <div class="note">
-        <strong>Note：</strong>解进行中的 merge / rebase 用 <code class="inline-code">/conflict</code>——能同时保留两边意图就都保留，真不兼容时选与本次合并目标一致的一边并把权衡写进 commit message，<strong>永远解，不 <code class="inline-code">--abort</code></strong>。详见 <a href="#step-conflict" style="color: #4A6FA5; text-decoration: none;">24. /conflict</a>。
+        <strong>Note：</strong>解进行中的 merge / rebase 用 <code class="inline-code">/conflict</code>——能同时保留两边意图就都保留，真不兼容时选与本次合并目标一致的一边并把权衡写进 commit message，<strong>永远解，不 <code class="inline-code">--abort</code></strong>。详见 <a href="#step-conflict" style="color: #4A6FA5; text-decoration: none;">20. /conflict</a>。
       </div>
 
       <div class="note">
@@ -1516,129 +1425,68 @@
       </div>
     </div>
 
-    <!-- Section 9: /humanize-it -->
-    <div class="section" id="step-humanize">
-      <div class="section-title">
-        <div class="section-dot amber"></div>
-        <h3>10. Bonus: /humanize-it — 去 AI 味改写</h3>
-      </div>
-      <p>
-        <code class="inline-code">/humanize-it</code> 对指定文档进行去 AI 味的改写。根据文档类型自动选择最合适的人性化策略，迭代改写直到效果达标。
-      </p>
-
-      <h3>触发方式</h3>
-      <pre><code><span class="comment"># 直接输入</span>
-<span class="cmd">/humanize-it</span> <span class="value">docs/architecture.md</span>
-
-<span class="comment"># 或使用触发词</span>
-<span class="cmd">去AI味：</span><span class="value">把这篇文档改成人话</span>
-<span class="cmd">降AIGC：</span><span class="value">humanize docs/blog-draft.md</span></code></pre>
-
-      <h3>子 Skill 能力矩阵</h3>
-      <table>
-        <tr><th>Skill</th><th>适用场景</th><th>改写风格</th></tr>
-        <tr><td><a href="https://github.com/op7418/Humanizer-zh" style="color: #D4A843; text-decoration: none;"><code class="inline-code">humanizer-zh</code></a></td><td>通用文本、博客、文案</td><td>自然、有温度、带观点</td></tr>
-        <tr><td><a href="https://github.com/sickn33/antigravity-awesome-skills/blob/main/plugins/antigravity-awesome-skills-claude/skills/humanize-chinese/SKILL.md" style="color: #D4A843; text-decoration: none;"><code class="inline-code">humanize-chinese</code></a></td><td>通用 + 学术 + 长文本</td><td>多风格（知乎/小红书/学术/文学等）</td></tr>
-        <tr><td><a href="https://github.com/luoling8192/technical-writing" style="color: #D4A843; text-decoration: none;"><code class="inline-code">technical-writing</code></a></td><td>技术文档、架构说明、评审稿</td><td>平实、严谨、可论证</td></tr>
-      </table>
-
-      <h3>自动策略选择</h3>
-      <table>
-        <tr><th>文档类型</th><th>优先策略顺序</th></tr>
-        <tr><td>技术文档</td><td><code class="inline-code">technical-writing</code> &rarr; <code class="inline-code">humanizer-zh</code> &rarr; <code class="inline-code">humanize-chinese</code></td></tr>
-        <tr><td>学术论文</td><td><code class="inline-code">humanize-chinese</code> (academic) &rarr; <code class="inline-code">humanizer-zh</code> &rarr; <code class="inline-code">technical-writing</code></td></tr>
-        <tr><td>通用文本</td><td><code class="inline-code">humanizer-zh</code> &rarr; <code class="inline-code">humanize-chinese</code> &rarr; <code class="inline-code">technical-writing</code></td></tr>
-        <tr><td>长文本 (≥1500字)</td><td><code class="inline-code">humanize-chinese</code> (longform) &rarr; <code class="inline-code">humanizer-zh</code> &rarr; <code class="inline-code">technical-writing</code></td></tr>
-      </table>
-
-      <h3>迭代机制</h3>
-      <ul class="step-list">
-        <li>自动检测文档类型，选择第一个改写 skill</li>
-        <li>改写后按 5 个维度评分（AI 痕迹去除 / 自然度 / 信息完整 / 风格一致 / 可读性）</li>
-        <li>评分 ≥ 80 分则通过，输出结果</li>
-        <li>不达标则切换到下一个 skill，在上次改写基础上继续优化</li>
-        <li>同一 skill 连续 3 次无提升则自动切换</li>
-        <li>所有 skill 用完一轮后从头开始新一轮组合</li>
-        <li>最多迭代 42 轮，输出当前最佳结果</li>
-      </ul>
-
-      <div class="tip">
-        <strong>Tip：</strong>你可以在触发时指定偏好，如"保持学术风格"、"要更口语化"、"技术文档不要太随意"，改写时会优先选择对应的策略。
-      </div>
-    </div>
-
-    <!-- Section 11: /insight-diagram -->
-    <div class="section" id="step-diagram">
+    <!-- Section 9: /svg-diagram (vendor) -->
+    <div class="section" id="step-svg-diagram">
       <div class="section-title">
         <div class="section-dot violet"></div>
-        <h3>11. Bonus: /insight-diagram — UML 与架构图生成</h3>
+        <h3>9. Vendor: /svg-diagram — SVG 制图规范与机械校验</h3>
       </div>
       <p>
-        <code class="inline-code">/insight-diagram</code> 为任意项目生成 UML 图、架构图和流程图。分析代码库后让用户选择要生成的图表类型，渲染为 HTML+SVG 并保存到 <code class="inline-code">docs/</code> 目录。
+        <code class="inline-code">/svg-diagram</code> 是一套手写 SVG 图的「房屋风格」：把技术感的外观与对 CJK 友好的排版固定下来，并用机械检查证明图确实守了规矩。流程图、架构图、时序图这类「画出来给人看」的图都走它。
       </p>
 
       <h3>触发方式</h3>
       <pre><code><span class="comment"># 直接输入</span>
-<span class="cmd">/insight-diagram</span>
+<span class="cmd">/svg-diagram</span>
 
 <span class="comment"># 或使用触发词</span>
-<span class="cmd">生成架构图：</span><span class="value">分析项目结构并生成架构图</span>
-<span class="cmd">画流程图：</span><span class="value">为这个模块绘制调用流程图</span>
-<span class="cmd">生成UML图：</span><span class="value">生成类图和时序图</span></code></pre>
+<span class="cmd">画架构图：</span><span class="value">为技能加载流程画一张 SVG 架构图</span>
+<span class="cmd">画流程图：</span><span class="value">把这个模块的调用流程画成 SVG</span></code></pre>
 
-      <h3>支持的图表类型</h3>
-      <p>共支持 <strong>17 种</strong>图表类型，分为结构性图形和行为性图形两大类：</p>
-
-      <h3>结构性图形（静态）</h3>
+      <h3>规范覆盖</h3>
       <table>
-        <tr><th>编号</th><th>图表类型</th><th>关注点</th></tr>
-        <tr><td>1</td><td>系统架构图 ★</td><td>组件关系、全局视角（非UML，最常用）</td></tr>
-        <tr><td>2</td><td>类图</td><td>定义类、属性、操作及关系</td></tr>
-        <tr><td>3</td><td>对象图</td><td>特定时刻的对象实例及其关系</td></tr>
-        <tr><td>4</td><td>组件图</td><td>系统组件及其依赖关系</td></tr>
-        <tr><td>5</td><td>部署图</td><td>物理硬件、节点及软件部署</td></tr>
-        <tr><td>6</td><td>包图</td><td>将模型元素分组组织</td></tr>
-        <tr><td>7</td><td>复合结构图</td><td>类的内部结构</td></tr>
-        <tr><td>8</td><td>剖面图</td><td>扩展UML元模型、自定义构造型</td></tr>
+        <tr><th>方面</th><th>约束</th></tr>
+        <tr><td>布局</td><td>内容居中、左右视觉平衡、同级块间距 ≥25px、标题按内容中心而非 viewBox 中心对齐</td></tr>
+        <tr><td>连接线</td><td>线不穿框、文字不压线（与线留 10–20px）、图例放在图体之外</td></tr>
+        <tr><td>箭头</td><td>统一 marker 定义，箭头收在框边而不是扎进框内</td></tr>
+        <tr><td>配色</td><td>固定调色板，并给出浅色底的回退色</td></tr>
+        <tr><td>CJK 字体栈</td><td>字体栈同时覆盖中文与等宽，避免中文回退成衬线或方框</td></tr>
+        <tr><td>XML 转义</td><td><code class="inline-code">&amp;</code> / <code class="inline-code">&lt;</code> / <code class="inline-code">&gt;</code> 按 XML 规则转义</td></tr>
       </table>
 
-      <h3>行为性图形（动态）</h3>
-      <table>
-        <tr><th>编号</th><th>图表类型</th><th>关注点</th></tr>
-        <tr><td>9</td><td>流程图 ★</td><td>主流程与分支（非UML，最常用）</td></tr>
-        <tr><td>10</td><td>用例图</td><td>从用户角度展示系统功能</td></tr>
-        <tr><td>11</td><td>活动图</td><td>过程的流程或步骤</td></tr>
-        <tr><td>12</td><td>状态机图</td><td>对象生命周期的状态变迁</td></tr>
-        <tr><td>13</td><td>序列图</td><td>按时间顺序展示对象间交互</td></tr>
-        <tr><td>14</td><td>通信图</td><td>侧重于对象间的组织关系</td></tr>
-        <tr><td>15</td><td>定时图</td><td>侧重于状态变化的时间约束</td></tr>
-        <tr><td>16</td><td>交互概览图</td><td>结合活动图和时序图</td></tr>
-        <tr><td>17</td><td>泳道图</td><td>跨组件/角色职责流程（活动图变体）</td></tr>
-      </table>
-      <p style="font-size:0.6875rem;color:#8B8680;margin-top:0.25rem;">★ 标注为最常用的图表类型。默认推荐组合：架构图 + 序列图 + 流程图。</p>
+      <h3>机械校验：tools/svg-lint</h3>
+      <p>技能自带零依赖的 <code class="inline-code">tools/svg-lint</code>，对 SVG 跑 <strong>12 项检查</strong>：重叠、块间距、框高、连接线几何、箭头 marker、文字溢出、viewBox 裁切、字体栈、调色板一致性、浅底回退、基线偏移、XML 转义。</p>
 
       <h3>工作流程</h3>
       <ul class="step-list">
-        <li>分析项目代码库，识别关键组件和依赖关系</li>
-        <li>展示可选的图表类型列表，用户选择需要生成的类型</li>
-        <li>使用 <a href="https://github.com/Cocoon-AI/architecture-diagram-generator" style="color: #7C5CBF; text-decoration: none;">architecture-diagram</a> skill 渲染为 HTML+SVG</li>
-        <li>保存输出到 <code class="inline-code">docs/</code> 目录</li>
+        <li>图落到文档旁边的 <code class="inline-code">assets/</code> 目录（如 <code class="inline-code">docs/foo.md</code> → <code class="inline-code">docs/assets/foo-arch.svg</code>）</li>
+        <li>在 Markdown 里用相对路径引用（<code class="inline-code">![title](assets/xxx.svg)</code>），不要把 SVG XML 内联进正文</li>
+        <li>生成后自己先走一遍校验清单，修掉间距、内边距、对齐与裁切问题再交给用户</li>
+        <li>文档里的数据变了，对应的 SVG 也要一起改——图和正文互相矛盾比没有图更糟</li>
       </ul>
 
       <div class="tip">
-        <strong>Tip：</strong>你可以在触发时指定关注范围，如"只看 <code class="inline-code">src/services/</code> 目录"、"重点分析数据库层"，生成结果会更聚焦。
+        <strong>Tip：</strong>一次性出图时从子代理里调用它更省上下文——主上下文不必同时背着技能说明和 SVG XML；需要多轮微调时再在主上下文里直接用。
       </div>
     </div>
 
-    <!-- Section 12: Refactor -->
+    <!-- Section 10: Refactor -->
     <div class="section" id="step-refactor">
       <div class="section-title">
         <div class="section-dot coral"></div>
-        <h3>12. Bonus: /refactor — 专家级代码重构</h3>
+        <h3>10. Bonus: /refactor — 专家级代码重构</h3>
       </div>
       <p>
         <code class="inline-code">/refactor</code> 基于 Martin Fowler《重构》第 2 版的完整目录，提供专家级代码重构能力。通过识别代码坏味道并应用经过验证的重构手法，在不改变外部行为的前提下改善代码的可维护性、可读性和结构。
       </p>
+
+      <h3>两种模式</h3>
+      <table>
+        <tr><th>模式</th><th>做什么</th><th>写代码吗</th></tr>
+        <tr><td><code class="inline-code">audit</code>（只报不改）</td><td>检测代码坏味道、架构反模式与复杂度热点，逐条验证后按严重级别排序，产出 <code class="inline-code">tasks/</code> 下的 Markdown 报告与重构路线图</td><td>否</td></tr>
+        <tr><td><code class="inline-code">fix</code>（默认）</td><td>针对一个已命名的坏味道，套用 Fowler 目录里最小的那一步重构，每步一个提交、测试保持绿色</td><td>是</td></tr>
+      </table>
+      <p>请求里同时含「找问题」和「改掉」时：先 <code class="inline-code">audit</code>，与用户确认发现，再在确认过的清单上切到 <code class="inline-code">fix</code>。</p>
 
       <h3>触发方式</h3>
       <pre><code><span class="comment"># 直接输入</span>
@@ -1715,11 +1563,11 @@
       </div>
     </div>
 
-    <!-- Section 13: Modern-Go -->
+    <!-- Section 11: Modern-Go -->
     <div class="section" id="step-modern-go">
       <div class="section-title">
         <div class="section-dot teal"></div>
-        <h3>13. Bonus: /modern-go — Go 代码现代化改造</h3>
+        <h3>11. Bonus: /modern-go — Go 代码现代化改造</h3>
       </div>
       <p>
         <code class="inline-code">/modern-go</code> 自动将 Go 代码升级为现代写法和 API，类似 <code class="inline-code">go fix</code>。扫描 <code class="inline-code">go.mod</code> 检测 Go 版本，对 Go 源文件批量应用版本适配的转换规则，覆盖从 Go 1.0 到 1.27+ 的 35+ 条规则。
@@ -1776,56 +1624,11 @@
       </div>
     </div>
 
-    <!-- Section 14: Notes -->
-    <div class="section" id="step-note-it">
-      <div class="section-title">
-        <div class="section-dot slate"></div>
-        <h3>14. Bonus: /note-it — 实现笔记记录</h3>
-      </div>
-      <p>
-        <code class="inline-code">/note-it</code> 在代码实现和审查完成后，为当前 Issue 生成一份结构化实现笔记，记录设计决策、偏离、权衡和待确认问题，输出为 HTML 格式保存到 <code class="inline-code">docs/</code> 目录。
-      </p>
-
-      <h3>触发方式</h3>
-      <pre><code><span class="comment"># 直接输入</span>
-<span class="cmd">/note-it</span>
-
-<span class="comment"># 或使用触发词</span>
-<span class="cmd">记录笔记：</span><span class="value">为 Issue #42 生成实现笔记</span>
-<span class="cmd">implementation notes：</span><span class="value">记录本次实现的决策和偏离</span></code></pre>
-
-      <h3>笔记内容</h3>
-      <table>
-        <tr><th>类别</th><th>关注点</th><th>示例</th></tr>
-        <tr><td>Design Decisions</td><td>规格模糊处的选择及理由</td><td>为什么选择接口多态而非 switch</td></tr>
-        <tr><td>Deviations</td><td>有意偏离规格的地方及原因</td><td>简化了错误处理策略的理由</td></tr>
-        <tr><td>Tradeoffs</td><td>考虑的替代方案及取舍分析</td><td>内联 vs 提取函数的选择</td></tr>
-        <tr><td>Open Questions</td><td>需要确认或修改的事项</td><td>性能假设是否需要基准测试验证</td></tr>
-      </table>
-
-      <h3>输出</h3>
-      <ul class="step-list">
-        <li>自动检测 Issue 编号（从分支名或 issue 上下文）</li>
-        <li>生成 HTML 格式笔记文件</li>
-        <li>保存到 <code class="inline-code">docs/issue#NNNN.md</code></li>
-        <li>如已存在该 Issue 笔记，提示是否追加或覆盖</li>
-      </ul>
-
-      <h3>定位</h3>
-      <p>
-        <code class="inline-code">/note-it</code> 位于工作流中 <code class="inline-code">/review-it</code> 和 <code class="inline-code">/ship-it</code> 之间，作为提交前最终检查点——确保实现意图被完整记录，方便后续维护者理解代码背后的决策逻辑。
-      </p>
-
-      <div class="tip">
-        <strong>Tip：</strong>即使没有偏离规格，记录设计决策和权衡也是有价值的——6 个月后回看代码时，这些笔记比代码注释更能解释"当时为什么这么做"。
-      </div>
-    </div>
-
-    <!-- Section 15: /walkthrough -->
+    <!-- Section 12: /walkthrough -->
     <div class="section" id="step-walkthrough">
       <div class="section-title">
         <div class="section-dot teal"></div>
-        <h3>15. Bonus: /walkthrough — 交付前走查</h3>
+        <h3>12. Bonus: /walkthrough — 交付前走查</h3>
       </div>
       <p>
         <code class="inline-code">/walkthrough</code> 在实现、验证和 <code class="inline-code">/review-it</code> 都完成之后、<code class="inline-code">/ship-it</code> 之前，产出一份可以直接交给 reviewer 的走查文档：说清<strong>改了什么</strong>、<strong>真的跑过什么、打印了什么</strong>，并用视觉证据证明 demo 路径确实走通。它的重点是<strong>证据而不是断言</strong>——diff 说明代码长什么样，走查说明你实际运行了什么、看到了什么。
@@ -1837,7 +1640,7 @@
 
 <span class="comment"># 或使用触发词</span>
 <span class="cmd">走查：</span><span class="value">为 user-auth 生成交付前走查</span>
-<span class="cmd">交付前走查：</span><span class="value">整理这次改动的验证证据和 PR 草稿</span></code></pre>
+<span class="cmd">交付前走查：</span><span class="value">整理这次改动的验证证据</span></code></pre>
 
       <h3>走查文档的四个部分</h3>
       <table>
@@ -1845,7 +1648,7 @@
         <tr><td>1. 变更摘要</td><td>面向没看过这份改动的人描述 diff</td><td>3–6 条：做了什么、关键文件与组件、对应哪条需求 / Issue</td></tr>
         <tr><td>2. 验证步骤</td><td>真正跑过的命令与真实输出</td><td>贴出确切命令和输出（保留 pass 数、截断噪声）；UI 场景按「操作 → 观察结果 → 通过/失败」逐条记录</td></tr>
         <tr><td>3. 视觉证据</td><td>demo 路径的截图或短视频</td><td>2–4 张证明主路径（前 → 操作 → 后），而不是截图堆</td></tr>
-        <tr><td>4. 评审闸门</td><td>合并前要核对的东西</td><td>diff stat 与文件清单、高风险提示、可直接粘贴的 PR 正文、合并清单</td></tr>
+        <tr><td>4. 风险与人工验收</td><td>还没被证明的部分</td><td>diff stat 与文件清单、高风险提示、人工验收状态；PR body 与合并清单归 <code class="inline-code">/ship-it</code></td></tr>
       </table>
 
       <h3>输出</h3>
@@ -1859,7 +1662,7 @@
 
       <h3>定位</h3>
       <p>
-        <code class="inline-code">/walkthrough</code> 是 <code class="inline-code">/note-it</code> 的兄弟：两者都在评审之后、交付之前产出工件，但管的不是同一件事——<code class="inline-code">/note-it</code> 记录<strong>设计理由</strong>（为什么这么做），走查记录<strong>证据</strong>（跑过什么、看到了什么）以及一份合并前清单。它<strong>记录门禁输出，但不替代项目自己的门禁</strong>；没有验证过的步骤要如实写成未验证或阻塞，绝不写成已通过。
+        <code class="inline-code">/walkthrough</code> 只负责<strong>证据</strong>：命令与真实输出、可视化、风险点、人工验收状态。<strong>PR body 与合并清单不在这里产出</strong>——那是 <code class="inline-code">/ship-it</code> 的产物，由它写一次即可；走查再写一份就是同一份内容维护两处。它<strong>记录门禁输出，但不替代项目自己的门禁</strong>；没有验证过的步骤要如实写成未验证或阻塞，绝不写成已通过。
       </p>
 
       <div class="tip">
@@ -1867,120 +1670,14 @@
       </div>
     </div>
 
-    <!-- Section 16: /code-to-spec -->
-    <div class="section" id="step-code-to-spec">
-      <div class="section-title">
-        <div class="section-dot sage"></div>
-        <h3>16. Bonus: /code-to-spec — 逆向生成规格文档</h3>
-      </div>
-      <p>
-        <code class="inline-code">/code-to-spec</code> 分析一个既有项目的代码、配置、测试和结构，反向生成一份完整的 SPEC（规格）文档。输出可用于重建项目、新人入职或对比实际实现与预期设计。
-      </p>
-
-      <h3>触发方式</h3>
-      <pre><code><span class="comment"># 直接输入</span>
-<span class="cmd">/code-to-spec</span>
-
-<span class="comment"># 或使用触发词</span>
-<span class="cmd">生成设计文档：</span><span class="value">分析当前项目并生成 SPEC</span>
-<span class="cmd">reverse spec：</span><span class="value">逆向工程这个项目的规格</span>
-<span class="cmd">生成规格文档：</span><span class="value">为 src/ 目录生成技术规格</span></code></pre>
-
-      <h3>分析深度</h3>
-      <table>
-        <tr><th>级别</th><th>内容</th><th>适用场景</th></tr>
-        <tr><td>Overview</td><td>架构 + 技术栈 + 核心功能</td><td>快速了解项目，~5 分钟</td></tr>
-        <tr><td>Standard（默认）</td><td>+ API 合约 + 数据模型 + 配置 + 依赖</td><td>全面理解项目</td></tr>
-        <tr><td>Deep</td><td>+ 内部模块交互 + 错误处理 + 测试覆盖</td><td>准备重构或重写</td></tr>
-      </table>
-
-      <h3>SPEC 文档结构（12 章节）</h3>
-      <table>
-        <tr><th>#</th><th>章节</th><th>内容</th></tr>
-        <tr><td>1</td><td>Overview</td><td>目的、核心功能、架构风格</td></tr>
-        <tr><td>2</td><td>Tech Stack</td><td>语言、框架、数据库、构建、测试、部署</td></tr>
-        <tr><td>3</td><td>Project Structure</td><td>目录树 + 各目录职责注释</td></tr>
-        <tr><td>4</td><td>Data Model</td><td>核心实体、字段、关系、状态流转</td></tr>
-        <tr><td>5</td><td>API Surface</td><td>端点/命令/函数表 + 请求响应 Schema</td></tr>
-        <tr><td>6</td><td>Configuration</td><td>环境变量、配置文件、Feature Flags</td></tr>
-        <tr><td>7</td><td>External Dependencies</td><td>第三方服务、基础设施、失败影响</td></tr>
-        <tr><td>8</td><td>Business Rules</td><td>不变量、校验规则、业务逻辑约束</td></tr>
-        <tr><td>9</td><td>Non-Functional</td><td>性能、安全、错误处理模式</td></tr>
-        <tr><td>10</td><td>Testing Strategy</td><td>测试框架、覆盖模式</td></tr>
-        <tr><td>11</td><td>Known Gaps</td><td>不确定项、假设、无测试区域</td></tr>
-        <tr><td>12</td><td>Appendix</td><td>依赖图、本地环境搭建步骤</td></tr>
-      </table>
-
-      <h3>工作流程</h3>
-      <ul class="step-list">
-        <li>确认分析范围（整个仓库 / 指定目录 / 特定方面）和深度级别</li>
-        <li>扫描项目：识别入口点、目录结构、依赖图、API 路由、数据模型</li>
-        <li>提取业务规则：从校验函数、Guard Clauses、测试断言中推导</li>
-        <li>合成生成 12 章节 SPEC 文档</li>
-        <li>展示供审阅，根据反馈迭代调整</li>
-        <li>保存到 <code class="inline-code">docs/SPEC.md</code> 或用户指定位置</li>
-      </ul>
-
-      <div class="tip">
-        <strong>Tip：</strong>对于大型项目（>500 文件），建议先用 Overview 深度快速了解全貌，再对感兴趣的模块用 Deep 深度分析。
-      </div>
-    </div>
-
-    <!-- Section 17: /smell -->
-    <div class="section" id="step-smell">
-      <div class="section-title">
-        <div class="section-dot gold"></div>
-        <h3>17. Bonus: /smell — 架构坏味道检测</h3>
-      </div>
-      <p>
-        <code class="inline-code">/smell</code> 分析代码库中的架构反模式、代码坏味道和算法复杂度热点。输出详细的 Markdown 报告，包含严重级别、证据和重构路线图。
-      </p>
-
-      <h3>如何调用</h3>
-      <pre><code><span class="comment"># 直接输入</span>
-<span class="cmd">/smell</span>
-
-<span class="comment"># 或使用触发短语</span>
-<span class="cmd">代码坏味道检测：</span><span class="value">找出代码坏味道</span>
-<span class="cmd">架构审计：</span><span class="value">检测架构反模式</span>
-<span class="cmd">复杂度扫描：</span><span class="value">分析代码复杂度</span></code></pre>
-
-      <h3>检测类别（8 大类，50+ 坏味道）</h3>
-      <table>
-        <tr><th>类别</th><th>示例</th></tr>
-        <tr><td>架构</td><td>大泥球、分布式单体、贫血模型、CQRS 滥用、层边界违反</td></tr>
-        <tr><td>耦合</td><td>循环依赖、内容耦合、公共耦合（全局状态）、印记耦合</td></tr>
-        <tr><td>内聚</td><td>上帝对象、霰弹式修改、依恋情结、数据泥团</td></tr>
-        <tr><td>设计</td><td>抽象泄露、静态粘连、服务定位器滥用、SOLID 违反</td></tr>
-        <tr><td>代码</td><td>重复代码、长方法、基本类型偏执、魔数、死代码</td></tr>
-        <tr><td>测试</td><td>零测试覆盖、测试-实现耦合、不稳定测试</td></tr>
-        <tr><td>命名</td><td>模糊命名、命名不一致</td></tr>
-        <tr><td>复杂度</td><td>嵌套循环 (O(n²))、N+1 查询、重复线性扫描、循环内排序、渲染重复计算</td></tr>
-      </table>
-
-      <h3>报告结构</h3>
-      <ul class="step-list">
-        <li>执行摘要与整体健康评估</li>
-        <li>检测到的架构风格 vs. 期望风格</li>
-        <li>按严重级别分类的发现（严重 / 警告 / 建议）</li>
-        <li>依赖图分析与模块健康评分卡</li>
-        <li>8 大类坏味道分布统计</li>
-        <li>重构路线图（立即可做 / 短期 / 长期）</li>
-      </ul>
-
-      <div class="tip">
-        <strong>Tip：</strong>快速检查时可指定"仅严重"模式。范围可选全项目、指定模块或仅最近变更文件。
-      </div>
-    </div>
-
-    <!-- Section 18: /loop-it -->
+    <!-- Section 13: /loop-it -->
     <div class="section" id="step-loop-it">
       <div class="section-title">
         <div class="section-dot plum"></div>
-        <h3>18. Bonus: /loop-it — 自动化 Issue 批量实现循环</h3>
+        <h3>13. Bonus: /loop-it — 自动化 Issue 批量实现循环</h3>
       </div>
       <p>
-        <code class="inline-code">/loop-it</code> 获取所有打开的 GitHub Issue，解析依赖顺序，一次一个 Issue 内联实现（读需求 → 写代码 → 跑门禁自证），只在该 Issue 自己的分支上 commit（不 push、不开 PR）。批末把各分支汇总成一条批次分支（<strong>failed 的分支不并入</strong>），只做一次 <code class="inline-code">/review-it</code>、一次 <code class="inline-code">/walkthrough</code> 与一次 <code class="inline-code">/ship-it</code>。进度持久化到 <code class="inline-code">.loop-state.json</code>，崩溃或中断后可从断点恢复。
+        <code class="inline-code">/loop-it</code> 获取所有打开的 GitHub Issue，解析依赖顺序，一次一个 Issue 内联实现（读需求 → 写代码 → 跑门禁自证 → supervisor 检查，判据是证据不是 diff 观感），只在该 Issue 自己的分支上 commit（不 push、不开 PR）。批末把各分支汇总成一条批次分支（<strong>failed 的分支不并入</strong>），只做一次 <code class="inline-code">/review-it</code>、一次 <code class="inline-code">/walkthrough</code> 与一次 <code class="inline-code">/ship-it</code>。进度持久化到 <code class="inline-code">.loop-state.json</code>，崩溃或中断后可从断点恢复。
       </p>
 
       <h3>如何调用</h3>
@@ -1996,6 +1693,7 @@
       <ul class="step-list">
         <li><strong>前置检查</strong> — 验证 gh 认证、git 状态、远程可达性、工作树清洁度</li>
         <li><strong>依赖拓扑排序</strong> — 解析 Issue 正文中的依赖关系，按拓扑顺序处理</li>
+        <li><strong>逐 issue supervisor 检查</strong> — 每个 issue 实现后交给一个全新上下文的评审者看证据（命令与真实输出），判据是证据不是 diff 观感；<code class="inline-code">/ship-it</code> 仍只在批末一次</li>
         <li><strong>检查点恢复</strong> — 每次状态变更写入 <code class="inline-code">.loop-state.json</code>，崩溃后可断点续传</li>
         <li><strong>结构化错误恢复</strong> — 10 类错误（构建、测试、lint、合并冲突、CI、认证、限流等），每类有独立恢复策略和重试上限</li>
         <li><strong>分支卫生</strong> — 每个 Issue 独立分支 <code class="inline-code">feat/issue-N-desc</code>，只在自己的分支 commit（不 push）；批末汇总成批次分支，failed 的分支不并入且保留</li>
@@ -2005,32 +1703,28 @@
 
       <h3>流水线集成</h3>
       <pre><code><span class="comment"># 从 PRD 到代码交付的完整流水线</span>
-<span class="cmd">/prd</span> → <span class="cmd">/prd-to-spec</span> → <span class="cmd">/to-issues</span> → <span class="cmd">/loop-it</span>
-                                               │
-                                               └→ 每个 Issue：内联实现 → 门禁自证 → commit（× N）
-                                                  批末 ×1：汇总批次分支 → <span class="cmd">/review-it</span> → <span class="cmd">/walkthrough</span> → <span class="cmd">/ship-it</span></code></pre>
-
-      <div style="text-align: center; margin: 1rem 0;">
-        <img src="images/loop-it.png" alt="Loop-it Pipeline" style="max-width: 100%; border-radius: 12px; border: 1px solid #E8E4DE; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
-      </div>
+<span class="cmd">/prd</span> → <span class="cmd">/to-issues</span> → <span class="cmd">/loop-it</span>
+                              │
+                              └→ 每个 Issue：内联实现 → 门禁自证 → supervisor 检查 → commit（× N）
+                                 批末 ×1：汇总批次分支 → <span class="cmd">/review-it</span> → <span class="cmd">/walkthrough</span> → <span class="cmd">/ship-it</span></code></pre>
 
       <div class="tip">
         <strong>提示：</strong>将 <code class="inline-code">.loop-state.json</code> 添加到 <code class="inline-code">.gitignore</code>。如果循环崩溃，再次运行 <code class="inline-code">/loop-it</code> 即可检测状态文件并恢复。
       </div>
     </div>
 
-    <!-- Section 19: /to-design -->
+    <!-- Section 14: /to-design -->
     <div class="section" id="step-to-design">
       <div class="section-title">
         <div class="section-dot terracotta"></div>
-        <h3>19. Bonus: /to-design — PRD 转设计文档</h3>
+        <h3>14. Bonus: /to-design — PRD 转设计文档</h3>
       </div>
       <p>
-        <code class="inline-code">/to-design</code> 把一份 PRD（或一个粗略想法）转化为 <strong>设计文档（design doc）</strong>，文风借鉴 Go 官方提案：朴素的语言、具体的示例，以及最重要的——诚实地交代<strong>为什么选这个方案而不是别的</strong>。
+        <code class="inline-code">/to-design</code> 把一份 PRD（或一个粗略想法）转化为 <strong>设计文档（design doc）</strong>，文风借鉴 Go 官方提案：朴素的语言、具体的示例，以及最重要的——诚实地交代<strong>为什么选这个方案而不是别的</strong>。<strong>Markdown 提案是主产物</strong>；渲染成单文件 HTML 只是可选的呈现层，默认不渲染。
       </p>
 
       <div class="note">
-        <strong>它和 /prd-to-spec 有什么区别？</strong>SPEC 是给工程师照着实现的<strong>实现契约</strong>（表结构、接口、Schema）；设计文档是一份<strong>决策文档</strong>——它论证一个方向、把取舍摆上桌面，让团队在动手写代码前先就同一套事实达成共识。问题是"应该怎么建、为什么"时产出设计文档；问题是"给我精确的实现契约"时产出 SPEC。两者可串联：先 <code class="inline-code">/to-design</code> 定方向，再 <code class="inline-code">/prd-to-spec</code> 落契约。
+        <strong>它和 issue 里的契约字段块有什么区别？</strong>契约字段块是给工程师照着实现的<strong>实现契约</strong>（表结构、接口、Schema），由 <code class="inline-code">/to-issues</code> 写进 issue 正文；设计文档是一份<strong>决策文档</strong>——它论证一个方向、把取舍摆上桌面，让团队在动手写代码前先就同一套事实达成共识。问题是"应该怎么建、为什么"时产出设计文档；问题是"给我精确的实现契约"时走 <code class="inline-code">/to-issues</code>。
       </div>
 
       <h3>如何调用</h3>
@@ -2077,14 +1771,14 @@
       </div>
     </div>
 
-    <!-- Section 20: /graph -->
+    <!-- Section 15: /graph -->
     <div class="section" id="step-graph">
       <div class="section-title">
         <div class="section-dot plum"></div>
-        <h3>20. Bonus: /graph — 任务图并发实现</h3>
+        <h3>15. Bonus: /graph — 任务图并发实现</h3>
       </div>
       <p>
-        <code class="inline-code">/graph</code> 把一个任务（或 PRD / SPEC / Issue 集合）转化为<strong>有向无环图（DAG）</strong>，按依赖关系分层为若干<strong>超步（wave）</strong>，然后对每一层中相互独立的节点<strong>并发实现</strong>：每个节点由一个 subagent 在<strong>独立的 git worktree</strong> 中内联实现并 commit 到自己的分支；层与层之间用<strong>栅栏（fan-in barrier）</strong>汇聚——泄漏检查、只合并 shipped 的节点、在集成后的树上跑门禁，然后<strong>评审一次、走查一次、ship 一次</strong>，并动态重规划下一层。
+        <code class="inline-code">/graph</code> 把一个任务（或 PRD / SPEC / Issue 集合）转化为<strong>有向无环图（DAG）</strong>，按依赖关系分层为若干<strong>超步（wave）</strong>，然后对每一层中相互独立的节点<strong>并发实现</strong>：每个节点由一个 subagent 在<strong>独立的 git worktree</strong> 中内联实现并 commit 到自己的分支；层与层之间用<strong>栅栏（fan-in barrier）</strong>汇聚——泄漏检查、逐节点过 <strong>evidence check</strong>、只合并 shipped 的节点、在集成后的树上跑门禁，然后<strong>评审一次、走查一次、ship 一次</strong>，并动态重规划下一层。PR body 与合并清单由 <code class="inline-code">/ship-it</code> 唯一产出，<code class="inline-code">/walkthrough</code> 只提供证据。
       </p>
 
       <div class="note">
@@ -2144,10 +1838,10 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
 内联实现 → 门禁自证 → commit 到自己的分支
 
 <span class="comment"># 每波末（只做一次）：</span>
-泄漏检查 → 只合并 shipped 节点 → 集成后跑门禁 → <span class="cmd">/review-it</span> → <span class="cmd">/walkthrough</span> → <span class="cmd">/ship-it</span></code></pre>
+泄漏检查 → 逐节点 evidence check → 只合并 shipped 节点 → 集成后跑门禁 → <span class="cmd">/review-it</span> → <span class="cmd">/walkthrough</span> → <span class="cmd">/ship-it</span></code></pre>
 
       <h3>流水线集成</h3>
-      <pre><code><span class="cmd">/prd</span> → <span class="cmd">/prd-to-spec</span> → <span class="cmd">/to-issues</span> ┬→ <span class="cmd">/loop-it</span>  <span class="comment"># 串行：一次一个节点</span>
+      <pre><code><span class="cmd">/prd</span> → <span class="cmd">/to-issues</span> ┬→ <span class="cmd">/loop-it</span>  <span class="comment"># 串行：一次一个节点</span>
                                         └→ <span class="cmd">/graph</span>    <span class="comment"># 并行：整波一起跑</span></code></pre>
 
       <div class="tip">
@@ -2155,11 +1849,11 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       </div>
     </div>
 
-    <!-- Section 21: /understand -->
+    <!-- Section 16: /understand -->
     <div class="section" id="step-understand">
       <div class="section-title">
         <div class="section-dot coral"></div>
-        <h3>21. Bonus: /understand — 交互式变更审阅</h3>
+        <h3>16. Bonus: /understand — 交互式变更审阅</h3>
       </div>
       <p>
         <code class="inline-code">/understand</code> 把你刚生成的改动（通常是 AI 写的）变成一个单文件、可交互的审阅网页，帮你在审查或交付前真正吃透这次改了什么。它扫描仓库里未提交 / 分支变更，生成一个浅色主题的两栏页面：左侧是按真实项目布局排列的变更文件树，右侧是所选文件的语法高亮 diff，并在右侧边栏逐段给出<strong>相关单位需求</strong>与<strong>代码解释</strong>。
@@ -2198,14 +1892,14 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       </div>
     </div>
 
-    <!-- Section 22: /ask-flow -->
+    <!-- Section 17: /ask-flow -->
     <div class="section" id="step-ask-flow">
       <div class="section-title">
         <div class="section-dot terracotta"></div>
-        <h3>22. Bonus: /ask-flow — 不知道该用哪个技能</h3>
+        <h3>17. Bonus: /ask-flow — 不知道该用哪个技能</h3>
       </div>
       <p>
-        <code class="inline-code">/ask-flow</code> 是整套技能集的<strong>入口</strong>：你想不起来这么多技能各自管什么，所以问。说清你现在的处境（一个还没成形的想法、一堆进来的 issue、一段调不通的代码、一次漫长的实现），它给你该敲的<strong>下一步</strong>，以及那一步里哪些决定得你来拍。
+        <code class="inline-code">/ask-flow</code> 是整套技能集的<strong>入口</strong>：你想不起来这么多技能各自管什么，所以问。说清你现在的处境（一个还没成形的想法、一堆进来的 issue、一段调不通的代码、一次漫长的实现），它挑出该走的那一步，<strong>然后直接开始</strong>——读那个技能的正文并按它做，而不是只报一个名字让你再敲一遍。
       </p>
 
       <h3>触发方式</h3>
@@ -2218,22 +1912,22 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
 
       <h3>路由覆盖</h3>
       <ul class="step-list">
-        <li><strong>主线：</strong><code class="inline-code">/prd</code> → <code class="inline-code">/prd-to-spec</code>（复杂时）→ <code class="inline-code">/to-issues</code> → 岔口（真并行 <code class="inline-code">/graph</code> / 串行 <code class="inline-code">/loop-it</code> / 单单元 <code class="inline-code">/implement</code>）→ 内联实现 → 门禁自证 → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code>；需要留档就补 <code class="inline-code">/note-it</code>，交付前走查补 <code class="inline-code">/walkthrough</code></li>
+        <li><strong>主线：</strong><code class="inline-code">/prd</code> → <code class="inline-code">/to-design</code>（<strong>有条件</strong>：只在跨两个及以上服务、改数据模型或迁移、涉及两条以上对外契约时写，不命中就跳过）→ <code class="inline-code">/to-issues</code> → 岔口（真并行 <code class="inline-code">/graph</code> / 串行 <code class="inline-code">/loop-it</code> / 单单元 <code class="inline-code">/implement</code>）→ 内联实现 → 门禁自证 → <code class="inline-code">/review-it</code> → <code class="inline-code">/ship-it</code>；交付前走查补 <code class="inline-code">/walkthrough</code></li>
         <li><strong>旁路：</strong>有 bug 走 <code class="inline-code">/diagnose</code>，外面进来的原始条目走 <code class="inline-code">/triage</code>，先把行为定下来走 <code class="inline-code">/test-first</code>，正在解 merge / rebase 走 <code class="inline-code">/conflict</code></li>
-        <li><strong>只建议，不执行：</strong>不会替你 grill 需求、写 spec、改文件，也不会顺手把你刚问的那个技能跑起来</li>
+        <li><strong>直接开始那一步：</strong>路由之后读该技能的正文并按它做，不会只报一个名字让你再敲一遍；只有两条路真接近、或下一步越过人的判断边界（开 PR、合入、产品验收）时才停下来问</li>
         <li><strong>自报缺口：</strong>维护规则要求任何技能新增 / 改名 / 删除后都回来重读并更新这份路由，以及两份 README 与这两份 HTML 指南——<strong>说谎的路由比没有路由更糟</strong></li>
       </ul>
 
       <div class="tip">
-        <strong>Tip：</strong><code class="inline-code">/ask-flow</code> 标了 <code class="inline-code">disable-model-invocation</code>：不在模型目录里，模型不会主动挑它，只有你敲命令时才加载。它还带一份 <code class="inline-code">agents/openai.yaml</code>（<code class="inline-code">policy.allow_implicit_invocation: false</code>）。
+        <strong>Tip：</strong><code class="inline-code">/ask-flow</code> 是<strong>模型可调用</strong>的——它没有 <code class="inline-code">disable-model-invocation</code>，模型可以主动挑它。27 个技能的目录总量是 6446 字符，其中模型实际看到的是 <strong>6385 字符</strong>；唯一不进模型目录的是 vendor 的 <code class="inline-code">/teach</code>（上游的选择）。
       </div>
     </div>
 
-    <!-- Section 23: /triage -->
+    <!-- Section 18: /triage -->
     <div class="section" id="step-triage">
       <div class="section-title">
         <div class="section-dot amber"></div>
-        <h3>23. Bonus: /triage — 外部 issue 分诊</h3>
+        <h3>18. Bonus: /triage — 外部 issue 分诊</h3>
       </div>
       <p>
         <code class="inline-code">/triage</code> 处理<strong>从外面进来的</strong>原始条目：bug 报告、用户反馈、别人提的需求。它先复现 / 理解，再给每条定一个角色，并把 <code class="inline-code">ready</code> 的补成 agent 可执行的卡片。<strong><code class="inline-code">/to-issues</code> 产出的卡片不要 triage</strong>——那些已经 agent-ready。
@@ -2262,11 +1956,11 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       </div>
     </div>
 
-    <!-- Section 24: /diagnose -->
+    <!-- Section 19: /diagnose -->
     <div class="section" id="step-diagnose">
       <div class="section-title">
         <div class="section-dot coral"></div>
-        <h3>24. Bonus: /diagnose — 排障循环</h3>
+        <h3>19. Bonus: /diagnose — 排障循环</h3>
       </div>
       <p>
         难 bug、偶发 flake 与性能回归的纪律：<strong>在有一条已经在「这个」bug 上变红的命令之前，不许开始推理</strong>——直接跳到「我觉得是这里」正是这个技能要防的失败。它<strong>不做 <code class="inline-code">/review-it</code> / <code class="inline-code">/ship-it</code></strong>，定位清楚后按单点改动回主线。
@@ -2295,11 +1989,11 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       </div>
     </div>
 
-    <!-- Section 25: /conflict -->
+    <!-- Section 20: /conflict -->
     <div class="section" id="step-conflict">
       <div class="section-title">
         <div class="section-dot plum"></div>
-        <h3>25. Bonus: /conflict — 解 merge / rebase 冲突</h3>
+        <h3>20. Bonus: /conflict — 解 merge / rebase 冲突</h3>
       </div>
       <p>
         <code class="inline-code">/conflict</code> 解<strong>进行中的</strong> git merge / rebase 冲突：先查清两边意图，再逐 hunk 解，跑项目门禁，把这次操作做完。<strong>永远解，不 <code class="inline-code">--abort</code></strong>。
@@ -2319,11 +2013,53 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       </div>
     </div>
 
-    <!-- Section 26: FAQ -->
+    <!-- Section 21: Vendor skills -->
+    <div class="section" id="vendor">
+      <div class="section-title">
+        <div class="section-dot violet"></div>
+        <h3>21. Vendor 技能与一键同步</h3>
+      </div>
+      <p>
+        <code class="inline-code">skills/vendor/</code> 放的是<strong>第三方技能的逐字副本</strong>：它们不是这套技能集写的，只是被收进来一起安装。谁、从哪个 commit 收的，由 <code class="inline-code">skills/vendor/vendor.json</code> 这份 manifest 记录，每个技能目录里还有一份 <code class="inline-code">NOTICE.md</code>（来源 / commit / 许可 / 同步日期）。
+      </p>
+
+      <table>
+        <tr><th>技能</th><th>来源</th><th>钉住的 commit</th><th>许可</th></tr>
+        <tr><td><code class="inline-code">/svg-diagram</code></td><td>bybit-exchange/svg-diagram</td><td><code class="inline-code">c30c9e3</code></td><td>MIT</td></tr>
+        <tr><td><code class="inline-code">/skill-creator</code></td><td>anthropics/skills</td><td><code class="inline-code">3337550</code></td><td>MIT</td></tr>
+        <tr><td><code class="inline-code">/frontend-design</code></td><td>anthropics/skills</td><td><code class="inline-code">3337550</code></td><td>未声明</td></tr>
+        <tr><td><code class="inline-code">/pptx</code></td><td>anthropics/skills</td><td><code class="inline-code">3337550</code></td><td>未声明</td></tr>
+        <tr><td><code class="inline-code">/find-skills</code></td><td>vercel-labs/skills</td><td><code class="inline-code">7407f38</code></td><td>MIT</td></tr>
+        <tr><td><code class="inline-code">/ui-ux-pro-max</code></td><td>nextlevelbuilder/ui-ux-pro-max-skill</td><td><code class="inline-code">823b0a1</code></td><td>未声明</td></tr>
+        <tr><td><code class="inline-code">/web-design-guidelines</code></td><td>vercel-labs/agent-skills</td><td><code class="inline-code">063bee9</code></td><td>未声明</td></tr>
+        <tr><td><code class="inline-code">/humanizer-zh</code></td><td>op7418/humanizer-zh</td><td><code class="inline-code">f4518a8</code></td><td>未声明</td></tr>
+        <tr><td><code class="inline-code">/resume-optimizer</code></td><td>wyh0626/resume-optimizer</td><td><code class="inline-code">fb16670</code></td><td>未声明</td></tr>
+        <tr><td><code class="inline-code">/teach</code></td><td>mattpocock/skills</td><td><code class="inline-code">c55ee46</code></td><td>未声明</td></tr>
+      </table>
+
+      <div class="note">
+        <strong>不要就地编辑。</strong>这些目录是逐字副本，就地改会在下次同步时被覆盖。要改就改 manifest，再重新同步；属于这套技能集自己的改动，应该写成一个 <code class="inline-code">flow</code> / <code class="inline-code">bonus</code> 技能。
+      </div>
+
+      <h3>维护命令</h3>
+      <pre><code><span class="cmd">make vendor</span>        <span class="comment"># 按 vendor.json 里钉住的 commit 同步</span>
+<span class="cmd">make vendor-check</span>  <span class="comment"># 报告上游是否已前进</span>
+<span class="cmd">make vendor-update</span> <span class="comment"># 重新钉到上游默认分支 HEAD、同步、再校验</span>
+<span class="cmd">make vendor-list</span>   <span class="comment"># 列出已 vendor 的技能与 commit</span>
+<span class="cmd">make vendor-add</span> <span class="flag">URL=</span><span class="value">&lt;git url&gt;</span> <span class="flag">SKILL=</span><span class="value">"名字 [名字...]"</span>
+<span class="cmd">make check</span>          <span class="comment"># 布局、frontmatter、交叉引用、bundle patch</span>
+<span class="cmd">make test</span>           <span class="comment"># 先 check，再跑各脚本自测</span></code></pre>
+
+      <div class="note">
+        <strong>Note：</strong><code class="inline-code">vendor</code> 和前两个桶一样，由 <code class="inline-code">cordis.patch.yml</code> 单独列为一个技能根，所以它里面的技能会随 bundle 一起装进 DSH；<code class="inline-code">npx skills add</code> 递归扫描时也会带上它们。
+      </div>
+    </div>
+
+    <!-- Section 22: FAQ -->
     <div class="section" id="faq">
       <div class="section-title">
         <div class="section-dot terracotta"></div>
-        <h3>26. FAQ</h3>
+        <h3>22. FAQ</h3>
       </div>
 
       <h3>Q: 必须按顺序使用所有步骤吗？</h3>
@@ -2341,39 +2077,19 @@ Wave 2 (并发×1):  #6 集成 (依赖 #4,#5)
       <h3>Q: Issue 粒度应该多大？</h3>
       <p>每个 Issue 应该是一个 Agent 在单次会话中可以完成的工作量——通常是 1-3 个文件的变更，有明确的验收标准。这个粒度由 <code class="inline-code">/to-issues</code> 把关，拆完你可以调整。</p>
 
-      <h3>Q: /prd-to-spec 是必需的吗？什么时候可以跳过？</h3>
-      <p>不是必需的。<code class="inline-code">/prd-to-spec</code> 是一个可选步骤。PRD 说的是"做什么"，SPEC 说的是"怎么做"。区别在于：AI agent 在实现阶段本身就具备"怎么做"的能力——它会自动分析代码库、理解现有架构和约定、在实现过程中做出合理的技术决策。换句话说，<strong>AI agent 就是一个活的 SPEC 引擎</strong>，不需要在纸面上先画一遍。</p>
-      <p>大多数中小型功能只靠 PRD → 内联实现就能很好地跑通。以下场景才值得多写一步 /prd-to-spec：</p>
-      <ul class="step-list">
-        <li><strong>多人/多 agent 并行开发</strong>——需要共享技术约定，避免各自按不同方式实现</li>
-        <li><strong>跨多个服务/模块的改动</strong>——架构决策影响面大，返工成本高</li>
-        <li><strong>后期需要维护文档</strong>——需要一份正式的技术参考供团队查阅</li>
-        <li><strong>合规/评审要求</strong>——组织流程强制要求设计文档</li>
-        <li><strong>PRD 写得太模糊</strong>——SPEC 可以用技术细节补足，降低 agent 的理解偏差</li>
-      </ul>
-      <p>如果你的项目是单人开发、功能边界清晰、agent 已经能稳定理解项目结构的，跳过 /prd-to-spec 完全合理，甚至更高效。把它当成工具包里的<strong>可选武器</strong>，需要时再拿出来。</p>
+      <h3>Q: skills/vendor/ 里的技能可以直接改吗？</h3>
+      <p>不要。<code class="inline-code">skills/vendor/</code> 下都是上游技能的<strong>逐字副本</strong>，就地编辑会在下次 <code class="inline-code">make vendor</code> 时被覆盖。要改就先改 <code class="inline-code">skills/vendor/vendor.json</code> 里的 manifest，再重新同步；如果你要做的是这套技能集自己的改动，那就写成一个 <code class="inline-code">flow</code> / <code class="inline-code">bonus</code> 技能。详见 <a href="#vendor" style="color: #D97757; text-decoration: none;">21. Vendor 技能与一键同步</a>。</p>
 
-      <h3>Q: /humanize-it 的 42 次迭代上限是怎么来的？</h3>
-      <p>数字 42 并非迭代次数有特殊要求，而是向经典科幻小说《银河系漫游指南》（<em>The Hitchhiker's Guide to the Galaxy</em>）致敬的极客文化。在该书中，超级计算机经过 750 万年计算，得出了"生命、宇宙及一切的终极答案"就是 42。在编程界，这个数字非常流行，原因有二：</p>
-      <ul class="step-list">
-        <li><strong>致敬科幻：</strong>作为程序员群体中广为人知的彩蛋，代表了终极的解答。</li>
-        <li><strong>ASCII 巧合：</strong>在 ASCII 编码中，42 对应的是星号 <code class="inline-code">*</code>。在计算机科学中，<code class="inline-code">*</code> 经常被用作通配符，表示"任何事物"或"一切皆有可能"。因此，"终极答案是 42（*）"刚好契合了"任何你想要的答案"这一哲学梗。</li>
-      </ul>
-      <p>实际使用中，大多数文档在 3-5 轮迭代后就能达标。迭代的核心是智能切换策略——当一种改写方式效果停滞时，自动换用另一种，三种策略组合使用可以互补覆盖不同类型的 AI 痕迹。</p>
-
-      <h3>Q: /humanize-it 支持英文文档吗？</h3>
-      <p>目前 <code class="inline-code">/humanize-it</code> 的三个子 skill 主要针对中文文本优化。<code class="inline-code">humanizer-zh</code> 的模式检测规则对英文也部分适用，但改写效果以中文为最佳。</p>
-
-      <h3>Q: /insight-diagram 支持哪些图表类型？</h3>
-      <p><code class="inline-code">/insight-diagram</code> 支持 17 种图表类型，包括系统架构图、14 种 UML 图（类图、对象图、组件图、部署图、包图、复合结构图、剖面图、用例图、活动图、状态机图、序列图、通信图、定时图、交互概览图）、流程图和泳道图。输出为 HTML+SVG 格式，保存到 <code class="inline-code">docs/</code> 目录。适用于任何软件项目。</p>
+      <h3>Q: /svg-diagram 的机械校验包含哪些检查？</h3>
+      <p>它自带零依赖的 <code class="inline-code">tools/svg-lint</code>，共 <strong>12 项检查</strong>：重叠、块间距、框高、连接线几何、箭头 marker、文字溢出、viewBox 裁切、字体栈、调色板一致性、浅底回退、基线偏移、XML 转义。规范本身还覆盖布局、连接线与箭头的画法，以及 CJK 字体栈。</p>
     </div>
 
     <!-- Footer -->
     <p class="footer">
-      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle; margin-right: 2px;"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> stream-it · AI-driven development workflow · github.com/9Ashwin/stream-it
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle; margin-right: 2px;"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> let-it-go · AI-driven development workflow · github.com/9Ashwin/let-it-go
     </p>
     <p class="footer" style="margin-top: 0.5rem;">
-      MIT License · 版权与许可全文见 <a href="https://github.com/9Ashwin/stream-it/blob/master/LICENSE" style="color: #8B8680; text-decoration: none;">LICENSE</a>。
+      MIT License · 版权与许可全文见 <a href="https://github.com/9Ashwin/let-it-go/blob/master/LICENSE" style="color: #8B8680; text-decoration: none;">LICENSE</a>。
     </p>
   </div>
 

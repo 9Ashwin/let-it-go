@@ -837,6 +837,39 @@ def test_plan_without_nodes_or_checkpoint_is_refused():
                   err.getvalue())
 
 
+def test_a_node_report_is_written_into_the_checkpoint():
+    """The wave's workflow call returns the only copy of a node's evidence, so it has to land."""
+    with tempfile.TemporaryDirectory() as tmp:
+        state_path = os.path.join(tmp, ".graph_state.json")
+        with open(state_path, "w", encoding="utf-8") as handle:
+            json.dump({"version": 1, "task": "t", "repo": "", "waves": [[1]], "current_wave": 0,
+                       "nodes": {"1": {"title": "n1", "deps": [], "status": "in_progress"}}}, handle)
+
+        def ship(**extra):
+            fields = {"state": state_path, "node": "1", "status": "shipped", "commit": "abc1234",
+                      "branch": None, "error": None}
+            fields.update(extra)
+            err = io.StringIO()
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+                gs.cmd_set(type("A", (), fields)())
+            return err.getvalue()
+
+        stderr = ship()
+        check("shipping with no report names every missing field",
+              "no files, gates, summary recorded" in stderr, stderr)
+
+        stderr = ship(files="src/a.py, tests/test_a.py", gates="pytest -q -> exit 0",
+                      summary="wrote the parser", new_work="none")
+        with open(state_path, encoding="utf-8") as handle:
+            node = json.load(handle)["nodes"]["1"]
+        check("files are split and trimmed",
+              node["files"] == ["src/a.py", "tests/test_a.py"], str(node))
+        check("gates recorded", node["gates"] == "pytest -q -> exit 0", str(node))
+        check("summary recorded", node["summary"] == "wrote the parser", str(node))
+        check("new_work recorded", node["new_work"] == "none", str(node))
+        check("a complete report does not warn", "no files" not in stderr, stderr)
+
+
 def main() -> int:
     print("graph_state.py tests")
     for test in (test_dependencies_hold_across_waves, test_scope_collision_defers_without_breaking_order,
@@ -866,7 +899,8 @@ def main() -> int:
                  test_set_records_the_branch_for_later_prompts,
                  test_max_parallel_persists_and_is_reused_on_replan,
                  test_legacy_checkpoint_name_is_still_read,
-                 test_nodes_file_can_clear_a_checkpoint_value):
+                 test_nodes_file_can_clear_a_checkpoint_value,
+                 test_a_node_report_is_written_into_the_checkpoint):
         print(f"- {test.__name__}")
         test()
     if failures:

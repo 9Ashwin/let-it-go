@@ -73,6 +73,7 @@ EOF
 **关键规则：**
 - PR body 中写 `Closes #N` 或 `Fixes #N`，合入后 GitHub 自动关闭 Issue
 - title 简洁，不超过 70 字符
+- **本技能是 PR body 的唯一产出者。** 批末/波末有 `/walkthrough` 时，直接采用它的证据（命令与真实输出、可视化、风险点、人工验收状态）填进 body，不要再另写一份摘要——同一份内容维护两处就是重复
 
 ### Step 4: 合入 PR
 
@@ -94,7 +95,7 @@ gh pr merge --squash --delete-branch
 
 PR 合入 / Issue 关闭时，始终在 Issue 上添加实现总结评论，方便后续直接从 Issue 回溯设计决策与代码变更。
 
-参考 `note-it` 的四类结构组织总结内容：**Design Decisions（设计决策）**、**Deviations（偏离）**、**Tradeoffs（权衡）**、**Open Questions（待确认）**。某一类无内容时写 `None` 并简要说明。
+参考固定四类结构组织总结内容：**Design Decisions（设计决策）**、**Deviations（偏离）**、**Tradeoffs（权衡）**、**Open Questions（待确认）**。某一类无内容时写 `None` 并简要说明。
 
 ```bash
 gh issue comment {issue-number} --body "$(cat <<'EOF'
@@ -127,11 +128,11 @@ EOF
 
 **关键规则：**
 - 无论是 auto-close 还是手动 close，都必须添加此评论
-- 参考 `note-it` 的四类结构（设计决策 / 偏离 / 权衡 / 待确认）；某类无内容写 `None`
+- 四类结构固定为设计决策 / 偏离 / 权衡 / 待确认；某类无内容写 `None`
 - 「实现亮点」提炼本次实现最值得关注的技术点（性能、设计、复用、测试等），无则写 `None`
 - 核心变更从 PR body 的 Summary 部分提取，保持简洁（3-5 条 bullet）
 - 附加 PR 编号和 commit hash，方便直接跳转
-- 若已通过 `/note-it` 生成 `docs/issue#NNNN.md`，它本来就是 Markdown，四类内容可直接复用，并在末尾附上该文件链接
+- 这四类内容**在本技能产出一次**。不要先把同样内容写进一份 `docs/issue#NNNN.md` 笔记再抄进评论；若用户明确要求了那个文件，附上链接，不重抄
 
 ### Step 6: 手动关闭 Issue（仅当未自动关闭时）
 
@@ -145,7 +146,7 @@ gh issue close {issue-number} --reason completed
 
 `/graph` 的一波与 `/loop-it` 的一批默认把多个 issue 收进同一个 PR（squash 后只剩一个 commit）。此时 PR body **必须逐项列出证据**，不能只写一行 `Closes #1 #2 #3`——否则单项特性既没法审计也没法单独回滚。
 
-这份 body 与合并清单通常由波末/批末的 `/walkthrough` 产出（它的 Review Gate 就是为这一步准备的）；本技能负责把它开出去。
+这份 body 由**本技能**产出，本技能是它的唯一产出者。`/walkthrough` 只提供证据（命令与真实输出、可视化、风险点、人工验收状态）——两处各写一份 PR body 正是要避免的重复。
 
 ```markdown
 | 项 | commit | 关闭的 issue | 验收证据（测试名 / 命令） | 人工验收 |
@@ -210,7 +211,7 @@ EOF
 gh pr checks
 gh pr merge --squash --delete-branch
 
-# 添加实现总结评论（参考 note-it 四类结构）
+# 添加实现总结评论（四类结构）
 gh issue comment 42 --body "$(cat <<'EOF'
 ## 实现总结
 

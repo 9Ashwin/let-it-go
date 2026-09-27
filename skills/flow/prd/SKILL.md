@@ -1,12 +1,12 @@
 ---
 name: prd
-description: "Write a PRD for a new feature: clarify first, then state requirements as verifiable acceptance criteria. Hands off to /prd-to-spec then /to-issues. Triggers: 写PRD, 需求文档, 需求分析, 规格说明, plan this feature."
+description: "Write a PRD for a new feature: clarify first, then state requirements as verifiable acceptance criteria. Hands off to /to-issues, which turns it into contract-carrying Issues. Triggers: 写PRD, 需求文档, 需求分析, 规格说明, plan this feature."
 
 ---
 
 # PRD Generator
 
-Create detailed Product Requirements Documents that are clear, actionable, and suitable for implementation. After PRD is confirmed, use `/to-issues` to decompose it into Issues, and optionally `/prd-to-spec` for technical design before that.
+Create detailed Product Requirements Documents that are clear, actionable, and suitable for implementation. After the PRD is confirmed, use `/to-issues` to decompose it into Issues — each Issue body carries its own contract block, so there is no separate technical-design document to write first.
 
 ---
 
@@ -179,11 +179,10 @@ After the PRD is saved, suggest the user:
 ✅ PRD saved to tasks/prd-[feature-name].md
 
 Next steps:
-  /prd-to-spec  →  Generate technical SPEC (optional — for complex features)
-  /to-issues    →  Decompose into Issues and create tickets
+  /to-issues    →  Decompose into Issues (each carries its own contract block)
 
 Or go straight to implementation:
-  /to-issues    →  Create Issues, then /goal to implement
+  /to-issues    →  Create Issues, then /implement (or /loop-it for a whole batch)
 ```
 
 If the user wants to proceed, invoke the corresponding skill.
@@ -300,4 +299,4 @@ Before saving the PRD:
 - [ ] Functional requirements are numbered and unambiguous
 - [ ] Non-goals section defines clear boundaries
 - [ ] Saved to `tasks/prd-[feature-name].md`
-- [ ] Suggested next steps: `/prd-to-spec` (optional) and `/to-issues`
+- [ ] Suggested next step: `/to-issues`

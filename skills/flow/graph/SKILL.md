@@ -44,8 +44,15 @@ Do not use it when:
 Review and ship are wave-scoped on purpose. A per-node `/review-it` is a self-review of a diff
 that may not survive integration, and a per-node `/ship-it` means N PRs, N CI runs and N chances
 to stall on a merge conflict. The **walkthrough** is wave-scoped for the same reason: it proves
-the integrated result, and its review gate produces the single PR body the wave ships. Per-node PRs remain available when the user explicitly wants a
-reviewable PR per node — that is the expensive mode; say so and confirm before using it.
+the integrated result. The **PR body and the merge checklist belong to `/ship-it`** — it is their
+only producer; the walkthrough feeds it evidence, not a second copy of the body. Per-node PRs
+remain available when the user explicitly wants a reviewable PR per node — that is the expensive
+mode; say so and confirm before using it.
+
+**Every node still gets an evidence check at fan-in** (Step 4, step 1). That is not a code review:
+it asks whether each acceptance criterion can point at an actual observation, before the node's
+branch is accepted into the wave. Catching "claims done, has no evidence" there is far cheaper
+than catching it after the merge.
 
 ## Step 1: Decompose into nodes
 
@@ -143,11 +150,17 @@ a layout nobody can reproduce is a layout nobody can check.
 
 
 Keep the plan input out of git along with the checkpoint it produces:
-`grep -qxF '.graph_state*' .gitignore || printf 'nodes*.json\n.graph_state*\ngraph*.html\n' >> .gitignore`,
+`grep -qxF '.graph_state*' .gitignore || printf 'nodes*.json\n.graph_state*\ngraph*.html\n.graph-worktrees/\n' >> .gitignore`,
 then **commit that ignore rule before the first wave**. Step 4's leak check wants a clean shared
 checkout, and an uncommitted `.gitignore` edit would make the orchestrator flag itself as the leak.
 (If you would rather not commit an ignore rule, put the same lines in the untracked
 `.git/info/exclude` instead.)
+
+**The worktrees live inside the repo on purpose.** Under DSH's `workspace-write` sandbox, writing
+outside the session's working directory is denied, so a worktree root beside the repo
+(`$(dirname "$ROOT")/…`) fails with a sandbox denial that does not read like a path problem.
+`$ROOT/.graph-worktrees/` is inside the sandbox in every mode, which is why the ignore rule above
+covers it.
 
 All three are wildcards on purpose, and between them they cover every run: `nodes*.json` is the
 planner input, `.graph_state*` the checkpoint (the default `.graph_state.json`, the pre-rename
@@ -196,8 +209,8 @@ ROOT="$(git rev-parse --show-toplevel)"
 # a repo whose default is `master` fails every command that assumes otherwise.
 BASE="$(git symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')"
 BASE="${BASE:-$(git rev-parse --abbrev-ref HEAD)}"
-mkdir -p "$(dirname "$ROOT")/.graph-worktrees"
-WT="$(cd "$(dirname "$ROOT")/.graph-worktrees" && pwd)/node-{N}"
+mkdir -p "$ROOT/.graph-worktrees"
+WT="$ROOT/.graph-worktrees/node-{N}"
 git worktree add -b feat/node-{N}-{slug} "$WT" "$BASE"   # `prompt` prints this exact line
 ```
 
@@ -208,10 +221,8 @@ status, and the board is the only progress signal the user has:
 python3 <SKILL_DIR>/scripts/graph_state.py set --node {N} --status in_progress
 ```
 
-Then dispatch: **one child per node, all in a single assistant message** — that is what makes
-them concurrent. Each prompt is self-contained (a fresh child sees none of this conversation).
-
-Render each node's prompt from the checkpoint rather than hand-writing it:
+Each prompt is self-contained — a fresh child sees none of this conversation. Render it from the
+checkpoint rather than hand-writing it:
 
 ```bash
 python3 <SKILL_DIR>/scripts/graph_state.py prompt --node {N}
@@ -239,22 +250,66 @@ already carries its whole contract, while the full-strength path is what a wave 
 research child needs. The optional lean-delegation cost lever lives in
 `references/lean-subagent.md` and `references/dsh-runtime.md`.
 
-Every node reports back in two parts: prose, then a structured block with a fixed key set
-(`node` / `status` / `commit` / `files` / `gates` / `new_work`). Read the block for the mechanical
-fields — it transcribes straight into the checkpoint — and read the prose for what the block
-cannot carry. The block is the node's own account, so it is **not** evidence: the leak check, the
-diffstat against the `files` it claims, and the integrated gates are what actually verify the
-wave. A report whose `files` list disagrees with its diffstat is the cheapest possible catch, and
-it only works if you compare rather than trust.
+### Dispatch the wave
 
-Two facts the node prompt must carry, because **a child gets no working directory of its own**
-(both harnesses behave the same way): file tools resolve relative paths against the
-**orchestrator's** checkout, and every shell call is a fresh shell. Both are why the worktree
-path is passed as an absolute path and every command runs with the worktree as its working
-directory (`cd <abs worktree> && …`).
+Hand every rendered prompt to **one `workflow` call per wave** rather than firing off a handful of
+bare `subagent` calls. `agent({ schema })` is the only path in DSH that returns a **validated**
+object from a child, and the engine — not the model — holds the concurrency cap.
 
-Do not poll. Do the wave bookkeeping while the children run; **the parent is notified when a
-child settles**. **Audit the children** you started to see who is still running.
+```js
+// args: { wave: 1, nodes: [{ id: "3", label: "node 3 — add the parser", prompt: "<rendered>" }] }
+const NODE_REPORT = {
+  type: "object",
+  properties: {
+    node:     { type: "string" },
+    status:   { type: "string", enum: ["shipped", "failed", "blocked"] },
+    commit:   { type: "string" },
+    files:    { type: "array", items: { type: "string" } },
+    gates:    { type: "string" },
+    new_work: { type: "string" },
+    summary:  { type: "string" },
+  },
+  required: ["node", "status", "commit", "files", "gates", "new_work", "summary"],
+  additionalProperties: false,
+};
+
+phase(`wave ${args.wave}`);
+return await parallel(args.nodes.map((n) => () =>
+  agent(n.prompt, { label: n.label, phase: `wave ${args.wave}`, schema: NODE_REPORT })));
+```
+
+Two schema details are load-bearing, and both cost a wave to discover the hard way: an `enum`
+needs an explicit `type` beside it (a bare `{ enum: [...] }` is rejected as outside the supported
+subset, and the whole script dies), and **`summary` is where the prose goes** — a structured child
+is told by the runtime to finish with the tool call and *not* with a plain text answer, so anything
+the six mechanical keys cannot carry has to have a key of its own or it is lost.
+
+Three properties of that call decide how the rest of the wave is written:
+
+- **A failed node comes back as `null`.** `parallel` degrades a per-item failure to `null` and keeps
+  the rest, so the result always has one slot per node; a `null` slot is a node to retry (Step 5) or
+  mark `failed`. Hook misuse — a bad option, a tripped cap — throws instead and kills the script,
+  which is what you want: it means the dispatch itself is wrong, not the node.
+- **A schema miss is `null` too.** A child that finishes without producing the object is
+  indistinguishable from one that failed, and needs the same handling.
+- **There is no overall timeout.** A wedged wave does not expire: run the workflow in the background
+  and `job_kill` it if it stops moving. That is the price of an engine-level concurrency cap, and it
+  is why the orchestrator still owns the checkpoint.
+
+The returned object is the node's **own account**. It transcribes straight into the checkpoint,
+which is what makes validating it worth the call — but it is **not evidence**. The leak check, the
+diffstat against the `files` it claims, and the integrated gates are what verify the wave. A report
+whose `files` list disagrees with its diffstat is the cheapest possible catch, and it only works if
+you compare rather than trust.
+
+Two facts the node prompt must carry, because **a child gets no working directory of its own**: file
+tools resolve relative paths against the **orchestrator's** checkout, and every shell call is a
+fresh shell. Both are why the worktree path is passed as an absolute path and every command runs
+with the worktree as its working directory (`cd <abs worktree> && …`).
+
+Do not poll a running wave. The `workflow` call returns when the whole wave is done; a bare
+`subagent` you started yourself settles with a notice instead. **Audit the children** you started to
+see who is still running.
 
 ## Step 4: Fan in — barrier, integrate, review, ship
 
@@ -264,19 +319,41 @@ The barrier is **every** node's child having settled. Then, in order:
 for it — review and ship that node's branch directly against the default branch (`$BASE`). The wave exists to combine
 nodes; with one node it is pure ceremony.
 
-1. **Leak check, then mark.** `git status --porcelain` on the shared checkout must be clean and
-   each node's files must exist only on its branch — that is the evidence the absolute-path
-   discipline held. (Untracked files belonging to *another* session are not a leak; a modified
-   *tracked* file is.) That is exactly why Step 2 commits the ignore rule up front: an
-   uncommitted `.gitignore` edit would make the orchestrator flag itself as the leak.
-   Record each outcome with the planner, **including the branch the node actually
-   worked on** — everything downstream (the merge list below, a later re-plan, a
-   rendered prompt) reads it from the checkpoint, so an unrecorded branch falls
-   back to a name derived from the title:
+1. **Leak check, evidence check, then mark.** Two gates before a node is accepted into the wave.
+
+   *Leak check.* `git status --porcelain` on the shared checkout must be clean and each node's
+   files must exist only on its branch — that is the evidence the absolute-path discipline held.
+   (Untracked files belonging to *another* session are not a leak; a modified *tracked* file is.)
+   That is exactly why Step 2 commits the ignore rule up front: an uncommitted `.gitignore` edit
+   would make the orchestrator flag itself as the leak.
+
+   *Evidence check.* Walk the node's acceptance criteria and ask, for each one, which actual
+   observation proves it — a gate that ran, a command's output, a page, a query. The node's own
+   report is not evidence (Step 3), so compare it against the diffstat and the gates you can
+   actually see. A criterion with nothing behind it means the node is **not** `shipped`: retry it
+   in place (Step 5) or mark it `failed`. Judge evidence, not diff aesthetics; keep the check
+   cheap for a node clearly inside the model's reliable range and dig deeper the closer it sits to
+   the edge. Any finding must be specific enough to act on without re-investigating — `file:line`
+   + cause + what to change; "consider adding tests" is not a finding.
+
+   Then record the outcome with the planner, **including the branch the node actually
+   worked on** and **the node's own report** — everything downstream (the merge list below, a
+   later re-plan, a rendered prompt) reads it from the checkpoint, so an unrecorded branch falls
+   back to a name derived from the title, and an unrecorded report leaves the wave with no
+   evidence at all: the workflow call returned the only copy, and once that step is over the
+   transcript is not a place anyone audits:
    ```bash
-   python3 <SKILL_DIR>/scripts/graph_state.py set --node {N} --status shipped --commit {sha} --branch {branch}
+   python3 <SKILL_DIR>/scripts/graph_state.py set --node {N} --status shipped --commit {sha} \
+     --branch {branch} \
+     --files "{comma-separated files from the report}" \
+     --gates "{the commands it ran and their exit codes}" \
+     --summary "{what it did and what surprised it}" \
+     --new-work "{what it found that the graph does not capture, or none}"
    ```
    It prints whether the wave is still open, and on the last node it prints the fan-in checklist.
+   Marking a node `shipped` without `files` / `gates` / `summary` warns, because that row would
+   then say the node finished without saying what proved it — and `files` is exactly what step 3's
+   diffstat gets compared against.
 2. **Integrate and verify the combination, not the parts.** Merge only the nodes that `shipped`
    — a `failed` node's branch is never merged:
    ```bash
@@ -296,14 +373,17 @@ nodes; with one node it is pure ceremony.
    structurally cannot see. The orchestrator reads it inline when it is small — it already holds
    the context, so it is the cheapest reader — and hands it to **one** fresh child when the
    diff is large or independence matters more. Apply `/review-it`'s Review Focus section by
-   section, fix what is accepted, re-run the gates. This is the only review the wave gets; never
-   skip it, and never let one feature's section absorb the whole pass.
+   section, fix what is accepted, re-run the gates. Per-node evidence was already checked in
+   step 1, so spend this pass on the seams; never skip it, and never let one feature's section
+   absorb the whole pass.
 4. **Write the walkthrough, then ship the wave once.** Run the **walkthrough** skill over the
-   integrated diff — what changed, what you ran and what it printed, and the visual proof of the
-   demo path. Its review gate hands you the PR body and the merge checklist, which the **ship-it**
-   skill then opens: one commit/PR, merge, close the issues the wave satisfied. One squash commit buries N features, so the PR body must carry `ship-it`'s
-   per-item evidence table (commit, issue, the test that proves it, manual-acceptance status) —
-   without it neither you nor the user can audit or revert a single feature afterwards.
+   integrated diff — what changed, what you ran and what it printed, the visual proof of the demo
+   path, the risk notes and the manual-acceptance status. It supplies evidence only; the **PR body
+   and the merge checklist are `/ship-it`'s output**, produced once there. **ship-it** then opens
+   one commit/PR, merges, and closes the issues the wave satisfied. One squash commit buries N
+   features, so that body must carry the per-item evidence table (commit, issue, the test that
+   proves it, manual-acceptance status) — without it neither you nor the user can audit or revert
+   a single feature afterwards.
 5. **Update the board — unconditionally.** `set` already wrote each node's outcome, including the
    last node of the wave, so the checkpoint is current. Re-render anyway: the render is what the
    user actually looks at, and a `set` that failed silently, a custom `--state`, or an out-of-band
@@ -391,9 +471,7 @@ ask the user about each `failed` node before retrying it.
 
 ## References
 
-- `references/dsh-runtime.md` — the DSH side: delegation mechanics, the two workspace traps in DSH terms, depth/concurrency/cost, branch layout, state schema, and why review and ship are wave-scoped.
-- `references/codex-runtime.md` — the Codex side: skill discovery and loading, V1/V2 delegation mapping, depth and concurrency defaults, and the optional `git push` guard. Read it before running a wave under Codex.
-- `references/claude-code-runtime.md` — the Claude Code side: plugin/skill discovery, `Agent` dispatch, the missing continuation/audit primitives, depth and concurrency, and the optional `allowed-tools` pre-approval. Read it before running a wave under Claude Code.
+- `references/dsh-runtime.md` — DSH delegation mechanics, the two workspace traps in DSH terms, depth/concurrency/cost, branch layout, state schema, and why review and ship are wave-scoped.
 - `references/node-prompt.md` — the node prompt template, how to fill it, and how to read a node's report.
 - `references/lean-subagent.md` — DSH-only deployment patch that strips a node child's skill catalog (optional cost lever), with its caveats.
 - `scripts/graph_state.py` (`plan` / `set` / `prompt` / `show`) — validation, layering,

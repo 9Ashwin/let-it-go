@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "note": "Third-party skills copied VERBATIM. Never edit a copy in place: change this manifest and re-run `python3 scripts/sync_vendor.py`. Anything this repo owns or adapts lives under skills/ instead, so a sync can never clobber local work.",
+  "skills": {
+    "svg-diagram": {
+      "source": "bybit-exchange/svg-diagram",
+      "sourceUrl": "https://github.com/bybit-exchange/svg-diagram.git",
+      "path": ".",
+      "ref": "c30c9e3bc9a70f2b77b60c7ea27157de3a88d81a",
+      "license": "MIT"
+    },
+    "skill-creator": {
+      "source": "anthropics/skills",
+      "sourceUrl": "https://github.com/anthropics/skills.git",
+      "path": "skills/skill-creator",
+      "ref": "33375500bcea98d610eb30ce10ac4e59b89c390d",
+      "license": "MIT"
+    },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceUrl": "https://github.com/anthropics/skills.git",
+      "path": "skills/frontend-design",
+      "ref": "33375500bcea98d610eb30ce10ac4e59b89c390d",
+      "license": "unknown"
+    },
+    "pptx": {
+      "source": "anthropics/skills",
+      "sourceUrl": "https://github.com/anthropics/skills.git",
+      "path": "skills/pptx",
+      "ref": "33375500bcea98d610eb30ce10ac4e59b89c390d",
+      "license": "unknown"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceUrl": "https://github.com/vercel-labs/skills.git",
+      "path": "skills/find-skills",
+      "ref": "7407f3893ad4dceab546ac002c3ef806e4000c73",
+      "license": "MIT"
+    },
+    "ui-ux-pro-max": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceUrl": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git",
+      "path": ".claude/skills/ui-ux-pro-max",
+      "ref": "823b0a14d3539b5d78c0efb614426a4fab5983ec",
+      "license": "unknown"
+    },
+    "web-design-guidelines": {
+      "source": "vercel-labs/agent-skills",
+      "sourceUrl": "https://github.com/vercel-labs/agent-skills.git",
+      "path": "skills/web-design-guidelines",
+      "ref": "063bee94c3f4df8453406c830b0a7df0f2860278",
+      "license": "unknown"
+    },
+    "humanizer-zh": {
+      "source": "op7418/humanizer-zh",
+      "sourceUrl": "https://github.com/op7418/humanizer-zh.git",
+      "path": ".",
+      "ref": "f4518a8eab97b8bfebc66a89d34320a89bef6930",
+      "license": "unknown"
+    },
+    "resume-optimizer": {
+      "source": "wyh0626/resume-optimizer",
+      "sourceUrl": "https://github.com/wyh0626/resume-optimizer.git",
+      "path": ".",
+      "ref": "fb16670c07bf22cce8c8a9b8494bbd693ea4651c",
+      "license": "unknown"
+    },
+    "teach": {
+      "source": "mattpocock/skills",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "path": "skills/productivity/teach",
+      "ref": "c55ee46073ed923f86ce59a5eb3b6d895095d1b7",
+      "license": "unknown"
+    }
+  }
+}

@@ -130,14 +130,11 @@ The helper:
 - Supports `--dry-run` for checking what command would be used
 - Prints `review-it clean: no accepted/actionable findings reported` when review is clean
 
-## Platform Reference Files
+## Runtime Reference
 
-Load only the file for the harness you are running under:
-
-- [`references/dsh-runtime.md`](references/dsh-runtime.md) — DSH skill loading, delegation mechanics, and why no external review command applies
-- [`references/codex-runtime.md`](references/codex-runtime.md) — Codex skill loading, delegation, and the `codex review` path
-- [`references/claude-code-runtime.md`](references/claude-code-runtime.md) — Claude Code skill loading, `Agent` delegation, and the built-in `/review` path
-- [`references/other-clis.md`](references/other-clis.md) — the per-CLI review-command matrix and the runner's host probes
+DSH is the only host this set targets. [`references/dsh-runtime.md`](references/dsh-runtime.md) covers
+skill loading, delegation mechanics, and why no external review command applies — the agent that
+loaded this skill does the review itself.
 
 ## Final Report
 

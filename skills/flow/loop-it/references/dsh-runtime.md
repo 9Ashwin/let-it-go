@@ -41,12 +41,17 @@ the catalog opt-out. This skill is model-invocable, so both paths work.
 | Interrupt a child's current turn | `interrupt_agent(child_id)` |
 | Audit the children you started | `list_agents(scope="descendants")` |
 
-Calls run in the background by default and return a durable child id immediately,
-so several calls in one assistant message are concurrent; the parent is notified
-when a child settles, and must never poll. Delegation depth is capped at 3 by
-default (`maxDepth`), so a child at depth 1 must not delegate further. Per-child
-`toolFilter` and `persona` are deployment-level plugin config, not skill fields.
-A child's approval policy is pinned to `never`.
+Calls to `subagent` run in the background by default and return a durable child id
+immediately, so several calls in one assistant message are concurrent — the host caps how
+many tool calls overlap in one step (ten by default), and the parent is notified when a
+child settles, so never poll. `subagent_fork` is the opposite: one-shot and foreground,
+so reach for it when you want the answer in the same turn.
+
+**Delegation depth is capped at 1** (`maxDepth`, default), which means a child cannot
+delegate at all. A node that needs a second level of work has to do it itself. Per-child
+`toolFilter` and `persona` are deployment-level plugin config, not skill fields. A child
+cannot escalate its own permissions; under the read-only and workspace-write policies its
+approval policy is pinned to `never`.
 
 ## Task list, background work, long-horizon goals
 
@@ -55,6 +60,21 @@ A child's approval policy is pinned to `never`.
   background job. DSH has no `present` — hand the report over as an absolute
   path.
 - `/goal` is a DSH command — the human-facing half of the goal surface — not a
-  skill the loop runs. The model-facing half (`create_goal` / `update_goal`) only
-  executes for a direct top-level human turn, so the loop must not try to mint a
-  long-horizon goal for itself.
+  skill the loop runs. The model-facing half is `create_goal` / `update_goal`, and
+  its gate is **authority, not wording**: `create_goal` runs only in a direct
+  top-level human turn, so neither a subagent nor a goal round can mint one. That
+  does **not** mean waiting for the word "goal" — when the human hands over a
+  long-running objective ("work through this whole batch"), creating the goal *is*
+  the designed behaviour, and it is what keeps the session working between turns.
+  `edit` / `pause` / `resume` carry the same restriction; `complete` / `blocked`
+  are also allowed during this goal's own rounds, and `blocked` is refused before
+  the configured minimum round count. After a restart an active goal is disarmed,
+  so a human saying "continue" needs `resume` to rearm it.
+
+  **A batch is the case this exists for.** The goal is the session-scoped driver —
+  it is what re-prompts the loop after a turn ends — while `.loop-state.json` is
+  the repo-scoped record of *where* the batch is. They are two different things and
+  two different counters: `maxGoalRounds` bounds the continuation, `attempts`
+  counts one issue's retries. Never let the goal substitute for the checkpoint, and
+  never let the checkpoint stand in for the goal: without one of them a long batch
+  either loses its place or stops moving.

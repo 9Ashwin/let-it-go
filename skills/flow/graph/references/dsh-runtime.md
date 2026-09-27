@@ -40,10 +40,11 @@ merging) is what proves the discipline held.
 
 ## Depth, concurrency, cost
 
-- **Depth.** Delegation depth is capped at 3 by default (the orchestrator is depth 0), so a node
-  is depth 1 and must not delegate further. Say so in the node prompt.
-- **Concurrency.** The harness does not cap how many continuable children one parent may hold.
-  The wave cap (Step 2 of the skill, default 3–4) is the only brake, so enforce it yourself.
+- **Depth.** Delegation depth is capped at **1** by default, so a node — depth 1 — cannot delegate
+  at all. Say so in the node prompt: a node that needs a second level of work does it itself.
+- **Concurrency.** The host caps how many tool calls overlap in one step (ten by default), and the
+  runtime separately bounds how many continuable children one parent may hold. The wave cap (Step 2
+  of the skill, default 3–4) is the brake you actually control, so enforce it yourself.
 - **Cost shape.** A fresh child joins the parent's composition, so it receives the *same* system
   prompt, the *same* full tool schemas and the *same* skill catalog; none of that is trimmed by
   depth, and no token budget exists — round counts are the only bound. Only the deployment can
@@ -65,11 +66,18 @@ merging) is what proves the discipline held.
 ## `/goal` and other skills
 
 `/goal` is a DSH **command**, not a skill: typing it is a human action. The model side of the
-same surface is the goal tools (`create_goal` / `update_goal`), but `create_goal` only runs in a
-**direct top-level human turn** — a node child, whose authority is a subagent's, cannot mint a
-long-horizon goal for itself, and neither can the orchestrator mid-wave. "Implement" always means
-the node child writes the code. `/review-it` and `/ship-it` ARE real skills and are callable — by
-the orchestrator, once per wave.
+same surface is the goal tools (`create_goal` / `update_goal`), and their gate is **authority,
+not wording**: `create_goal` only runs in a **direct top-level human turn** — a node child, whose
+authority is a subagent's, cannot mint a long-horizon goal for itself, and neither can the
+orchestrator mid-wave. That does not mean waiting for the word "goal": when the human hands over a
+long-running objective ("run this whole graph"), creating the goal *is* the designed behaviour, and
+it is what keeps the session working between waves. `edit` / `pause` / `resume` carry the same
+restriction; `complete` / `blocked` are also allowed during this goal's own rounds. A graph run is
+exactly that case: the goal drives the session, `.graph_state.json` remembers the layout — two
+different things, two different counters.
+
+"Implement" always means the node child writes the code. `/review-it` and `/ship-it` ARE real
+skills and are callable — by the orchestrator, once per wave.
 
 `<SKILL_DIR>` in commands is defined once in `SKILL.md`: this skill's own directory (absolute).
 DSH prepends a resource block on every skill load (`<skill_resources>` /
@@ -84,8 +92,8 @@ ROOT="$(git rev-parse --show-toplevel)"
 # a repo whose default is `master` fails every command that assumes otherwise.
 BASE="$(git symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')"
 BASE="${BASE:-$(git rev-parse --abbrev-ref HEAD)}"
-mkdir -p "$(dirname "$ROOT")/.graph-worktrees"
-WT="$(cd "$(dirname "$ROOT")/.graph-worktrees" && pwd)/node-{N}"
+mkdir -p "$ROOT/.graph-worktrees"
+WT="$ROOT/.graph-worktrees/node-{N}"
 git worktree add -b feat/node-{N}-{slug} "$WT" "$BASE"
 echo "$WT"      # this absolute path goes into the node prompt
 ```
