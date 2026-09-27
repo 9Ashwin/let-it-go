@@ -4,8 +4,6 @@
 __pycache__/
 *.pyc
 
-# eval：每轮的结果不进库，但那份快照台账（evals/results/README.md）要进
-evals/results/*
-!evals/results/README.md
+# eval：结果就是证据，进库（每轮的 grading.json / benchmark / notes 都留着）
 evals/harness/evalctl
 evals/harness/evals

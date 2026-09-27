@@ -34,15 +34,17 @@ go -C evals/harness run . bench results/iteration-N --skill-name flow
   要下结论，先补那几条用例。
 - 两条臂的工程行为（门禁、防篡改、按变更调整、越界写入）在三个用例里**完全一样**。
 
-## iteration-0-smoke
+## 关于 iteration-0-smoke
 
-不是真实运行，是 harness 的冒烟验证：用参考解的真实 grading（7/7）加一条手工造的
-`without_skill`（3/7）检查 `bench` 的汇总与 analyst pass 对不对。
+harness 刚搭好时用「参考解的真实 grading + 一条手工造的 without_skill」做过一次冒烟，
+用来验证 `bench` 的汇总与 analyst pass。**那份数据是编的，已经删掉**——不能跟真实运行
+混在一起当证据。
 
-| 配置 | pass_rate | 用时(s) | tokens |
-|---|---|---|---|
-| with_skill | 1.00 ± 0.00 | 0.0 | 0 |
-| without_skill | 0.43 ± 0.00 | 0.0 | 0 |
-| **delta** | **+0.5714** | +0.0 | +0.0 |
+## 每条臂要留什么
 
-analyst pass 当场就标出三条断言在两条臂上都通过——它们区分不出技能的价值。这正是它该做的。
+- `grading.json` — `assert_case` 的机械核对结果（断言、证据、通过率）
+- `benchmark.json` / `benchmark.md` — 该轮的汇总（在 iteration 目录下）
+- `notes.md` — 跑那条臂时的观察，尤其是**断言无效**的原因（例如 Lead 在跑臂期间改了仓库）
+
+⚠️ **`timing.json` 目前是缺的**：子代理通知里的 tokens / duration 只在通知里出现一次，
+前几轮没当场落盘，所以 benchmark 里的用时与 tokens 都是 0。后续每轮收到通知就写。

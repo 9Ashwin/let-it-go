@@ -61,6 +61,14 @@ func sourceDir() string {
 // 不能靠 cwd：`go -C evals/harness run .` 会把进程的 cwd 换到 harness 目录，
 // 相对路径会解析到 harness 下面去。基址选 evals/ 而不是仓库根，因为 run.md 与
 // README 里写的都是 `results/iteration-1/...` 这种形式（结果就在 evals/results/ 下）。
+func abs0(path string) string {
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return path
+	}
+	return abs
+}
+
 func repoPath(path string) string {
 	if path == "" || filepath.IsAbs(path) {
 		return path
@@ -651,9 +659,16 @@ func grade(caseID, workdir string, c Case) Grade {
 // 也是先 `expect(before.status).not.toBe(0)`。
 func preflight(caseID, workdir string, c Case) Preflight {
 	var checks []Expectation
+	// 只跑**第一条** gate：那是 fixture 自己的门禁。后面的 gate 是结构性检查
+	// （分支数、产物形状之类），起点必然还不满足——拿它们卡 preflight 是错的。
+	seenGate := false
 	for _, spec := range c.Assertions {
 		switch spec.str("kind") {
 		case "gate":
+			if seenGate {
+				continue
+			}
+			seenGate = true
 			passed, evidence := assertGate(caseID, workdir, spec)
 			checks = append(checks, Expectation{Text: "起点：fixture 自己的门禁是绿的",
 				Passed: passed, Evidence: evidence})
@@ -733,6 +748,25 @@ func cmdMaterialize(args []string) int {
 		{"config", "user.name", "let-it-go eval"},
 		{"add", "-A"},
 		{"commit", "-q", "-m", "seed: eval fixture at its starting state"},
+	} {
+		if out, code := git(dest, command...); code != 0 {
+			fmt.Fprintf(os.Stderr, "materialize: git %s 失败：%s\n", strings.Join(command, " "), out)
+			return 1
+		}
+	}
+
+	// 给 fixture 一个**真的 origin**（本地 bare 仓库）：loop-it 的串行前置检查要
+	// `git ls-remote --heads origin`，没有 remote 会在第一步就停下——那样测的就不是
+	// 流程，而是「评测环境没有远端」。本地 bare 不需要网络，也不会碰 GitHub。
+	origin := filepath.Join(filepath.Dir(abs0(dest)), filepath.Base(abs0(dest))+".origin.git")
+	if out, code := runIn("", "git", "init", "--bare", "-q", origin); code != 0 {
+		fmt.Fprintf(os.Stderr, "materialize: 建 origin 失败：%s\n", out)
+		return 1
+	}
+	for _, command := range [][]string{
+		{"remote", "add", "origin", origin},
+		{"push", "-q", "origin", "HEAD:refs/heads/main"},
+		{"symbolic-ref", "HEAD", "refs/heads/main"},
 	} {
 		if out, code := git(dest, command...); code != 0 {
 			fmt.Fprintf(os.Stderr, "materialize: git %s 失败：%s\n", strings.Join(command, " "), out)

@@ -1,0 +1,6 @@
+- 加载了 loop-it（判定为**单单元模式**：内联实现、不建 worktree、不派子代理）与 review-it（Spec + Standards 两轴分开报）
+- 先读 fixture 的 AGENTS.md 与 requirements/README.md，按它声明的作用域根 `requirements/<scope>/` 与门禁 `make check` 干活
+- 产出 requirements/001-per-warehouse-low-stock-threshold/（README + notes/implementation.md），并登记进 requirements/README.md 的顺序表
+- 做了红→绿证据：把新测试放到 seed 的临时副本上跑，拿到 3 条 FAIL
+- review-it 唯一被接受的发现是「LowStockWarehouses 缺配置阈值的用例」，已补齐并重跑门禁
+- workspace_clean 这条断言本次**无效**：新脏只有 `.gitignore` 与 `evals/harness/main.go`，都是 Lead 在跑臂期间自己的编辑，不是这条臂写的

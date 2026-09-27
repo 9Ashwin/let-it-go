@@ -1,0 +1,66 @@
+{
+  "id": "04-serial-batch",
+  "name": "serial-batch",
+  "what_it_tests": "串行批次：三条**有依赖边**的 issue，`loop-it` 该判成串行循环——建检查点、逐 issue 在自己的分支上做、按依赖顺序推进，而不是当单单元一把做完。这是这套技能区别于「裸模型直接做」的那台机器，前面三个用例一个都没测到。\n\n断言里 `requirements/*/issues/.loop-state.json` 是**要求存在**的（与 case 01 相反：单单元不该产生检查点，串行批次必须产生）。分支断言看的是 origin 上的分支数——`materialize` 给 fixture 造了一个本地 bare origin，所以 `git ls-remote --heads origin` 真的能跑。",
+  "prompt": "requirements/01_REQ-stock-batch/issues/ 下有三条 issue，按依赖顺序把它们做完。每条只 commit 到自己的分支（feat/issue-N-<slug>）并推到 origin；**不要开 PR**（这个仓库没有 GitHub 远端）。做完跑一遍门禁确认没弄坏。",
+  "expected_output": "三条 issue 都实现；检查点在 requirements/01_REQ-stock-batch/issues/.loop-state.json；origin 上有三条 feat/issue-* 分支；make check 绿；受保护文件未改。",
+  "fixture": "fixture",
+  "tamper_guard": ["Makefile", "inventory/stock_test.go"],
+  "assertions": [
+    {
+      "kind": "gate",
+      "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+      "command": ["make", "check"]
+    },
+    {
+      "kind": "probe",
+      "text": "三条 issue 的行为都真的实现了（阈值来源、列表顺序、报告）",
+      "files": [["probe/probe_test.go", "inventory/zz_eval_probe_test.go"]],
+      "command": ["go", "test", "-count=1", "-run", "TestEvalProbe", "-v", "./inventory/"],
+      "extract": "EVAL_PROBE (\\{.*\\})",
+      "config": "config/thresholds.json",
+      "scenarios": [
+        {
+          "thresholds": {"shanghai": 20},
+          "expect": {
+            "t_shanghai": 20, "t_beijing": 5,
+            "o_wuhan": 0, "o_xian": 1, "o_shanghai": 2,
+            "r_len": 3, "r_first_is_wuhan": 1
+          }
+        },
+        {
+          "thresholds": null,
+          "expect": {
+            "t_shanghai": 5, "t_beijing": 5,
+            "o_wuhan": 0, "o_xian": 1, "o_shanghai": 2,
+            "r_len": 3, "r_first_is_wuhan": 1
+          }
+        }
+      ]
+    },
+    {
+      "kind": "path_glob",
+      "text": "串行批次产生了检查点，且落在 requirements/<scope>/issues/ 下",
+      "glob": "requirements/*/issues/.loop-state.json",
+      "min": 1
+    },
+    {
+      "kind": "gate",
+      "text": "三条 issue 各自的分支都推到了 origin（main + 3 条 feat 分支）",
+      "command": ["bash", "-c", "test \"$(git ls-remote --heads origin | wc -l | tr -d ' ')\" -ge 4"]
+    },
+    {
+      "kind": "path_absent",
+      "text": "没有落到技能默认的 tasks/<feature>/ 下",
+      "glob": "tasks"
+    },
+    {
+      "kind": "tamper_guard",
+      "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）"
+    },
+    {
+      "kind": "workspace_clean",
+      "text": "没有写到 fixture 之外（子代理没有自己的 cwd，越界是这条路的典型失败）"
+    }
+  ]
+}

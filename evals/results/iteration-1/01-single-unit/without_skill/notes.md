@@ -1,0 +1,3 @@
+- 没加载任何技能，直接改 inventory/stock.go 并补了 3 条测试；门禁绿、受保护文件未改
+- **没有产出 requirements/<scope>/ 下的需求资料** —— 这是两条臂唯一的实质差别
+- workspace_clean 这条断言本次**无效**：新脏只有 `.gitignore` 与 `evals/harness/main.go`，都是 Lead 在跑臂期间自己的编辑

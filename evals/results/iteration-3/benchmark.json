@@ -1,0 +1,168 @@
+{
+ "metadata": {
+  "skill_name": "flow",
+  "skill_path": "/Users/mervyn/workspaces/github/let-it-go/evals",
+  "executor_model": "deepseek-v4-flash",
+  "analyzer_model": "inline",
+  "timestamp": "2026-09-27T08:37:47Z",
+  "evals_run": [
+   "03-artifact-handoff"
+  ],
+  "runs_per_configuration": 1
+ },
+ "runs": [
+  {
+   "eval_id": "03-artifact-handoff",
+   "eval_name": "artifact-handoff",
+   "configuration": "with_skill",
+   "run_number": 1,
+   "result": {
+    "pass_rate": 1,
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "time_seconds": 0,
+    "tokens": 0,
+    "tool_calls": 0,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go test ./...\nok  \texample.com/inventory/inventory\t(cached)\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go vet ./..."
+    },
+    {
+     "text": "只凭那份资料就做对了 issue-002：数量升序，同数量按名字",
+     "passed": true,
+     "evidence": "  ok   {\"shanghai\":5,\"wuhan\":5,\"xian\":5} → {\"shanghai\":2,\"wuhan\":0,\"xian\":1}\n  ok   null → {\"shanghai\":2,\"wuhan\":0,\"xian\":1}"
+    },
+    {
+     "text": "没有落到技能默认的 tasks/<feature>/ 下",
+     "passed": true,
+     "evidence": "tasks → 不存在"
+    },
+    {
+     "text": "若产生了 loop 检查点，它必须在 requirements/<scope>/issues/ 下",
+     "passed": true,
+     "evidence": "没有产生 loop 检查点（单单元模式不该产生，允许）"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、inventory/stock_test.go"
+    },
+    {
+     "text": "没有写到 fixture 之外（子代理没有自己的 cwd，越界是这条路的典型失败）",
+     "passed": true,
+     "evidence": "let-it-go 工作树没有新脏（运行前已有 0 条，运行后 0 条）"
+    }
+   ],
+   "notes": null
+  },
+  {
+   "eval_id": "03-artifact-handoff",
+   "eval_name": "artifact-handoff",
+   "configuration": "without_skill",
+   "run_number": 1,
+   "result": {
+    "pass_rate": 1,
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "time_seconds": 0,
+    "tokens": 0,
+    "tool_calls": 0,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go test ./...\nok  \texample.com/inventory/inventory\t0.005s\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go vet ./..."
+    },
+    {
+     "text": "只凭那份资料就做对了 issue-002：数量升序，同数量按名字",
+     "passed": true,
+     "evidence": "  ok   {\"shanghai\":5,\"wuhan\":5,\"xian\":5} → {\"shanghai\":2,\"wuhan\":0,\"xian\":1}\n  ok   null → {\"shanghai\":2,\"wuhan\":0,\"xian\":1}"
+    },
+    {
+     "text": "没有落到技能默认的 tasks/<feature>/ 下",
+     "passed": true,
+     "evidence": "tasks → 不存在"
+    },
+    {
+     "text": "若产生了 loop 检查点，它必须在 requirements/<scope>/issues/ 下",
+     "passed": true,
+     "evidence": "没有产生 loop 检查点（单单元模式不该产生，允许）"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、inventory/stock_test.go"
+    },
+    {
+     "text": "没有写到 fixture 之外（子代理没有自己的 cwd，越界是这条路的典型失败）",
+     "passed": true,
+     "evidence": "let-it-go 工作树没有新脏（运行前已有 0 条，运行后 0 条）"
+    }
+   ],
+   "notes": null
+  }
+ ],
+ "run_summary": {
+  "with_skill": {
+   "pass_rate": {
+    "mean": 1,
+    "stddev": 0,
+    "min": 1,
+    "max": 1
+   },
+   "time_seconds": {
+    "mean": 0,
+    "stddev": 0,
+    "min": 0,
+    "max": 0
+   },
+   "tokens": {
+    "mean": 0,
+    "stddev": 0,
+    "min": 0,
+    "max": 0
+   }
+  },
+  "without_skill": {
+   "pass_rate": {
+    "mean": 1,
+    "stddev": 0,
+    "min": 1,
+    "max": 1
+   },
+   "time_seconds": {
+    "mean": 0,
+    "stddev": 0,
+    "min": 0,
+    "max": 0
+   },
+   "tokens": {
+    "mean": 0,
+    "stddev": 0,
+    "min": 0,
+    "max": 0
+   }
+  },
+  "delta": {
+   "pass_rate": "+0.0000",
+   "time_seconds": "+0.0",
+   "tokens": "+0.0"
+  }
+ },
+ "notes": [
+  "断言「fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）」在两条臂上都通过——它区分不出技能的价值",
+  "断言「只凭那份资料就做对了 issue-002：数量升序，同数量按名字」在两条臂上都通过——它区分不出技能的价值",
+  "断言「改动之后 fixture 自己的门禁 make check 仍然绿」在两条臂上都通过——它区分不出技能的价值",
+  "断言「没有写到 fixture 之外（子代理没有自己的 cwd，越界是这条路的典型失败）」在两条臂上都通过——它区分不出技能的价值",
+  "断言「没有落到技能默认的 tasks/<feature>/ 下」在两条臂上都通过——它区分不出技能的价值",
+  "断言「若产生了 loop 检查点，它必须在 requirements/<scope>/issues/ 下」在两条臂上都通过——它区分不出技能的价值"
+ ]
+}
