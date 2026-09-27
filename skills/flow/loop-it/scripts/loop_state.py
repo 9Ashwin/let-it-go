@@ -770,6 +770,10 @@ def cmd_followup(args: argparse.Namespace) -> int:
         entry["origin"] = item["id"]
         state["issues"][str(args.issue)] = entry
         inserted = True
+    if inserted:
+        # `total_issues` 只在 `scan` 时算一次。插进来的这一条也要算进去，否则检查点的
+        # 计数就永久落后于实际条数——真实运行里出现过 total_issues=6 而实际 7 条。
+        state["total_issues"] = len(state["issues"])
     save_state(state, args.state)
     target = f" → {ref(args.issue)}" if args.issue else ""
     print(f"🔀 {args.id}: open → {args.status}{target}  {item.get('title')}")

@@ -390,6 +390,12 @@ def test_followups_are_a_queue_not_a_note():
         check("promotion 直接把新 issue 插进本轮，并记下它从哪来",
               promoted is not None and promoted["status"] == "pending"
               and promoted.get("origin") == "f1", str(promoted))
+        # 计数要跟着走：它只在 scan 时算一次，插进来的这条不算进去就会永久落后于实际条数
+        # （真实运行里出现过 total_issues=6 而实际 7 条）。
+        after = read_state(state_path)
+        check("promotion 之后 total_issues 等于实际条数",
+              after["total_issues"] == len(after["issues"]),
+              f"total_issues={after['total_issues']} 实际={len(after['issues'])}")
 
         code, out, err = run("followup", "resolve", "--id", "f1", "--status", "dropped",
                              "--state", state_path)
