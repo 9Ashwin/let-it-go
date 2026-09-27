@@ -2,6 +2,7 @@ package inventory
 
 import (
 	"encoding/json"
+	"os"
 	"testing"
 )
 
@@ -12,6 +13,12 @@ import (
 //	o_<仓库>  该仓库在 LowStockWarehouses 结果里的下标（考顺序）
 //	r_len     报告条数；r_first_is_wuhan 报告首条是不是数量最少且名字最靠前的那个
 func TestEvalProbe(t *testing.T) {
+	// 回到仓库根再观察。任务只说了配置放在哪，没说进程从哪个目录启动；而 Go 会把测试
+	// 二进制的 cwd 设成**包目录**，于是按进程 cwd 解析配置的实现（完全合理）会被误判成
+	// 没实现。探针不该带进这个隐含假设。
+	if err := os.Chdir(".."); err != nil {
+		t.Fatalf("回到仓库根失败：%v", err)
+	}
 	observed := map[string]int{}
 	observed["t_shanghai"] = LowStockThreshold("shanghai")
 	observed["t_beijing"] = LowStockThreshold("beijing")
