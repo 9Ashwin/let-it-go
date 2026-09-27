@@ -312,16 +312,16 @@ def test_shipping_without_evidence_warns_but_proceeds():
 
         code, out, err = run("set", "--issue", 1, "--status", "shipped", "--state", state_path,
                              "--waive", "只有线上环境能验，本地拿不到观察")
-        check("写明原因后可以豁免", code == 0, err)
+        check("写明原因后照样 shipped", code == 0, err)
         entry = read_state(state_path)["issues"]["1"]
-        check("豁免的原因记进了检查点",
+        check("声明的原因记进了检查点",
               entry["status"] == "shipped"
               and entry["evidence_waiver"]["reason"] == "只有线上环境能验，本地拿不到观察"
               and entry["evidence_waiver"]["at"], str(entry))
-        check("豁免时给一行信息而非告警", "已豁免" in err, err)
+        check("声明时给一行信息而非告警", "已声明拿不到观察" in err, err)
 
         code, out, err = run("summary", "--state", state_path)
-        check("summary 标出这条豁免", "#1(已豁免)" in out, out)
+        check("summary 标出这条声明", "#1(已声明拿不到观察)" in out, out)
 
 
 def test_shipping_without_notes_warns():

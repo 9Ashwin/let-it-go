@@ -463,7 +463,7 @@ def render_summary(state: dict) -> str:
     no_evidence = [n for n in buckets.get("shipped", []) if missing_evidence(issues[str(n)])]
     if no_evidence:
         labels = [
-            ref(n) + ("(已豁免)" if evidence_waiver(issues[str(n)]) else "")
+            ref(n) + ("(已声明拿不到观察)" if evidence_waiver(issues[str(n)]) else "")
             for n in no_evidence
         ]
         lines.append(f"  ⚠️  无 evidence 的 shipped: {len(no_evidence)}  " + ", ".join(labels))
@@ -610,7 +610,7 @@ def cmd_set(args: argparse.Namespace) -> int:
                 file=sys.stderr,
             )
         if args.waive:
-            print(f"  ℹ️  {ref(args.issue)} 的 evidence 已豁免：{args.waive}", file=sys.stderr)
+            print(f"  ℹ️  {ref(args.issue)} 已声明拿不到观察：{args.waive}", file=sys.stderr)
     print(render_next(state))
     if not any(issues[str(n)].get("status") not in DONE for n in order_of(state)):
         print("\n🎉 全部 issue 处理完毕 — 现在做批末收尾：/review-it 审整批 diff，然后 /ship-it 一次 PR。")
@@ -641,7 +641,7 @@ def missing_evidence(entry: dict) -> bool:
 
 
 def evidence_waiver(entry: dict) -> dict:
-    """这条 issue 上显式豁免 evidence 的记录；没有豁免时为空 dict。"""
+    """这条 issue 上自愿声明「拿不到观察」的记录；没有声明时为空 dict。"""
     return entry.get("evidence_waiver") or {}
 
 
@@ -891,7 +891,7 @@ def main(argv: list[str] | None = None) -> int:
     setter.add_argument("--branch")
     setter.add_argument("--phase")
     setter.add_argument("--waive", metavar="原因",
-                        help="shipped 但确实拿不到 evidence 时，写明原因豁免")
+                        help="shipped 但确实拿不到 evidence 时，写明原因（自愿声明，不是豁免）")
     setter.add_argument("--state", default=DEFAULT_STATE)
     setter.set_defaults(func=cmd_set)
 
