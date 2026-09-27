@@ -227,7 +227,7 @@ fi
 |---|---|---|
 | 未登录访问 /users 跳登录 | runtime | `curl -si localhost:8080/users` |
 
-检查点里的结构化 `evidence` 是**可选的**——要跨会话追踪某条观测时再记：
+**检查点里的 `evidence` 是机器真相，不是可选的**——`shipped` 的闸门读它（零证据会被拒绝；只到 L1/L2 会告警说真实链路没验）。scope README 那张表是**给人看的投影**，`/ship-it` 的走查件与 PR body 引用它，**不再复制一份**。跨会话要追某条观测时，记进检查点：
 
 ```bash
 python3 <SKILL_DIR>/scripts/loop_state.py evidence add --issue N \
