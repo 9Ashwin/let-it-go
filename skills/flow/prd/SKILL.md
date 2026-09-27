@@ -1,6 +1,6 @@
 ---
 name: prd
-description: "为新功能写 PRD：先澄清，再把需求写成可验证的验收条件。之后交给 /to-issues，由它把 PRD 拆成带契约的 issue。Triggers: 写PRD, 需求文档, 需求分析, 规格说明, plan this feature."
+description: "为新功能写 PRD：先澄清，再把需求写成可验证的验收条件；之后交给 /to-issues 拆成带契约的 issue。**用户只给了一句诉求、落地方案还要自己定（「怎么落地你定」「做个能缓存的 KV」）时也走这里**——那是需求还没成形，先在这里把决策问清再实现，别直接开写。Triggers: 写PRD, 需求文档, 需求分析, 规格说明, plan this feature, 新功能, 需求还没成形, 落地方式你定."
 
 ---
 
