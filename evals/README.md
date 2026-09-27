@@ -89,7 +89,9 @@ python ~/.agents/skills/skill-creator/eval-viewer/generate_review.py \
 
 ## 已知限制
 
-- **单轮、单次运行**，没有跑 3 次求方差。波动大时 `bench` 的 analyst pass 会标出来。
+- **方差**：`bench` 支持一条臂跑多次（目录名带 `-runN`、传 `--run N`，它归到同一个
+  configuration 下报 mean ± stddev）。**默认仍然只跑一次**——单次跑分不清 6/7 vs 7/7
+  是技能还是噪声，所以下结论前跑 3 次。
 - **中途变更还没验证**：headless 一个任务跑完就退，`--session-id` 能接回同一个会话
   再跑一个任务，但「变更递送」这件事本身没实测过——别在结论里当成已验证。
 - **无人值守就没人可问**：headless 里 `ask_user_question` 没有人类可答。所以澄清类场景

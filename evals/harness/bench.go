@@ -19,6 +19,35 @@ import (
 
 var arms = []string{"with_skill", "without_skill"}
 
+// armNames 是上面的集合形式，用来判断一个目录名（剥掉 `-runN` 之后）是不是已知的臂。
+var armNames = func() map[string]struct{} {
+	known := map[string]struct{}{}
+	for _, arm := range arms {
+		known[arm] = struct{}{}
+	}
+	return known
+}()
+
+// runSuffix 返回 `with_skill-run2` 里的 `run2`；没有这个后缀就返回空串。
+// 同一条臂跑多次时，第 2 次起目录名带这个后缀，bench 靠它把多次运行归到同一个
+// configuration 下——单次跑分不清「技能更强」还是噪声。
+func runSuffix(name string) string {
+	index := strings.LastIndex(name, "-run")
+	if index < 0 {
+		return ""
+	}
+	tail := name[index+len("-run"):]
+	if tail == "" {
+		return ""
+	}
+	for _, r := range tail {
+		if r < '0' || r > '9' {
+			return ""
+		}
+	}
+	return "run" + tail
+}
+
 // Stat 是 schema 里的 {mean,stddev,min,max}。
 type Stat struct {
 	Mean   float64 `json:"mean"`
@@ -159,16 +188,30 @@ func cmdBench(args []string) int {
 
 	var runs []Run
 	var missing []string
+	maxRuns := 0
 	for _, entry := range caseEntries {
 		if !entry.IsDir() {
 			continue
 		}
 		caseID := entry.Name()
-		for _, arm := range arms {
-			runDir := filepath.Join(abs, caseID, arm)
+		armDirs, err := os.ReadDir(filepath.Join(abs, caseID))
+		if err != nil {
+			continue
+		}
+		found := map[string]int{}
+		for _, armEntry := range armDirs {
+			if !armEntry.IsDir() {
+				continue
+			}
+			// 一条臂可以跑多次：第 2 次起目录名带 `-run2` 后缀，这里剥掉，
+			// 于是它们算同一个 configuration 的多次运行——方差就是这么来的。
+			arm := strings.TrimSuffix(armEntry.Name(), "-"+runSuffix(armEntry.Name()))
+			if _, known := armNames[arm]; !known {
+				continue
+			}
+			runDir := filepath.Join(abs, caseID, armEntry.Name())
 			var grading Grade
 			if !readJSONFile(filepath.Join(runDir, "grading.json"), &grading) {
-				missing = append(missing, caseID+"/"+arm)
 				continue
 			}
 			var timing struct {
@@ -180,8 +223,9 @@ func cmdBench(args []string) int {
 			readJSONFile(filepath.Join(runDir, "timing.json"), &timing)
 			runNumber := timing.RunNumber
 			if runNumber == 0 {
-				runNumber = 1
+				runNumber = found[arm] + 1
 			}
+			found[arm]++
 			runs = append(runs, Run{
 				EvalID:        caseID,
 				EvalName:      grading.CaseName,
@@ -201,6 +245,14 @@ func cmdBench(args []string) int {
 				Notes:        notesFrom(runDir),
 			})
 		}
+		for _, arm := range arms {
+			if found[arm] == 0 {
+				missing = append(missing, caseID+"/"+arm)
+			}
+			if found[arm] > maxRuns {
+				maxRuns = found[arm]
+			}
+		}
 	}
 	if len(runs) == 0 {
 		fmt.Fprintf(os.Stderr, "bench: %s 下没有找到任何 grading.json（每条臂一个）\n", abs)
@@ -215,7 +267,7 @@ func cmdBench(args []string) int {
 			AnalyzerModel:        "inline",
 			Timestamp:            time.Now().UTC().Format("2006-01-02T15:04:05Z"),
 			EvalsRun:             evalIDs(runs),
-			RunsPerConfiguration: 1,
+			RunsPerConfiguration: maxRuns,
 		},
 		Runs:       runs,
 		RunSummary: summarize(runs),

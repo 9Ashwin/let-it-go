@@ -38,10 +38,12 @@ func cmdRun(args []string) int {
 		fmt.Fprintln(os.Stderr, "usage: evalctl run <case-id> --arm with_skill|without_skill --out DIR [--dsh PATH] [--keep|--regrade]")
 		fmt.Fprintln(os.Stderr, "  --out 的相对路径以 evals/ 为基准，惯例是 results/iteration-N/<case-id>/<arm>")
 		fmt.Fprintln(os.Stderr, "  --regrade 不重跑 dsh，只对已有的 work/ 重新打分并重生成人看的交付件")
+		fmt.Fprintln(os.Stderr, "  --run N 这是同一条臂的第几次运行（第 2 次起目录名带 -runN 后缀）")
 		return 2
 	}
 	caseID := args[0]
 	arm, out, dshPath, keep, regrade := "", "", "", false, false
+	runNumber := 1
 	for i := 1; i < len(args); i++ {
 		switch args[i] {
 		case "--arm":
@@ -58,6 +60,11 @@ func cmdRun(args []string) int {
 			i++
 			if i < len(args) {
 				dshPath = args[i]
+			}
+		case "--run":
+			i++
+			if i < len(args) {
+				fmt.Sscanf(args[i], "%d", &runNumber)
 			}
 		case "--keep":
 			keep = true
@@ -131,7 +138,7 @@ func cmdRun(args []string) int {
 		TotalDurationSeconds: round(elapsed, 2),
 		DurationSeconds:      round(elapsed, 2),
 		ToolCalls:            events.toolCalls,
-		RunNumber:            1,
+		RunNumber:            runNumber,
 	}
 	if err := os.WriteFile(filepath.Join(out, "timing.json"), mustJSON(timing), 0o644); err != nil {
 		fmt.Fprintln(os.Stderr, "run:", err)

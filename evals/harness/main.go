@@ -529,37 +529,47 @@ func assertCheckpointLocation(caseID, workdir string, spec AssertionSpec) (bool,
 	return true, "检查点落点正确：" + strings.Join(good, "、")
 }
 
+// assertWorkspaceClean 检查臂有没有写到 fixture 外面去。
+//
+// 早先的版本拿**环境里那个 let-it-go 仓库的脏状态**当基准。那是个坏设计，有两个原因：
+// 一是 DSH 自己的 `benchmarks/AGENTS.md` 明说「不要用 ambient repositories」——
+// 量出来的东西取决于你此刻在工作区里改了什么，而不是臂做了什么；二是它两次把
+// Lead 的动作记成臂的越界（改了 `.gitignore` 那次）。
+//
+// 现在只看 **fixture 的父目录**：那是 harness 自己的地盘（`grading.json` 这些），
+// 臂往里写任何别的东西就是越界。headless 的沙箱本来就只允许工作区与 /tmp，
+// 所以这条是廉价的兜底，不是主要防线。
 func assertWorkspaceClean(caseID, workdir string, spec AssertionSpec) (bool, string) {
-	// 只报**本次运行新产生的**脏：materialize 时快照过 let-it-go 本来就有的脏，
-	// 开发 eval 工作区本身时那份是非空的。
-	before := map[string]bool{}
-	if seed, err := loadSeed(workdir); err == nil {
-		for _, line := range seed.LetitgoDirtyAtSeed {
-			before[line] = true
-		}
+	parent := filepath.Dir(filepath.Clean(workdir))
+	entries, err := os.ReadDir(parent)
+	if err != nil {
+		return false, fmt.Sprintf("读不了 fixture 的父目录 %s：%v", parent, err)
 	}
-	now := dirtyLines(repoDir)
 	var fresh []string
-	for _, line := range now {
-		if before[line] {
+	for _, entry := range entries {
+		name := entry.Name()
+		if allowedInRunDir(name) {
 			continue
 		}
-		// `evals/` 整个不算：那是 eval 工作区自己的家，跑一轮的过程里 harness、
-		// 结果目录、fixture 定义本来就会变。仓库的其它内容仍然受检查——臂不该碰
-		// `skills/`、`scripts/`、`docs/` 或根文件。
-		//
-		// 这条断言只在**跑臂期间仓库被冻结**时可信：Lead 顺手改一行 `skills/`
-		// 会被记成臂的越界。run.md 里把这条写成了流程规则。
-		if strings.Contains(line, "evals/") {
-			continue
-		}
-		fresh = append(fresh, line)
+		fresh = append(fresh, name)
 	}
 	if len(fresh) > 0 {
-		return false, "本次运行往 let-it-go 工作树里写了东西：\n  " + strings.Join(fresh, "\n  ")
+		return false, "臂往 fixture 外面写了东西（在 " + parent + " 下）：\n  " +
+			strings.Join(fresh, "\n  ")
 	}
-	return true, fmt.Sprintf("let-it-go 工作树没有新脏（运行前已有 %d 条，运行后 %d 条）",
-		len(before), len(now))
+	return true, fmt.Sprintf("fixture 外面没有多出东西（%s 下 %d 项，全是 harness 自己的）",
+		parent, len(entries))
+}
+
+// allowedInRunDir 列出 harness 自己在运行目录里放的东西。
+func allowedInRunDir(name string) bool {
+	switch name {
+	case "work", "work.origin.git", "work.seed.json",
+		"grading.json", "timing.json", "notes.md", "events.jsonl",
+		"eval_metadata.json", "preflight.json", "outputs":
+		return true
+	}
+	return false
 }
 
 func assertTamperGuard(caseID, workdir string, spec AssertionSpec) (bool, string) {

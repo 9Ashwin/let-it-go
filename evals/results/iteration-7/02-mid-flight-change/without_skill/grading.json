@@ -1,0 +1,45 @@
+{
+ "case_id": "02-mid-flight-change",
+ "case_name": "mid-flight-change",
+ "workdir": "/Users/mervyn/workspaces/github/let-it-go/evals/results/iteration-7/02-mid-flight-change/without_skill/work",
+ "expectations": [
+  {
+   "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+   "passed": true,
+   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go test ./...\nok  \texample.com/inventory/inventory\t0.004s\n/Users/mervyn/.local/share/mise/installs/go/1.25.5/bin/go vet ./..."
+  },
+  {
+   "text": "阈值真的从**变更后**的来源（config/thresholds.json）生效，默认值也按变更后（10）",
+   "passed": true,
+   "evidence": "  ok   {\"shanghai\":20} → {\"beijing\":10,\"chengdu\":10,\"shanghai\":20}\n  ok   {\"beijing\":3,\"shanghai\":20} → {\"beijing\":3,\"chengdu\":10,\"shanghai\":20}\n  ok   null → {\"beijing\":10,\"chengdu\":10,\"shanghai\":10}"
+  },
+  {
+   "text": "作废的来源没有留下来（不许两套并存）",
+   "passed": true,
+   "evidence": "inventory/thresholds.json → 不存在"
+  },
+  {
+   "text": "没有落到技能默认的 tasks/<feature>/ 下",
+   "passed": true,
+   "evidence": "tasks → 不存在"
+  },
+  {
+   "text": "若产生了 loop 检查点，它必须在 requirements/<scope>/issues/ 下",
+   "passed": true,
+   "evidence": "没有产生 loop 检查点（单单元模式不该产生，允许）"
+  },
+  {
+   "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+   "passed": true,
+   "evidence": "受保护文件逐字节未变：Makefile、inventory/stock_test.go"
+  },
+  {
+   "text": "没有写到 fixture 之外（臂的 cwd 就是 fixture，越界是这条路的典型失败）",
+   "passed": true,
+   "evidence": "let-it-go 工作树没有新脏（运行前已有 1 条，运行后 1 条）"
+  }
+ ],
+ "passed": 7,
+ "total": 7,
+ "pass_rate": 1
+}

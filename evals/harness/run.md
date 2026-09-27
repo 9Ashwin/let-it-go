@@ -35,7 +35,39 @@ go -C evals/harness run . run 05-full-pipeline --arm with_skill \
 4. **从外部打分**：`grade` 的结果写进 `grading.json`，耗时与 token 写进 `timing.json`，
    臂最后说了什么写进 `notes.md`。
 
-`--out` 的相对路径以 `evals/` 为基准。加 `--keep` 就不清掉已有的 `work/`。
+`--out` 的相对路径以 `evals/` 为基准。加 `--keep` 就不清掉已有的 `work/`；
+`--regrade` 不重跑 dsh，只对已有的 `work/` 重新打分并重生成交付件（改了探针/断言之后用——
+臂的产物没变，变的是量它的那把尺子）。
+
+### 跑多次求方差
+
+**一条臂只跑一次，分不清「技能更强」还是噪声。** 第 2 次起目录名带 `-runN` 后缀、
+并传 `--run N`；`bench` 会把它们归到同一个 configuration 下，报 mean ± stddev：
+
+```bash
+for c in 04-serial-batch 05-full-pipeline; do
+  for arm in with_skill without_skill; do
+    for k in 1 2 3; do
+      d="results/iteration-N/$c/$arm"; [ "$k" -gt 1 ] && d="$d-run$k"
+      go -C evals/harness run . run "$c" --arm "$arm" --out "$d" --run "$k" --dsh /path/to/dsh
+    done
+  done
+done
+```
+
+### 给人看：skill-creator 的 eval viewer
+
+`run` 会为每条臂写 `eval_metadata.json`（prompt）与 `outputs/交付件.md`（任务 + 改了什么 +
+需求资料带路径 + 逐条分数 + 臂最后说了什么）——viewer 的契约是「**含 `outputs/` 的目录
+就是一个 run**」，它读这两样。所以别删 `outputs/`，否则那一条就看不见了。
+
+```bash
+$PY ~/.agents/skills/skill-creator/eval-viewer/generate_review.py \
+    evals/results/iteration-N --skill-name flow --static /tmp/review.html
+```
+
+⚠️ 要用 **Python 3.10+**：系统 `python3` 是 3.9，viewer 直接挂在 `dict | None` 上。
+bundled runtime（3.12）在 `~/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/bin/python3`。
 
 ### 前提：一个 dsh 可执行文件
 
@@ -79,12 +111,14 @@ headless 一个任务跑完就退。`--session-id <id>` 可以接回同一个会
 判定要看**结果对不对**（探针），以及**它留下了什么**（决策记录、假设标注、未决项），
 而不是看它有没有问。
 
-## 跑臂期间冻结仓库
+## workspace_clean 现在看哪里
 
-`workspace_clean` 拿 materialize 时的脏快照比，所以跑臂期间顺手改一行 `skills/` 或
-`.gitignore`，会被记成那条臂的越界。要么别改，要么在 `notes.md` 里写明这条断言当轮无效。
+它检查的是 **fixture 的父目录**（harness 自己的运行目录）有没有多出臂留下的东西。
 
-（`evals/` 下的改动会被跳过，所以改 harness 本身不影响正在跑的臂。）
+早先的版本拿**环境里那个 let-it-go 仓库的脏状态**当基准——那是个坏设计：DSH 自己的
+`benchmarks/AGENTS.md` 明说「不要用 ambient repositories」，量出来的东西取决于你此刻在
+工作区里改了什么，而不是臂做了什么；它也确实两次把 Lead 的动作记成臂的越界。
+现在跑臂期间改仓库**不再影响**这条断言。
 
 ## 机械核对
 
@@ -101,15 +135,7 @@ go -C evals/harness run . assert 05-full-pipeline results/iteration-6/05-full-pi
 go -C evals/harness run . bench results/iteration-6 --skill-name flow
 ```
 
-可选：交给 skill-creator 的 viewer 出评审页。
-
-```bash
-nohup python ~/.agents/skills/skill-creator/eval-viewer/generate_review.py \
-    results/iteration-6 --skill-name flow \
-    --benchmark results/iteration-6/benchmark.json > /dev/null 2>&1 &
-```
-
-没有显示环境时加 `--static <输出路径>`，写一个独立 HTML。
+出评审页见上面「给人看：skill-creator 的 eval viewer」。
 
 ---
 

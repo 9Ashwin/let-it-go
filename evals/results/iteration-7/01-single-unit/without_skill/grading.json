@@ -36,7 +36,7 @@
   {
    "text": "没有写到 fixture 之外（臂的 cwd 就是 fixture，越界是这条路的典型失败）",
    "passed": true,
-   "evidence": "let-it-go 工作树没有新脏（运行前已有 7 条，运行后 18 条）"
+   "evidence": "fixture 外面没有多出东西（/Users/mervyn/workspaces/github/let-it-go/evals/results/iteration-7/01-single-unit/without_skill 下 9 项，全是 harness 自己的）"
   }
  ],
  "passed": 7,
