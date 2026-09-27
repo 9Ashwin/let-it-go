@@ -163,6 +163,45 @@ DSH 的 `subagent` 默认后台跑，而后台子代理**不会让本回合保�
   写进 PRD、标 `[Assumption]`，照常产出**。
 - `670481c` — 早退路径也清理临时根（`defer`）。
 
+## iteration-10：修完之后复测，5 条臂并发跑
+
+针对**修完上述三条之后的技能集**（`prd` 的「问不到人就别停」、`review-it`/`loop-it`/`walkthrough`/
+`graph` 的 `run_in_background: false`）。5 条臂**并发**跑，**9 分 38 秒**跑完（串行要约 25 分钟）。
+
+| 用例 | with_skill | without_skill | 区分点 |
+|---|---|---|---|
+| 04-serial-batch | 9/9、9/9、9/9 → **1.000** | 0.889（iteration-9 的 3 次，未重跑，见下） | **检查点** |
+| 05-full-pipeline | **9/9** | 7/9 | **PRD + issue 卡** |
+
+**没有一条带污染标记，也没有一条读到评测仓库**（逐条 grep `workspaces/github/let-it-go`：全 0）。
+
+`04/without_skill` 没有重跑：它不加载任何技能，上面那三处修改不可能影响它，而 iteration-9
+的 3 次是干净的。把技能无关的数字重测一遍只是烧时间。
+
+### 三条修改各自被验证了
+
+- **`04` 的 push 断言 3/3 通过**（iteration-9 是 2/3）。run1 那次失败的原因已经查清——臂把批末
+  评审派成后台子代理后结束回合等人——所以 `run_in_background: false` 这条写进技能之后，
+  它就该稳定通过。现在确实稳定了。
+- **`05/with_skill` 从 5/9 到 9/9**，而且不是靠"少做"拿到的：它走完 `prd → to-issues → loop-it
+  → review-it`，产出 `documents/prd-per-warehouse-thresholds.md`、两张 issue 卡、
+  `records/2026-09-27-delivery.md`。**全程没有停下来等人**——它把每个决定做出来、写进 PRD，
+  继续往下走，正是新补的那条规则要求的行为。
+- **对抗性评审真的抓到了东西**：第一轮评审发现 `encoding/json` 把 JSON `null` 解成 int `0`
+  且**不报错**，于是 `{"beijing": null}` 让该仓库**永不告警**——比崩溃更危险。臂改成按值严格
+  校验并补了回归锁。这是「批末必须派一个独立评审者」这条规矩第一次被真实数据支持。
+
+### 并发跑的两个前提
+
+1. **每条臂要有自己的 `TMPDIR` 与 `GOCACHE`。** 串行时臂的私有临时根是 `$TMPDIR` 下唯一的
+   一个，看不见彼此；一旦并发，一条 `ls $TMPDIR` 就能看到别的臂**正在做的解**——那正是
+   iteration-8 里「抄了另一条臂的检查点」的失败模式。现在 `runHeadless` 把两者指到
+   `<臂的根>/tmp`。放在臂自己的根下面（而不是另找一处）是为了不改沙箱的可见范围。
+   `workspace_clean` 相应把 `tmp` 加进 `allowedInRunDir`，否则每条臂都会被误报越界。
+2. **timing 不再可比。** 并发会抢 CPU 与 API 速率，`duration_ms` 虚高（上表 04 三次
+   343s / 523s / 576s 的差距就是这么来的）；**token 与分数不受影响**。
+   **要拿 timing 下结论，那一轮就串行跑。**
+
 ## iteration-6：一个负结果——fixture 在替技能干活
 
 | 用例 | with_skill | without_skill | 区分点 |

@@ -55,6 +55,20 @@ for c in 04-serial-batch 05-full-pipeline; do
 done
 ```
 
+### 并发跑：能省一大半时间，但别拿 timing 下结论
+
+臂之间没有共享状态（各自的 `--out`、各自的私有临时根），所以可以一起跑。上面那个三重循环
+把 `go -C evals/harness run . run …` 加个 `&`、末尾 `wait` 就行：5 条臂从约 25 分钟降到
+**9 分半**（等于最慢那条，而不是总和）。
+
+**两条前提：**
+
+- **`TMPDIR` 与 `GOCACHE` 已经按臂隔离**（`runHeadless` 指到 `<臂的根>/tmp`）。串行时臂的
+  临时根是 `$TMPDIR` 下唯一的一个，看不出问题；并发时不隔开，一条 `ls $TMPDIR` 就能看到
+  别的臂**正在做的解**——iteration-8 的「抄了另一条臂的检查点」就是这么发生的。
+- **timing 不再可比。** 并发抢 CPU 与 API 速率，`duration_ms` 虚高；**token 与分数不受影响**。
+  要用耗时下结论，那一轮就串行跑。
+
 ### 给人看：skill-creator 的 eval viewer
 
 `run` 会为每条臂写 `eval_metadata.json`（prompt）与 `outputs/交付件.md`（任务 + 改了什么 +
