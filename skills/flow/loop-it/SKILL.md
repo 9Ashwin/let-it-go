@@ -57,7 +57,7 @@ description: "实现入口：一个单元就内联做完，一批有依赖的 is
 
 ```
 每个 issue（N 次）:  实现（内联，或派一个实现者子代理）→ 用项目门禁自证 → 在需求分支上 commit
-批末（1 次）:        /review-it 审整批 diff → /walkthrough → /ship-it → 1 个 PR → merge → 关闭本批满足的 issue
+批末（1 次）:        /review-it 审整批 diff → /walkthrough → /ship-it → 交付（有远端是 1 个 PR；没有远端是本地 merge）→ 关闭本批满足的 issue
 ```
 
 ### 评审强度：两种，按批次大小选
@@ -102,7 +102,7 @@ description: "实现入口：一个单元就内联做完，一批有依赖的 is
 - 为什么**逐 issue** 的检查要由**另一个上下文**做：**审自己刚写完的代码是最弱的评审**。判据是证据，不是印象。什么时候值得付这个代价，见上面的「评审强度」。
 - 为什么 ship 仍然只在批末做：per-issue PR = N 个 PR、N 次 CI、N 次 merge 争用。默认不做。
 - 批末那次 review **任何情况下都不取消**（无论选了哪种强度）：它看集成后的完整 diff，专找逐 issue 检查看不见的**结合部**缺陷（共享接口、装配文件、配置与状态）。而且它必须是**对抗性**的——派一个没参与实现的评审者，而不是自己再读一遍。
-- 批末不用汇总（本来就只有一条分支）：`/review-it` 直接看它相对默认分支（`main` 或 `master`，先解析，别假设）的完整 diff，`/ship-it` 从它开一个 PR。批末 PR 关闭多个 issue，因此按 `/ship-it` 的「多个 issue 共用一个 PR」逐项列出 commit / 关闭的 issue / 验收证据 / 人工验收状态——单个 issue 的实现靠 commit 追溯与回滚。
+- 批末不用汇总（本来就只有一条分支）：`/review-it` 直接看它相对默认分支（`main` 或 `master`，先解析，别假设）的完整 diff，`/ship-it` 交付这一次。有远端时它开一个 PR，没有远端时它本地 `--no-ff` 合入——**别为了走 PR 流程去建远端**。批末交付关闭多个 issue，因此按 `/ship-it` 的「多个 issue 共用一个 PR」逐项列出 commit / 关闭的 issue / 验收证据 / 人工验收状态——单个 issue 的实现靠 commit 追溯与回滚。
 - **per-issue PR 模式**（仅当用户明确要求）：每个 issue 都走 `/review-it` + `/ship-it`，成本是 N 个 PR / N 次 CI / N 次 merge；这就是「昂贵模式」，用户没点名就用默认。
 
 ## 前置检查（串行循环）

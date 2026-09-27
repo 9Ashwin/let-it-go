@@ -1,19 +1,33 @@
 ---
 name: ship-it
-description: "用 GitHub CLI 交付已完成的工作：提交、推送、开 PR、合入、关闭 issue，再补一条实现总结评论。Triggers: 提交代码, 创建PR, 合入, 关闭issue, ship-it, commit and merge."
+description: "交付已完成的工作：提交、推送、开 PR、合入、关闭 issue，再补一条实现总结评论。有远端走 GitHub CLI；仓库没有远端或 gh 没登录时走本地合入。Triggers: 提交代码, 创建PR, 合入, 关闭issue, ship-it, commit and merge."
 ---
 
-# After-Goal: 代码提交、PR 合入、Issue 关闭工作流（GitHub）
+# After-Goal: 代码提交、合入、Issue 关闭工作流
 
-完成 GitHub Issue 实现后的标准收尾流程：提交代码 → 推送分支 → 创建 PR → 合入 → 关闭 Issue。
+完成实现后的标准收尾流程：提交代码 → 合入 → 关闭 Issue → 补实现总结。
 
-本技能只使用 `git` 与 `gh` 两类命令，不做其它系统操作。
+## 先决定走哪条路
 
-## 前置条件
+**在动手之前先解析：这个仓库有没有可用的远端，`gh` 是不是已登录。**
 
-- 当前 git 仓库有已实现的代码变更
-- 已知 Issue 编号（如 `#42`）
-- gh CLI 已登录（`gh auth status` 可验证）
+```bash
+git remote -v                                  # 没有 origin 就是本地模式
+gh auth status 2>/dev/null                     # 非 0 就是本地模式
+git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|origin/||'
+```
+
+| | **远端模式**（有 origin 且 `gh` 已登录） | **本地模式**（无远端 / gh 不可用） |
+| --- | --- | --- |
+| 提交 | 一样 | 一样 |
+| 推分支 | `git push -u origin` | **不推**——没有远端 |
+| 交付落点 | PR | **本地合入默认分支** |
+| 关闭 issue | `Closes #N` 自动关 / `gh issue close` | **改需求资料**：卡片或检查点里对应条目的状态 + commit + 验收证据 |
+| 实现总结 | Issue 评论 | **写进需求资料**（检查点 `note`，或卡片本身） |
+
+**不要因为「技能写的是 PR」就去建一个远端。** 真实跑过的一次：仓库本来就没有 remote，
+编排者照着本技能的 PR 流程走不通，最后自己用本地 `git merge` 收了尾——那正是本地模式该
+做的事，但技能没写，于是它成了没人维护的临场发挥。下面每一步都标了它属于哪种模式。
 
 ## 工作流
 
@@ -40,7 +54,7 @@ EOF
 - commit message 中包含 `#issue-number` 以关联 Issue
 - 只暂存当前 Issue 相关的文件，不要混入其他变更
 
-### Step 2: 推送分支
+### Step 2: 推送分支（仅远端模式）
 
 ```bash
 # 如果还在 main/master 上，先创建功能分支
@@ -50,9 +64,13 @@ git checkout -b {branch-name}  # 如已在功能分支则跳过
 git push -u origin {branch-name}
 ```
 
+本地模式**跳过这一步**：没有远端可推，分支留在本地等 Step 4 合入。
+
 分支命名：**一个需求一条分支**，用需求作用域取名——`feat/<scope-slug>`（仓库有约定就用它的）。`/loop-it` 的整批就落在这条分支上，每个 issue 一个 commit。只有「单个 issue 的独立小改动」才用 `feat/issue-42-short-desc`。
 
-### Step 3: 创建 PR
+### Step 3: 创建 PR（仅远端模式）
+
+本地模式**跳过这一步**，直接去 Step 4 本地合入。
 
 ```bash
 gh pr create \
@@ -75,7 +93,9 @@ EOF
 - title 简洁，不超过 70 字符
 - **本技能是 PR body 的唯一产出者。** 批末/波末有 `/walkthrough` 时，直接采用它的证据（命令与真实输出、可视化、风险点、人工验收状态）填进 body，不要再另写一份摘要——同一份内容维护两处就是重复
 
-### Step 4: 合入 PR
+### Step 4: 合入
+
+**远端模式**：
 
 ```bash
 # 4a. 查看 PR 状态（确认 checks 通过）
@@ -91,9 +111,20 @@ gh pr merge --squash --delete-branch
 - `--merge`: 普通 merge commit
 - `--delete-branch`: 合入后删除远程分支
 
-### Step 5: 添加实现总结评论
+**本地模式**：
 
-PR 合入 / Issue 关闭时，始终在 Issue 上添加实现总结评论，方便后续直接从 Issue 回溯设计决策与代码变更。
+```bash
+git checkout main              # 或 master——用「先决定走哪条路」里解析出来的默认分支，别假设
+git merge --no-ff feat/<scope-slug>
+```
+
+用 `--no-ff` 留一个合并点：批末要按 commit 追溯与回滚单个 issue，快进合入会把那串
+commit 抹平成「看起来像直接在 main 上写的」。合并后**不要删分支**——它是这批工作的
+唯一留档，等用户确认交付完再删。
+
+### Step 5: 添加实现总结
+
+**远端模式**：PR 合入 / Issue 关闭时，始终在 Issue 上添加实现总结评论，方便后续直接从 Issue 回溯设计决策与代码变更。
 
 参考固定四类结构组织总结内容：**Design Decisions（设计决策）**、**Deviations（偏离）**、**Tradeoffs（权衡）**、**Open Questions（待确认）**。某一类无内容时写 `None` 并简要说明。
 
@@ -134,21 +165,31 @@ EOF
 - 附加 PR 编号和 commit hash，方便直接跳转
 - 这四类内容**在本技能产出一次**。不要先把同样内容写进一份 `docs/issue#NNNN.md` 笔记再抄进评论；若用户明确要求了那个文件，附上链接，不重抄
 
-### Step 6: 手动关闭 Issue（仅当未自动关闭时）
+**本地模式**：没有 Issue 可评论，同样的四类内容写进**需求资料**——检查点（`<scope>/issues/.loop-state.json`）里对应条目的 `note`，或 issue 卡片本身（仓库有约定就用它的落点）。落点仍由本技能产出一次，别在检查点和卡片里各写一份。
 
-如果 PR body 中已写 `Closes #N`，合入后 Issue 会自动关闭，跳过此步。否则手动关闭：
+### Step 6: 关闭 Issue
+
+**远端模式**：如果 PR body 中已写 `Closes #N`，合入后 Issue 会自动关闭，跳过此步。否则手动关闭：
 
 ```bash
 gh issue close {issue-number} --reason completed
 ```
 
-**issue 是本地 md 卡片时（没有 GitHub 远端）**：没有 `gh` 这一步可走。交付的落点是
-**仓库里的需求资料**——把 issue 卡片或检查点（`<scope>/issues/`）里对应条目的状态改掉，
-并把 commit / 验收证据写进去。别去调 `gh issue close` 关一个不存在的 issue。
+**本地模式**：没有 `gh` 可走，issue 是仓库里的 md 卡片。交付的落点是**仓库里的需求资料**——把 `<scope>/issues/` 里对应条目的状态改成已交付，并把 commit 与验收证据写进去。别去调 `gh issue close` 关一个不存在的 issue。
+
+### Step 7: 回到默认分支并同步
+
+```bash
+git checkout main          # 或 master
+git pull                   # 本地模式没有远端，跳过
+```
 
 ## 多个 issue 共用一个 PR（波 / 批末模式）
 
 `/graph` 的一波与 `/loop-it` 的一批默认把多个 issue 收进同一个 PR（squash 后只剩一个 commit）。此时 PR body **必须逐项列出证据**，不能只写一行 `Closes #1 #2 #3`——否则单项特性既没法审计也没法单独回滚。
+
+本地模式同样需要这张表，落点是需求资料而不是 PR body：`--no-ff` 合入后 commit 还在
+`main` 的历史里，但「哪一项由哪个 commit 实现、靠什么验收」仍然只有写下来才查得到。
 
 这份 body 由**本技能**产出，本技能是它的唯一产出者。`/walkthrough` 只提供证据（命令与真实输出、可视化、风险点、人工验收状态）——两处各写一份 PR body 正是要避免的重复。
 
@@ -176,6 +217,8 @@ gh issue close {issue-number} --reason completed
 | PR 有 merge conflict | `git fetch origin main && git rebase origin/main`，解决冲突后 force push |
 | `gh pr merge` 被 branch protection 阻止 | 确认 required reviews 已满足，或请 reviewer approve |
 | Issue 合入后未自动关闭 | 确认 PR body 包含 `Closes #N`，或执行 Step 6 手动 `gh issue close` |
+| `gh` 未安装 / 未登录 / 仓库没有 origin | **本地模式**，不是错误——按「先决定走哪条路」的本地一列走，不要为此新建远端 |
+| 本地合入后想撤销整批 | `git revert -m 1 <merge-commit>`；撤销单项按证据表里的 commit 逐个 revert |
 
 ## 完整示例
 
@@ -244,8 +287,33 @@ gh issue comment 42 --body "$(cat <<'EOF'
 EOF
 )"
 
-# 切回主分支
 # 切回默认分支并同步（分支名可能是 main 或 master）
 git checkout main   # 或 master
 git pull
+```
+
+## 完整示例（本地模式）
+
+```bash
+# Step 0：确认走哪条路——没有 origin，gh 也没登录，所以是本地模式
+git remote -v            # 空
+
+# Step 1：提交（每个 issue 一个 commit，落在同一条需求分支上）
+git checkout -b feat/embedded-kv
+git add kv/store.go kv/store_test.go
+git commit -m "feat(kv): embedded store with crash-safe writes (#1)"
+
+# Step 2/3：跳过——没有远端可推，也没有 PR
+
+# Step 4：本地合入，留一个合并点
+git checkout main
+git merge --no-ff feat/embedded-kv
+
+# Step 5：四类总结写进需求资料（这里是检查点的 note，不是 Issue 评论）
+#   python3 <loop-it>/scripts/loop_state.py ... --note "..."
+
+# Step 6：把卡片状态改成已交付，并写进 commit 与验收证据
+#   requirements/kv/issues/issue-001-*.md：status: shipped，evidence 填测试名与命令
+
+# Step 7：分支留着（这批工作的唯一留档），不用 pull
 ```
