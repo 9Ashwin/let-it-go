@@ -8,7 +8,7 @@ description: "合入前写走查产物：改了什么、你实际跑了哪些命
 实现和它的验证一过，就写一份 Markdown 文件，让没看过这段工作的读者追上**改了什么**与
 **证明了什么能用**，并在合入前对 diff 做一次提交前检查。
 
-**产物落点以仓库自己的约定为准。** 这个仓库若有 `AGENTS.md`、`CONTRIBUTING.md`、`CONSTRAINTS.md`，或 `docs/`、`handbook/` 里的路由文档，先看它——它知道本仓库的产物该落到哪。本文件写的路径都是**默认值**，与仓库约定冲突时以仓库为准。
+**产物落点：作用域内的形状固定，仓库只决定作用域根。** 都落在 `<scope>/` 下——`documents/`（PRD、SPEC、设计：`prd-<feature>.md`、`spec-<feature>.md`、`design-<feature>.md`）、`issues/`（`issue-NNN-<slug>.md`）、`notes/`（走查件、实现笔记、`environment.md`）、`records/`（`<YYYY-MM-DD>-delivery.md`）、`checklists/`（`<YYYY-MM-DD>-<服务>.md`）。**作用域根默认 `tasks/<feature>/`**；仓库有约定（如 `requirements/<scope>/`，或 `AGENTS.md` 里的路由表）就用它的根，目录名不变；仓库完全没约定时用默认值。本文件下面写的路径若与此冲突，以这一段为准。
 
 重点在 evidence，不在断言。diff 说的是代码长什么样；走查件说的是你跑了什么、它打印出什么、
 你看到了什么。
@@ -103,7 +103,7 @@ description: "合入前写走查产物：改了什么、你实际跑了哪些命
 
 - **格式：** Markdown，单文件。
 - **位置：** 默认 `tasks/`（本技能集对工作产物的默认位置）。
-- **文件名：** `tasks/walkthrough-<feature>.md`，kebab-case。
+- **文件名：** `<scope>/notes/walkthrough-<feature>.md`，kebab-case。
 
 ## 模板
 
@@ -211,4 +211,4 @@ git diff --name-status
 - [ ] 可视化证明已附上（默认相对路径）或明确写 "None"
 - [ ] 评审门禁带上了 diff stat、高风险说明与人工验收状态
 - [ ] 没有任何未验证的东西被写成已验证
-- [ ] 已保存到 `tasks/walkthrough-<feature>.md`
+- [ ] 已保存到 `<scope>/notes/walkthrough-<feature>.md`

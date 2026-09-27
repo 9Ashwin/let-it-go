@@ -6,11 +6,13 @@ description: "串行 issue 循环，带检查点与恢复：按依赖给 open is
 
 # loop-it — 带检查点恢复的串行 Issue 循环
 
-取一批有阻塞关系的 open GitHub issue，按依赖顺序**一次一个**内联实现，进度落到 `.loop-state.json`，崩溃后可从检查点恢复。
+取一批有阻塞关系的 open GitHub issue，按依赖顺序**一次一个**内联实现，进度落到 `<scope>/issues/.loop-state.json`，崩溃后可从检查点恢复。
 
-**产物落点以仓库自己的约定为准。** 这个仓库若有 `AGENTS.md`、`CONTRIBUTING.md`、`CONSTRAINTS.md`，或 `docs/`、`handbook/` 里的路由文档，先看它——它知道本仓库的产物该落到哪。本文件写的路径都是**默认值**，与仓库约定冲突时以仓库为准。
+**产物落点：作用域内的形状固定，仓库只决定作用域根。** 都落在 `<scope>/` 下——`documents/`（PRD、SPEC、设计：`prd-<feature>.md`、`spec-<feature>.md`、`design-<feature>.md`）、`issues/`（`issue-NNN-<slug>.md`）、`notes/`（走查件、实现笔记、`environment.md`）、`records/`（`<YYYY-MM-DD>-delivery.md`）、`checklists/`（`<YYYY-MM-DD>-<服务>.md`）。**作用域根默认 `tasks/<feature>/`**；仓库有约定（如 `requirements/<scope>/`，或 `AGENTS.md` 里的路由表）就用它的根，目录名不变；仓库完全没约定时用默认值。本文件下面写的路径若与此冲突，以这一段为准。
 
 **这是指导，不是脚本。** 排序（拓扑 + 环打破）、下一项判定、检查点读写全部由 `scripts/loop_state.py` 完成并落盘——不要用散文重推这些算法，跑脚本、读它的输出即可。本文件只说明何时用、单个 issue 的边界，以及批末收尾。
+
+检查点固定在**作用域根的 `issues/.loop-state.json`**（默认 `tasks/<feature>/issues/.loop-state.json`）。下面命令里的相对路径都相对作用域根；从别处跑就显式传 `--state <路径>`。
 
 ## 何时用 / 何时不用
 
@@ -49,9 +51,9 @@ description: "串行 issue 循环，带检查点与恢复：按依赖给 open is
 | 工作树干净 | `git status --porcelain` | 让用户选：stash 后继续 / 中止（默认）/ 强制继续 |
 | 在默认分支 | `git branch --show-current` | 提示切回默认分支，并在有 upstream 时 `git pull` |
 | 远程可达 | `git ls-remote --heads origin` | 停止，检查网络与权限 |
-| 恢复还是重来 | `.loop-state.json` 是否存在 | 恢复 / 删除重来 / 中止；`scan` 会自动合并旧状态，只有损坏文件才要求用户处理 |
+| 恢复还是重来 | `<scope>/issues/.loop-state.json` 是否存在 | 恢复 / 删除重来 / 中止；`scan` 会自动合并旧状态，只有损坏文件才要求用户处理 |
 
-`.loop-state.json` 要排除出版本库，并**在开跑前把忽略规则提交掉**：
+**检查点默认排除出版本库**，并**在开跑前把忽略规则提交掉**——仓库有约定要把它随需求资料一起版本化（例如就放在 `<scope>/issues/` 下随需求提交）就照仓库的来，跳过这一段：
 
 ```bash
 grep -qxF '.loop-state.json' .gitignore || echo '.loop-state.json' >> .gitignore
@@ -103,7 +105,7 @@ git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1 && git pu
 git checkout -b feat/issue-N-slug
 ```
 
-然后**内联实现**：读 issue 标题与正文，提取全部验收条件；正文引用的 PRD/SPEC（如 `tasks/prd-*.md`）一并读；按目标仓库既有风格改代码；跑该项目的门禁自证；长时间构建/测试作为**后台任务**运行。持续到验收条件全部满足、门禁通过，然后在该 issue 的分支上 commit。
+然后**内联实现**：读 issue 标题与正文，提取全部验收条件；正文引用的 PRD/SPEC（如 `<scope>/documents/prd-*.md`）一并读；按目标仓库既有风格改代码；跑该项目的门禁自证；长时间构建/测试作为**后台任务**运行。持续到验收条件全部满足、门禁通过，然后在该 issue 的分支上 commit。
 
 **验收条件满足一条就记一条证据**，当场写进检查点——哪次实际观测证明了哪条，附上产生它的命令，而不是事后回忆：
 

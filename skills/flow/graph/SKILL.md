@@ -8,7 +8,9 @@ description: "并行实现：用脚本规划 DAG，每个波为每个节点在�
 
 把一个任务（或 PRD / SPEC / issue 集合）变成一张有向无环的工作单元图，分层成波，然后让每个波里互相独立的节点并发实现：每个节点派一个全新子代理，各自一个 git worktree。波与波之间由 fan-in 屏障集成、评审并**只交付一次**。
 
-**产物落点以仓库自己的约定为准。** 这个仓库若有 `AGENTS.md`、`CONTRIBUTING.md`、`CONSTRAINTS.md`，或 `docs/`、`handbook/` 里的路由文档，先看它——它知道本仓库的产物该落到哪。本文件写的路径都是**默认值**，与仓库约定冲突时以仓库为准。
+**产物落点：作用域内的形状固定，仓库只决定作用域根。** 都落在 `<scope>/` 下——`documents/`（PRD、SPEC、设计：`prd-<feature>.md`、`spec-<feature>.md`、`design-<feature>.md`）、`issues/`（`issue-NNN-<slug>.md`）、`notes/`（走查件、实现笔记、`environment.md`）、`records/`（`<YYYY-MM-DD>-delivery.md`）、`checklists/`（`<YYYY-MM-DD>-<服务>.md`）。**作用域根默认 `tasks/<feature>/`**；仓库有约定（如 `requirements/<scope>/`，或 `AGENTS.md` 里的路由表）就用它的根，目录名不变；仓库完全没约定时用默认值。本文件下面写的路径若与此冲突，以这一段为准。
+
+本技能的两个产物——`.graph_state.json`（检查点）与 `graph.html`（看板）——落在**作用域根**；`.graph-worktrees/` 留在仓库根。下面命令里的相对路径都相对作用域根理解。
 
 **这是指导，不是脚本。** 排序的算术——环检测、作用域冲突、波分层、检查点状态转换——属于 `scripts/graph_state.py`，它有测试。跑它、读它的输出；不要用散文重推分层。
 

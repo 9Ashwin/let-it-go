@@ -8,7 +8,7 @@ description: "为新功能写 PRD：先澄清，再把需求写成可验证的�
 
 产出详细的产品需求文档：清晰、可执行、适合直接实现。PRD 确认后，用 `/to-issues` 把它拆成 issue——每条 issue 正文自带契约字段块，所以不必先另写一份技术设计文档。
 
-**产物落点以仓库自己的约定为准。** 这个仓库若有 `AGENTS.md`、`CONTRIBUTING.md`、`CONSTRAINTS.md`，或 `docs/`、`handbook/` 里的路由文档，先看它——它知道本仓库的产物该落到哪。本文件写的路径都是**默认值**，与仓库约定冲突时以仓库为准。
+**产物落点：作用域内的形状固定，仓库只决定作用域根。** 都落在 `<scope>/` 下——`documents/`（PRD、SPEC、设计：`prd-<feature>.md`、`spec-<feature>.md`、`design-<feature>.md`）、`issues/`（`issue-NNN-<slug>.md`）、`notes/`（走查件、实现笔记、`environment.md`）、`records/`（`<YYYY-MM-DD>-delivery.md`）、`checklists/`（`<YYYY-MM-DD>-<服务>.md`）。**作用域根默认 `tasks/<feature>/`**；仓库有约定（如 `requirements/<scope>/`，或 `AGENTS.md` 里的路由表）就用它的根，目录名不变；仓库完全没约定时用默认值。本文件下面写的路径若与此冲突，以这一段为准。
 
 ---
 
@@ -18,7 +18,7 @@ description: "为新功能写 PRD：先澄清，再把需求写成可验证的�
 2. 提出澄清问题，覆盖关键歧义——问题数量随复杂度伸缩，不是固定条数（见第 1 步）
 3. 基于回答生成结构化的 PRD
 4. **把 PRD 交给用户评审** —— 问"请评审这份 PRD。需要调整就告诉我，没问题回复 OK 确认。"
-5. 应用调整，然后保存到 `tasks/prd-[feature-name].md`
+5. 应用调整，然后保存到 `<scope>/documents/prd-<feature>.md`
 6. **建议下一步**（见第 3 步）
 
 **重要：** 不要开始实现。只产出 PRD。
@@ -178,7 +178,7 @@ description: "为新功能写 PRD：先澄清，再把需求写成可验证的�
 PRD 保存后，向用户建议：
 
 ```
-✅ PRD 已保存到 tasks/prd-[feature-name].md
+✅ PRD 已保存到 <scope>/documents/prd-<feature>.md
 
 下一步：
   /to-issues    →  拆成 issue（每条自带契约字段块）
@@ -300,5 +300,5 @@ PRD 保存后，向用户建议：
 - [ ] 把强制的端到端（E2E）测试故事作为最后一个用户故事
 - [ ] 功能需求有编号且不含糊
 - [ ] 非目标章节划出了清晰的边界
-- [ ] 保存到 `tasks/prd-[feature-name].md`
+- [ ] 保存到 `<scope>/documents/prd-<feature>.md`
 - [ ] 建议了下一步：`/to-issues`

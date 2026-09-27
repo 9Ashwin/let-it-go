@@ -8,7 +8,7 @@ description: "把 PRD/SPEC 拆成垂直切片、写清真实阻塞边的 issue�
 
 把 PRD 和/或技术 SPEC 拆成小的、**可独立演示**的 issue，每个都控制在单个全新上下文窗口装得下，然后在选定的平台上创建它们。可以单独使用——不必先跑过 `/prd`。
 
-**产物落点以仓库自己的约定为准。** 这个仓库若有 `AGENTS.md`、`CONTRIBUTING.md`、`CONSTRAINTS.md`，或 `docs/`、`handbook/` 里的路由文档，先看它——它知道本仓库的产物该落到哪。本文件写的路径都是**默认值**，与仓库约定冲突时以仓库为准。
+**产物落点：作用域内的形状固定，仓库只决定作用域根。** 都落在 `<scope>/` 下——`documents/`（PRD、SPEC、设计：`prd-<feature>.md`、`spec-<feature>.md`、`design-<feature>.md`）、`issues/`（`issue-NNN-<slug>.md`）、`notes/`（走查件、实现笔记、`environment.md`）、`records/`（`<YYYY-MM-DD>-delivery.md`）、`checklists/`（`<YYYY-MM-DD>-<服务>.md`）。**作用域根默认 `tasks/<feature>/`**；仓库有约定（如 `requirements/<scope>/`，或 `AGENTS.md` 里的路由表）就用它的根，目录名不变；仓库完全没约定时用默认值。本文件下面写的路径若与此冲突，以这一段为准。
 
 本技能产出的每条 issue 都**天生 agent-ready**：一个从没见过你的 PRD/SPEC 的全新会话拿起来就能做完。
 
@@ -50,8 +50,8 @@ description: "把 PRD/SPEC 拆成垂直切片、写清真实阻塞边的 issue�
 这些 issue 要基于什么？
 
 A. 自动探测：扫 tasks/ 里近期的 PRD 和 SPEC
-B. 指定 PRD 文件（例如 tasks/prd-priority-system.md）
-C. 指定 SPEC 文件（例如 tasks/spec-priority-system.md）
+B. 指定 PRD 文件（例如 <scope>/documents/prd-priority-system.md）
+C. 指定 SPEC 文件（例如 <scope>/documents/spec-priority-system.md）
 D. PRD 和 SPEC 都要（最好：PRD 给需求，SPEC 给技术契约）
 E. 直接粘贴需求
 ```
@@ -183,7 +183,7 @@ B. 本地（每条 issue 一个 markdown 文件，按依赖排序）
 
 **问用户：**
 ```
-issue 文件保存到哪里？（默认：.autoresearch/issues/[feature-slug]）
+issue 文件保存到哪里？（默认：<scope>/issues/）
 ```
 
 **动作：**

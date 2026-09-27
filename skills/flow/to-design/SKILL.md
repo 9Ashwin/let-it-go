@@ -8,7 +8,7 @@ description: "从 PRD 写一份 Go 风格的设计提案——Abstract / Backgro
 
 把 PRD（或一个还粗糙的想法）写成一份**设计文档**，风格照 Go 官方 design proposal：语言平实、例子具体，最重要的是**老实交代为什么选这条路而不是别的**。
 
-**产物落点以仓库自己的约定为准。** 这个仓库若有 `AGENTS.md`、`CONTRIBUTING.md`、`CONSTRAINTS.md`，或 `docs/`、`handbook/` 里的路由文档，先看它——它知道本仓库的产物该落到哪。本文件写的路径都是**默认值**，与仓库约定冲突时以仓库为准。
+**产物落点：作用域内的形状固定，仓库只决定作用域根。** 都落在 `<scope>/` 下——`documents/`（PRD、SPEC、设计：`prd-<feature>.md`、`spec-<feature>.md`、`design-<feature>.md`）、`issues/`（`issue-NNN-<slug>.md`）、`notes/`（走查件、实现笔记、`environment.md`）、`records/`（`<YYYY-MM-DD>-delivery.md`）、`checklists/`（`<YYYY-MM-DD>-<服务>.md`）。**作用域根默认 `tasks/<feature>/`**；仓库有约定（如 `requirements/<scope>/`，或 `AGENTS.md` 里的路由表）就用它的根，目录名不变；仓库完全没约定时用默认值。本文件下面写的路径若与此冲突，以这一段为准。
 
 设计文档是一份**决策产物**：它为一个方案辩护、把取舍摊开、让团队在有人动手写代码之前先站在同一套事实上。它**不是**实现契约——那是 `/to-issues` 产出的 **issue 正文里的契约字段块**（表、接口、schema，工程师照着建）。问「*该怎么建、为什么这么建*」→ 设计文档；问「*给我可以照着实现的精确契约*」→ `/to-issues`。
 
@@ -31,7 +31,7 @@ description: "从 PRD 写一份 Go 风格的设计提案——Abstract / Backgro
 ```
 Provide the PRD (or idea) to design from:
 
-A. File path (e.g., tasks/prd-priority-system.md)
+A. File path (e.g., <scope>/documents/prd-priority-system.md)
 B. GitHub Issue URL
 C. Paste content directly
 D. Just describe the idea — I'll design from the conversation
@@ -104,7 +104,7 @@ Status: Draft | Under review | Accepted | Rejected
 
 **PRD → 设计文档**：Problem → Background（找真实痛点并量化）；Goals → Abstract + Background（提炼"最重要的承诺"）；User Stories → Design（渐进式示例）；Technical Considerations → Design + Rationale（约束 → 决策 + 取舍）；Non-Goals → Rationale（"我们没做 X，因为 Y"）；Risks → Compatibility + Implementation（风险 → 兼容代价 + 迁移方案）；隐含的备选方案 → Rationale（显式列出并解释为何不选）。
 
-**评审与保存**：把反馈引到关键章节——Rationale（被放弃的方案站得住吗、有无遗漏备选）、Compatibility（破坏性与代价说清了吗、迁移路径可行吗）、Background（痛点是否具体）、文风（标题是否结论、有无被动腔）。回复 OK 后保存到 `tasks/design-[feature].md`（紧挨 PRD，推荐）或 `docs/design/[feature].md`，自定义路径亦可。
+**评审与保存**：把反馈引到关键章节——Rationale（被放弃的方案站得住吗、有无遗漏备选）、Compatibility（破坏性与代价说清了吗、迁移路径可行吗）、Background（痛点是否具体）、文风（标题是否结论、有无被动腔）。回复 OK 后保存到 `<scope>/documents/design-<feature>.md`（紧挨 PRD），自定义路径亦可。
 
 ---
 
@@ -143,7 +143,7 @@ Status: Draft | Under review | Accepted | Rejected
 2. **先取真实内容**：章节标题、字段名、SQL、`file:line`、protoIds 都必须来自真实需求文档与代码库。读代码，不要编造标识符；不知道的事实标 `<span class="pill todo">待确认</span>`，绝不猜。
 3. **填骨架**：按功能重命名/重排 `<section>`，但保留章节种类：已对齐结论 → 业务规则 → 架构图 → 时序 → 数据模型 → 契约 → 清单 → 幂等降级 → 测试用例 → 代码索引 → 变更记录。不适用的删掉，特性专属的按同样风格加。
 4. **TOC 与 section 保持同步**：每个 `<a href="#x">` 都要有对应的 `<section id="x">`，反之亦然。这是第一号破损点，最后必须校验。
-5. **保存**为 `docs/<需求名>.html`。用户没要求就不要提交。
+5. **保存**为 `<scope>/documents/<需求名>.html`。用户没要求就不要提交。
 
 ### House-style 规则（不可协商）
 
@@ -169,7 +169,7 @@ Status: Draft | Under review | Accepted | Rejected
 ### 最终自检
 
 ```bash
-f="docs/<需求名>.html"
+f="<scope>/documents/<需求名>.html"
 # TOC hrefs vs section ids 必须完全一致（无输出 = 通过）：
 diff <(grep -oE 'href="#[a-z0-9-]+"' "$f" | sed 's/.*#//;s/"//' | sort -u) \
      <(grep -oE '<section id="[a-z0-9-]+"' "$f" | sed 's/.*"//' | sort -u)

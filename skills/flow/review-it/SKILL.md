@@ -37,7 +37,7 @@ description: "两轴代码评审收尾：Spec 轴（这次 diff 做的是不是�
 
 ### Spec 轴
 
-1. **先找到 spec，再读 diff**：commit message 里的 issue 编号（`gh issue view <n>`）、用户递给你的一条路径，或一份对得上的 `tasks/prd-*.md` / `tasks/spec-*.md` / `docs/*.md`。都不存在 → 就明说这一点，对着用户口述的要求评审；**不要自己发明需求**。
+1. **先找到 spec，再读 diff**：commit message 里的 issue 编号（`gh issue view <n>`）、用户递给你的一条路径，或一份对得上的 `<scope>/documents/prd-*.md` / `spec-*.md`，或仓库自己的设计文档。都不存在 → 就明说这一点，对着用户口述的要求评审；**不要自己发明需求**。
 2. **三种查法**：要求了却**缺失** / 没要求却**多出来** / 写了但**写错了**。
 3. **引用**每条发现所对照的那条验收条件，让它可被证伪，而不是一种偏好。
 

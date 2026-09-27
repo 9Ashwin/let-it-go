@@ -8,7 +8,7 @@
 | 所有 issue 都是提问 | 逐个 `set --status skipped`，最后 `summary` |
 | `gh` 未认证 | 前置检查停止，提示 `gh auth login` |
 | issue 没有正文 | 只用标题判断 skip / implement |
-| issue 引用 PRD/SPEC（如 `tasks/prd-*.md`） | 读取被引用文件作为实现上下文 |
+| issue 引用 PRD/SPEC（如 `<scope>/documents/prd-*.md`） | 读取被引用文件作为实现上下文 |
 | 多个 issue 互相依赖 | `scan` 拓扑排序，依赖先处理 |
 | 循环依赖 | `scan` 打印 `⚠️ 循环依赖检测到`，按最低编号打破（忽略该 issue 的依赖边）并继续 |
 | 依赖不在本批（issue 已关闭） | 按未 `shipped` 处理，依赖方 waiting；确实要放行就 `set --issue <dep> --status shipped` 手工补记 |
