@@ -23,7 +23,7 @@ DSH 从带排名的根目录发现技能，同一个名字出现在多个根里�
 模型通过 `skill` 工具加载技能。加载器会在前面加上一个 `<skill_content name="review-it">` 块，
 其中 `<skill_resources>` 一节带有 `Base directory for this skill: <path>`，并告诉模型相对路径对着
 它解析。那个路径就是 `<SKILL_DIR>`；随包默认值是 `~/.agents/skills/review-it`。被引用的文件
-（`scripts/review-it`、`references/…`）只在需要时才加载。
+（`references/…`）只在需要时才加载——本技能没有随包脚本。
 
 `/review-it` 是人的入口——直接调用本技能——而模型通过 `skill` 工具加载它。
 

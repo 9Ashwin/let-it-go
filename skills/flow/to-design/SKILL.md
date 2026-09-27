@@ -1,6 +1,6 @@
 ---
 name: to-design
-description: "从 PRD 写一份 Go 风格的设计提案——Abstract / Background / Design / Rationale / Compatibility / Implementation，重在「为什么」；**SPEC / 规格说明也归这里**（原来的 /prd-to-spec 已并入本技能）；可选渲染成自包含的 house-style HTML 页面。Triggers: to-design, 设计文档, 设计提案, design doc, 生成设计文档, SPEC, spec, 规格说明, 写spec, 技术方案."
+description: "从 PRD 写一份 Go 风格的设计提案——Abstract / Background / Design / Rationale / Compatibility / Implementation，重在「为什么」。原来的 /prd-to-spec 入口已并入本技能，所以 **SPEC / 规格说明 / 技术方案也走这里**；但产出的是**设计提案**（为什么这么选、取舍在哪），**不是字段级契约**——要「可以照着实现的精确契约」（表 / 接口 / schema）去 /to-issues 的 issue 正文。可选渲染成自包含的 house-style HTML 页面。Triggers: to-design, 设计文档, 设计提案, design doc, 生成设计文档, SPEC, spec, 规格说明, 写spec, 技术方案."
 
 ---
 
@@ -129,7 +129,7 @@ Status: Draft | Under review | Accepted | Rejected
 - [ ] 文风：决策用"我们"、行为用代码、无无主语被动腔；长短句交替；小标题是论点句
 - [ ] 没有 "TBD / TODO"——要么解决，要么挪进 Open Questions
 
-反模式：**只论证你选的方案**（不写被放弃的备选项，文档就少了一半价值）；**用形容词讲痛点**；**藏代价**；**把标题写成名词**；**用无主语的被动腔**；**写成 SPEC**（设计文档讲"为什么这么选"和取舍，不是字段级契约）；**因为方案可能被否就敷衍**（文档质量与提案是否通过无关）。
+反模式：**只论证你选的方案**（不写被放弃的备选项，文档就少了一半价值）；**用形容词讲痛点**；**藏代价**；**把标题写成名词**；**用无主语的被动腔**；**把设计文档写成字段级契约**（讲"为什么这么选"和取舍才是它的活；表 / 接口 / schema 归 `/to-issues` 的 issue 正文）；**因为方案可能被否就敷衍**（文档质量与提案是否通过无关）。
 
 ---
 

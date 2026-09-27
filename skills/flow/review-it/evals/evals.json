@@ -28,13 +28,13 @@
     {
       "id": 3,
       "prompt": "用 review-it 收尾这次改动，测试命令用 `go test ./...`，和 review 并行跑就行。",
-      "expected_output": "在同一个 shell 调用里用 <SKILL_DIR>/scripts/review-it --parallel-tests 传入明确编写的命令；测试红时报告 tests FAILED，并在修复重跑之前不给 clean 结论。",
+      "expected_output": "并行照做，但不调任何随包脚本：测试当后台任务跑（`job_*`），评审由 agent 自己读 diff 完成；并说明 DSH 下没有外部评审 CLI，也没有 runner。",
       "files": [],
       "expectations": [
-        "用 helper 的 --parallel-tests，且命令是自己明确编写的（不是从 diff / PR 文本里拼出来的）",
-        "helper 路径写成 <SKILL_DIR>/scripts/review-it（绝对路径），不是裸 scripts/review-it",
-        "测试退出码非 0 时报告 tests FAILED，并且不给出 clean / 无 actionable 发现的结论",
-        "说明测试红之后要做什么（修复并重跑测试与 review），而不是继续收尾"
+        "不调用任何随包脚本（本技能没有），也不编造一个外部评审命令",
+        "测试作为后台任务运行，评审与测试并行推进",
+        "评审者就是加载本技能的 agent 自己：它自己生成 diff、自己套用两轴评审重点",
+        "测试红时不给出 clean 结论；修完重跑受影响的测试与评审"
       ]
     }
   ]

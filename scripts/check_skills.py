@@ -154,6 +154,51 @@ def check_reference_links(repo_root: str, skills: list[tuple[str, str, str]]) ->
     return problems
 
 
+def check_script_references(repo_root: str, skills: list[tuple[str, str, str]]) -> list[str]:
+    """Every `scripts/<name>` a skill mentions must exist somewhere in the set.
+
+    Same failure as a dead `references/` link, and just as quiet: the model runs a command that
+    is not there, gets "No such file", and improvises. It happened for real — `review-it`
+    described a `<SKILL_DIR>/scripts/review-it` runner in ~40 lines, with `--parallel-tests`,
+    `--help` and `--agent auto`, long after the DSH-only refactor deleted the script. Its own
+    runtime reference said DSH has no runner, so the skill contradicted itself and nothing
+    mechanical noticed: `check_reference_links` only follows `.md` links, and this was inline
+    code in prose.
+
+    Any skill's `scripts/` counts, so a genuine cross-skill reference is fine, and so does the
+    repo's own top-level `scripts/`. The vendor bucket is skipped: those are verbatim upstream
+    copies and their prose is upstream's to shape.
+    """
+    known = set(os.listdir(os.path.join(repo_root, "scripts")))
+    for bucket, _, path in skills:
+        if bucket == VENDOR_BUCKET:
+            continue
+        script_dir = os.path.join(os.path.dirname(path), "scripts")
+        if os.path.isdir(script_dir):
+            known.update(os.listdir(script_dir))
+
+    problems = []
+    for bucket, _, path in skills:
+        if bucket == VENDOR_BUCKET:
+            continue
+        directory = os.path.dirname(path)
+        for root, _, files in os.walk(directory):
+            for entry in files:
+                if not entry.endswith((".md", ".json")):
+                    continue
+                source = os.path.join(root, entry)
+                body = open(source, encoding="utf-8").read()
+                for target in re.findall(r"scripts/([A-Za-z0-9_.-]+)", body):
+                    if target in known:
+                        continue
+                    rel = os.path.relpath(source, repo_root)
+                    problems.append(
+                        f"{rel} mentions scripts/{target}, which exists in no skill — "
+                        f"the command the reader would run is not there"
+                    )
+    return sorted(set(problems))
+
+
 def _skills_in(root: str, label: str, problems: list[str]) -> list[tuple[str, str, str]]:
     """Collect `<root>/<name>/SKILL.md` triples, one level deep."""
     found: list[tuple[str, str, str]] = []
@@ -300,6 +345,7 @@ def main() -> int:
     failures.extend(check_bundle_patch(repo_root, {b for b, _, _ in skills}))
     failures.extend(check_skill_references(repo_root, skills))
     failures.extend(check_reference_links(repo_root, skills))
+    failures.extend(check_script_references(repo_root, skills))
     failures.extend(check_installer_manifest(repo_root, skills))
 
     warnings: list[str] = []
