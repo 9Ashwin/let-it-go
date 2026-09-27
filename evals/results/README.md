@@ -13,6 +13,26 @@ go -C evals/harness run . bench results/iteration-N --skill-name flow
 
 ---
 
+## iteration-4
+
+| 用例 | with_skill | without_skill | 区分点 |
+|---|---|---|---|
+| 04-serial-batch | 7/7 | 6/7 | **检查点** |
+
+**这是第一个测出技能价值的用例。** 两条臂在工程行为上完全一样——三条行为都实现、
+三条 stacked 分支都推到 origin、门禁绿、防篡改过、不越界写入。差别只有一处：
+
+- `with_skill` 建了 `requirements/01_REQ-stock-batch/issues/.loop-state.json`，
+  三条 issue 各有 `status` / `branch` / `evidence`（4、3、4 条，按验收条件逐条对应），
+  并用 `.git/info/exclude` 把它排除出版本库
+- `without_skill` 什么都没留
+
+**没有检查点，中断一次就得从头判断「哪些做完了、证据在哪」。** 这正是这套技能设计上
+最该做的事，也是前面三个用例**测不到**的东西——因为那三个都是单单元任务，正好绕开了它的机器。
+
+**结论修正**：不能说「技能没有可测价值」。准确的说法是——**技能的价值在批次状态上，
+而不在单次改动的质量上**。用例选单单元，就永远测不出来。
+
 ## iteration-1 … iteration-3
 
 三条真实运行，每条两臂、各一次。**结论：只有一个断言区分得出技能的价值。**
