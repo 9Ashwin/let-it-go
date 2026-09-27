@@ -69,6 +69,12 @@ done
 - **timing 不再可比。** 并发抢 CPU 与 API 速率，`duration_ms` 虚高；**token 与分数不受影响**。
   要用耗时下结论，那一轮就串行跑。
 
+**被砍掉的运行不会自己清理。** `evalctl` 把清理挂在 `defer` 上，所以正常路径（包括
+preflight 不合格之类的早退）都会清；但进程被 `SIGKILL`（比如你 `job_kill` 了一个后台轮次）
+时 `defer` 没机会跑，`$TMPDIR` 下会留下 `letitgo-eval-*` 与 `letitgo-seed-*`。**看到就删掉**——
+臂能读 `$TMPDIR`，留着的根里有它上一次的 `work/` 与 seed。（这两处泄漏都真实发生过：
+iteration-9 有一条臂就是这么翻到上一次运行的 seed、再顺着找到用例定义的。）
+
 ### 给人看：skill-creator 的 eval viewer
 
 `run` 会为每条臂写 `eval_metadata.json`（prompt）与 `outputs/交付件.md`（任务 + 改了什么 +
