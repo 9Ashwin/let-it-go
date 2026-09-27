@@ -569,9 +569,11 @@ func assertWorkspaceClean(caseID, workdir string, spec AssertionSpec) (bool, str
 // allowedInRunDir 列出 harness 自己在运行目录里放的东西。
 func allowedInRunDir(name string) bool {
 	switch name {
-	case "work", "work.origin.git", "work.seed.json",
+	case "work", "work.origin.git", "work.seed.json", "tmp",
 		"grading.json", "timing.json", "notes.md", "events.jsonl",
 		"eval_metadata.json", "preflight.json", "outputs":
+		// `tmp` 是臂自己的 TMPDIR 与 GOCACHE（见 runHeadless）：并发跑时必须让每条臂
+		// 只看得到自己的临时目录，否则一条 `ls $TMPDIR` 就能看到别的臂正在做的解。
 		return true
 	}
 	return false

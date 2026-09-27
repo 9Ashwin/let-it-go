@@ -241,10 +241,27 @@ func runHeadless(dsh, workdir, prompt string) (runEvents, string, string, error)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, dsh, "--profile", "headless", "--json", prompt)
 	cmd.Dir = workdir
-	// headless 的沙箱允许工作区与 /tmp，但**拒绝工作区之外**的默认构建缓存
+	// 每条臂一个**自己的** TMPDIR 与 GOCACHE。
+	//
+	// 串行跑时臂的私有临时根是 $TMPDIR 下唯一的一个，所以看不出问题；一旦并发，
+	// 臂 A 一条 `ls $TMPDIR` 就能看到臂 B 正在做的解（`work/`）甚至它的 seed——
+	// iteration-8 里「抄了另一条臂的检查点，成了唯一拿到满分的 without_skill」就是
+	// 这类失败。要并发，就得先让每条臂只看得到自己的临时目录。GOCACHE 同理：共享
+	// 的话会留下别的臂编译过的对象。
+	//
+	// 放在**臂自己的临时根下面**（而不是另找一处），是为了不改变沙箱的可见范围：
+	// headless 允许写工作区与系统临时目录，臂的根就在系统临时目录里。
+	armTmp := filepath.Join(filepath.Dir(workdir), "tmp")
+	if err := os.MkdirAll(filepath.Join(armTmp, "gocache"), 0o755); err != nil {
+		return runEvents{}, "", "", fmt.Errorf("建臂的临时目录失败：%w", err)
+	}
+	// headless 的沙箱允许工作区与临时目录，但**拒绝工作区之外的默认构建缓存**
 	// （`~/Library/Caches/go-build`）。不指一下的话，每条臂都要先自己踩一遍这个坑、
 	// 再想办法绕开——那是环境噪声，不是被测的东西。
-	cmd.Env = append(os.Environ(), "GOCACHE="+filepath.Join(os.TempDir(), "letitgo-eval-gocache"))
+	cmd.Env = append(os.Environ(),
+		"TMPDIR="+armTmp,
+		"GOCACHE="+filepath.Join(armTmp, "gocache"),
+	)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdout, &stderr
 	err := cmd.Run()
