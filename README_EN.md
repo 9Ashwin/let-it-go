@@ -5,6 +5,7 @@
 
 <div align="center">
   <h1>let-it-go</h1>
+  <img src="docs/images/let-it-go-banner.png" alt="Paper workflow: prd and to-design → to-issues → loop-it or graph → review-it and walkthrough → ship-it" width="100%" />
   <p>A complete software workflow inside your coding agent: requirements → design → breakdown → parallel implementation → review → shipping.<br>
   Skills make the judgment calls; ordering and checkpoints go to tested scripts; implementation goes to subagents isolated in their own git worktree.</p>
   <div align="center">

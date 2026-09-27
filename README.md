@@ -5,6 +5,7 @@
 
 <div align="center">
   <h1>let-it-go</h1>
+  <img src="docs/images/let-it-go-banner.png" alt="纸艺工作流：prd 与 to-design → to-issues → loop-it 或 graph → review-it 与 walkthrough → ship-it" width="100%" />
   <p>把一整套研发工作流装进你的编码 Agent：需求 → 设计 → 拆解 → 并行实现 → 审查 → 交付。<br>
   技能只负责判断，排序与检查点交给带测试的脚本；实现交给各自隔离在 git worktree 里的子代理。</p>
   <div align="center">
