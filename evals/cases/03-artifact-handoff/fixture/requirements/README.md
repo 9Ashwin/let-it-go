@@ -1,15 +1,7 @@
 # 需求目录
 
 本仓库的需求资料按作用域存放，**作用域根是 `requirements/<scope>/`**。
-
-```
-requirements/<scope>/
-├── README.md     需求 README（范围、已交付、未交付、关键决定、未决问题）
-├── documents/    PRD、SPEC、设计
-├── issues/       issue-NNN-<slug>.md；loop-it 的检查点 .loop-state.json 也在这一层
-├── notes/        实现笔记、走查件
-└── records/      交付复盘
-```
+scope 目录**里面**怎么组织，由写需求的那套流程自己定——本仓库只约定作用域根在哪。
 
 新建需求时取下一个顺序号建目录，并在下面的「当前顺序」表里登记。
 
