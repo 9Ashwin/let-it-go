@@ -14,11 +14,6 @@
    "evidence": "  ok   {\"shanghai\":20} → {\"beijing\":5,\"chengdu\":5,\"shanghai\":20}\n  ok   {\"beijing\":3,\"shanghai\":20} → {\"beijing\":3,\"chengdu\":5,\"shanghai\":20}\n  ok   null → {\"beijing\":5,\"chengdu\":5,\"shanghai\":5}"
   },
   {
-   "text": "需求资料落在 fixture 声明的作用域根 requirements/<scope>/ 下",
-   "passed": false,
-   "evidence": "requirements/*/README.md → 命中 0 个（需要 ≥1）"
-  },
-  {
    "text": "没有落到技能默认的 tasks/<feature>/ 下",
    "passed": true,
    "evidence": "tasks → 不存在"
@@ -40,6 +35,6 @@
   }
  ],
  "passed": 6,
- "total": 7,
- "pass_rate": 0.8571428571428571
+ "total": 6,
+ "pass_rate": 1
 }

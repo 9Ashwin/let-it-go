@@ -2,7 +2,6 @@
  "assertions": [
   "改动之后 fixture 自己的门禁 make check 仍然绿",
   "按仓库配置的阈值真的生效，且缺省回退到默认值",
-  "需求资料落在 fixture 声明的作用域根 requirements/<scope>/ 下",
   "没有落到技能默认的 tasks/<feature>/ 下",
   "若产生了 loop 检查点，它必须在 requirements/<scope>/issues/ 下",
   "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",

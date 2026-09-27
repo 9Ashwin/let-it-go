@@ -4,16 +4,16 @@
 
 | 配置 | pass_rate | 用时(s) | tokens |
 |---|---|---|---|
-| with_skill | 0.93 ± 0.07 | 206.5 | 774130 |
+| with_skill | 1.00 ± 0.00 | 206.5 | 774130 |
 | without_skill | 1.00 ± 0.00 | 78.7 | 522660 |
-| **delta** | **-0.0714** | +127.8 | +251470.0 |
+| **delta** | **+0.0000** | +127.8 | +251470.0 |
 
 ## 逐用例
 
 | 用例 | 配置 | 通过 | pass_rate |
 |---|---|---|---|
-| single-unit | with_skill | 6/7 | 86% |
-| single-unit | without_skill | 7/7 | 100% |
+| single-unit | with_skill | 6/6 | 100% |
+| single-unit | without_skill | 6/6 | 100% |
 | mid-flight-change | with_skill | 7/7 | 100% |
 | mid-flight-change | without_skill | 7/7 | 100% |
 

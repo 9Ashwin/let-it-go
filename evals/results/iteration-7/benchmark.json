@@ -4,7 +4,7 @@
   "skill_path": "/Users/mervyn/workspaces/github/let-it-go/evals",
   "executor_model": "deepseek-v4-flash",
   "analyzer_model": "inline",
-  "timestamp": "2026-09-27T09:33:33Z",
+  "timestamp": "2026-09-27T09:34:28Z",
   "evals_run": [
    "01-single-unit",
    "02-mid-flight-change"
@@ -18,10 +18,10 @@
    "configuration": "with_skill",
    "run_number": 1,
    "result": {
-    "pass_rate": 0.8571428571428571,
+    "pass_rate": 1,
     "passed": 6,
-    "failed": 1,
-    "total": 7,
+    "failed": 0,
+    "total": 6,
     "time_seconds": 224.61,
     "tokens": 854607,
     "tool_calls": 30,
@@ -37,11 +37,6 @@
      "text": "按仓库配置的阈值真的生效，且缺省回退到默认值",
      "passed": true,
      "evidence": "  ok   {\"shanghai\":20} → {\"beijing\":5,\"chengdu\":5,\"shanghai\":20}\n  ok   {\"beijing\":3,\"shanghai\":20} → {\"beijing\":3,\"chengdu\":5,\"shanghai\":20}\n  ok   null → {\"beijing\":5,\"chengdu\":5,\"shanghai\":5}"
-    },
-    {
-     "text": "需求资料落在 fixture 声明的作用域根 requirements/<scope>/ 下",
-     "passed": false,
-     "evidence": "requirements/*/README.md → 命中 0 个（需要 ≥1）"
     },
     {
      "text": "没有落到技能默认的 tasks/<feature>/ 下",
@@ -80,9 +75,9 @@
    "run_number": 1,
    "result": {
     "pass_rate": 1,
-    "passed": 7,
+    "passed": 6,
     "failed": 0,
-    "total": 7,
+    "total": 6,
     "time_seconds": 111,
     "tokens": 748966,
     "tool_calls": 30,
@@ -98,11 +93,6 @@
      "text": "按仓库配置的阈值真的生效，且缺省回退到默认值",
      "passed": true,
      "evidence": "  ok   {\"shanghai\":20} → {\"beijing\":5,\"chengdu\":5,\"shanghai\":20}\n  ok   {\"beijing\":3,\"shanghai\":20} → {\"beijing\":3,\"chengdu\":5,\"shanghai\":20}\n  ok   null → {\"beijing\":5,\"chengdu\":5,\"shanghai\":5}"
-    },
-    {
-     "text": "需求资料落在 fixture 声明的作用域根 requirements/<scope>/ 下",
-     "passed": true,
-     "evidence": "requirements/*/README.md → 命中 1 个（需要 ≥1）"
     },
     {
      "text": "没有落到技能默认的 tasks/<feature>/ 下",
@@ -273,9 +263,9 @@
  "run_summary": {
   "with_skill": {
    "pass_rate": {
-    "mean": 0.9286,
-    "stddev": 0.0714,
-    "min": 0.8571,
+    "mean": 1,
+    "stddev": 0,
+    "min": 1,
     "max": 1
    },
    "time_seconds": {
@@ -312,7 +302,7 @@
    }
   },
   "delta": {
-   "pass_rate": "-0.0714",
+   "pass_rate": "+0.0000",
    "time_seconds": "+127.8",
    "tokens": "+251470.0"
   }

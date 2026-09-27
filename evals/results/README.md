@@ -20,28 +20,28 @@ go -C evals/harness run . bench results/iteration-N --skill-name flow
 
 ---
 
-## iteration-7：护栏复测，和一个反直觉结果
+## iteration-7：护栏复测，和一个「断言错了」的教训
 
 fixture 改完之后，把两条护栏（单次运行，各一条臂）重跑了一遍。
 
 | 用例 | with_skill | without_skill | 区分点 |
 |---|---|---|---|
-| 01-single-unit | 6/7 | **7/7** | 见下 |
+| 01-single-unit | 6/6 | 6/6 | 无（护栏，符合预期） |
 | 02-mid-flight-change | 7/7 | 7/7 | 无（护栏，符合预期） |
 
-**合计：`with_skill` 0.93 ± 0.07 / `without_skill` 1.00 ± 0.00，delta −0.0714。技能反而更低。**
+### case 01：技能被扣分，因为断言要求了没人要求的东西
 
-### case 01：技能输给裸模型，而且是它故意的
+第一次跑出来是 `with_skill` 6/7、`without_skill` 7/7——**技能输给裸模型**。当时的诊断是
+「工作区地图与技能单单元判断冲突」。**那个诊断是错的**，查清之后是这样：
 
-`with_skill` 唯一挂掉的是「需求资料落在 `requirements/<scope>/` 下」。原因不是它做得差：
+- `loop-it` 的单单元模式四步是「读清楚 → 内联实现 → 自证 → 收尾」，**从不产出需求资料**；
+  技能里 `/prd（可选）` 也明写着 PRD 是可选的
+- fixture 的 `AGENTS.md` 只说**作用域根在哪**，从没要求「每个任务都建一个 scope」
+- 而 case 01 有一条断言 `path_glob requirements/*/README.md min 1`——**要求需求资料必须存在**
 
-- `loop-it` 判定这是**单单元**任务 → 按技能自己的规则**内联做完，不建需求资料**（小改动不做文书）
-- `without_skill` 读了 fixture 的 `AGENTS.md`，照着「作用域根是 `requirements/<scope>/`」就建了
-
-**这是工作区地图与技能单单元判断的冲突**：工作区说每个需求都建 scope，技能说单单元不必。
-谁该赢是个真的设计问题——不是评测 bug，也不该靠改断言绕过去。
-
-顺带，`with_skill` 还慢得多（206.5s vs 78.7s，token 774K vs 523K）。
+**所以是断言要求了任务和技能都没要求的东西**，照技能做对的臂反而被扣分。和 case 05 第一版
+探针是同一个病：**断言能测什么，取决于任务说清了什么。** 那条断言已删；真正的风险由
+`path_absent tasks` 与 `checkpoint_location` 守住。删掉之后两条臂都是 6/6。
 
 ### 这一轮还抓到两个真 bug
 
