@@ -50,7 +50,7 @@ git checkout -b {branch-name}  # 如已在功能分支则跳过
 git push -u origin {branch-name}
 ```
 
-分支命名建议：`feat/issue-42-short-desc` 或 `fix/issue-42-short-desc`
+分支命名：**一个需求一条分支**，用需求作用域取名——`feat/<scope-slug>`（仓库有约定就用它的）。`/loop-it` 的整批就落在这条分支上，每个 issue 一个 commit。只有「单个 issue 的独立小改动」才用 `feat/issue-42-short-desc`。
 
 ### Step 3: 创建 PR
 
@@ -141,6 +141,10 @@ EOF
 ```bash
 gh issue close {issue-number} --reason completed
 ```
+
+**issue 是本地 md 卡片时（没有 GitHub 远端）**：没有 `gh` 这一步可走。交付的落点是
+**仓库里的需求资料**——把 issue 卡片或检查点（`<scope>/issues/`）里对应条目的状态改掉，
+并把 commit / 验收证据写进去。别去调 `gh issue close` 关一个不存在的 issue。
 
 ## 多个 issue 共用一个 PR（波 / 批末模式）
 

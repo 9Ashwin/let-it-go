@@ -172,7 +172,7 @@ git diff --name-status
 ## 确定功能名
 
 1. 用户给了名字（`walkthrough user-auth`）——用它。
-2. 分支是 `feat/issue-42-*` 或 `fix/issue-42-*`——从分支名推导，去掉前缀与 issue 编号。
+2. 分支名能推出功能名——需求分支 `feat/<scope-slug>` 去掉前缀就是；issue 分支 `feat/issue-42-*` 再去掉编号。
 3. `tasks/` 里有 PRD/SPEC（`prd-*.md`、`spec-*.md`）——复用它里面的功能名。
 4. 否则就问。
 

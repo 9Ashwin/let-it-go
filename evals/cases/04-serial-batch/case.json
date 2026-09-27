@@ -1,39 +1,68 @@
 {
   "id": "04-serial-batch",
   "name": "serial-batch",
-  "what_it_tests": "串行批次：三条**有依赖边**的 issue，`loop-it` 该判成串行循环——建检查点、逐 issue 在自己的分支上做、按依赖顺序推进，而不是当单单元一把做完。这是这套技能区别于「裸模型直接做」的那台机器，前面三个用例一个都没测到。\n\n断言里 `requirements/*/issues/.loop-state.json` 是**要求存在**的（与 case 01 相反：单单元不该产生检查点，串行批次必须产生）。\n\n⚠️ 这条 prompt 必须**照技能自己的批处理模型**写，不能凭想象改：`loop-it` 明写逐 issue 的分支「**不 push、不开 PR**」，push 是批末由 `/ship-it` 从**批次分支**做的。第一版 prompt 要求「每条并推到 origin」，与技能直接矛盾——臂照技能做，反被 push 断言扣分。所以现在要求的是技能真会做的：逐条分支 → 批末汇总到 `feat/stock-batch` → 推这条分支 → 停在它上面（验收在集成态上看）。\n\n另外 `materialize` 把本地 bare origin 建在 fixture 的 `.git/` **里面**：headless 沙箱只允许写工作区，origin 放在外面时 `git push` 会被拒，那条要求就变成不可完成。",
-  "prompt": "requirements/01_REQ-stock-batch/issues/ 下有三条 issue，按依赖顺序把它们做完。逐条 commit 到自己的分支；批末把三条分支汇总到一条批次分支 `feat/stock-batch` 并推到 origin——**最后留在批次分支上**（验收会在它上面看）。不要开 PR（这个仓库没有 GitHub 远端）。做完跑一遍门禁确认没弄坏。",
-  "expected_output": "三条 issue 都实现；检查点在 requirements/01_REQ-stock-batch/issues/.loop-state.json；三条 feat/issue-* 分支各自存在；批末的 feat/stock-batch 推到 origin 且是当前分支；make check 绿；受保护文件未改。",
+  "what_it_tests": "串行批次：三条**有依赖边**的本地 issue 卡片（md，不是 GitHub issue），`loop-it` 该判成串行循环——建检查点、按依赖顺序一次一个推进、**整批在一条需求分支上**、每个 issue 一个 commit。这是这套技能区别于「裸模型直接做」的那台机器，前面三个用例一个都没测到。\n\n断言里 `requirements/*/issues/.loop-state.json` 是**要求存在**的（与 case 01 相反：单单元不该产生检查点，串行批次必须产生）。\n\n⚠️ 这条 prompt 必须**照技能自己的批处理模型**写：`loop-it` 明写「一个需求一条分支，整批共用」「每个 issue 一个 commit」「不 push、不开 PR」（push 在批末做一次）。第一版 prompt 要求「每条 issue 各开分支并各自 push」，与技能直接矛盾——臂照技能做反被扣分。\n\n另外 `materialize` 把本地 bare origin 建在 fixture 的 `.git/` **里面**：headless 沙箱只允许写工作区，origin 放在外面时 `git push` 会被拒，那条要求就变成不可完成。",
+  "prompt": "requirements/01_REQ-stock-batch/issues/ 下有三条 issue 卡片（本地 md，不是 GitHub issue），按依赖顺序把它们做完。整批就在一条需求分支 `feat/stock-batch` 上推进，一个 issue 一个 commit；批末把这条分支推到 origin，**留在它上面**（验收会在它上面看）。不要开 PR（这个仓库没有 GitHub 远端）。做完跑一遍门禁确认没弄坏。",
+  "expected_output": "三条 issue 都实现；检查点在 requirements/01_REQ-stock-batch/issues/.loop-state.json；整批只有一条 feat/stock-batch 分支、上面至少三个 commit；这条分支推到 origin 且是当前分支；make check 绿；受保护文件未改。",
   "fixture": "fixture",
-  "tamper_guard": ["Makefile", "inventory/stock_test.go"],
+  "tamper_guard": [
+    "Makefile",
+    "inventory/stock_test.go"
+  ],
   "assertions": [
     {
       "kind": "gate",
       "text": "改动之后 fixture 自己的门禁 make check 仍然绿（在集成态上）",
-      "command": ["make", "check"]
+      "command": [
+        "make",
+        "check"
+      ]
     },
     {
       "kind": "probe",
       "text": "三条 issue 的行为都真的实现了（阈值来源、列表顺序、报告）",
-      "files": [["probe/probe_test.go", "inventory/zz_eval_probe_test.go"]],
-      "command": ["go", "test", "-count=1", "-run", "TestEvalProbe", "-v", "./inventory/"],
+      "files": [
+        [
+          "probe/probe_test.go",
+          "inventory/zz_eval_probe_test.go"
+        ]
+      ],
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-run",
+        "TestEvalProbe",
+        "-v",
+        "./inventory/"
+      ],
       "extract": "EVAL_PROBE (\\{.*\\})",
       "config": "config/thresholds.json",
       "scenarios": [
         {
-          "thresholds": {"shanghai": 20},
+          "thresholds": {
+            "shanghai": 20
+          },
           "expect": {
-            "t_shanghai": 20, "t_beijing": 5,
-            "o_wuhan": 0, "o_xian": 1, "o_shanghai": 2,
-            "r_len": 3, "r_first_is_wuhan": 1
+            "t_shanghai": 20,
+            "t_beijing": 5,
+            "o_wuhan": 0,
+            "o_xian": 1,
+            "o_shanghai": 2,
+            "r_len": 3,
+            "r_first_is_wuhan": 1
           }
         },
         {
           "thresholds": null,
           "expect": {
-            "t_shanghai": 5, "t_beijing": 5,
-            "o_wuhan": 0, "o_xian": 1, "o_shanghai": 2,
-            "r_len": 3, "r_first_is_wuhan": 1
+            "t_shanghai": 5,
+            "t_beijing": 5,
+            "o_wuhan": 0,
+            "o_xian": 1,
+            "o_shanghai": 2,
+            "r_len": 3,
+            "r_first_is_wuhan": 1
           }
         }
       ]
@@ -46,13 +75,30 @@
     },
     {
       "kind": "gate",
-      "text": "逐条 issue 各有自己的分支（技能批处理模型的形状）",
-      "command": ["bash", "-c", "test \"$(git for-each-ref --format='%(refname:short)' refs/heads | grep -cE '^feat/issue-')\" -ge 3"]
+      "text": "整批只有一条 feat 分支（技能说一个需求一条分支，不逐 issue 开）",
+      "command": [
+        "bash",
+        "-c",
+        "test \"$(git for-each-ref --format='%(refname:short)' refs/heads | grep -c '^feat/')\" -eq 1"
+      ]
     },
     {
       "kind": "gate",
-      "text": "批末的批次分支推到了 origin（技能说 push 只在批末做一次）",
-      "command": ["bash", "-c", "git ls-remote --heads origin | grep -q 'refs/heads/feat/stock-batch'"]
+      "text": "这条分支上至少三个 commit（一个 issue 一个，单个 issue 才回滚得掉）",
+      "command": [
+        "bash",
+        "-c",
+        "test \"$(git rev-list --count main..HEAD)\" -ge 3"
+      ]
+    },
+    {
+      "kind": "gate",
+      "text": "批末把需求分支推到了 origin（技能说 push 只在批末做一次）",
+      "command": [
+        "bash",
+        "-c",
+        "git ls-remote --heads origin | grep -q 'refs/heads/feat/stock-batch'"
+      ]
     },
     {
       "kind": "path_absent",

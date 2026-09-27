@@ -32,23 +32,24 @@ description: "实现入口：一个单元就内联做完，一批有依赖的 is
 3. **自证。** 跑**项目自己的门禁**（`mise run check`、`go build ./... && go test ./...`、`pnpm --dir web lint` …）：边写边跑相关单测，最后跑一次全量，并补上验收条件隐含的测试——没被测过的验收条件不算满足。**门禁红着不要进下一步**：把红的留给评审，等于让评审去猜哪里坏了。
 4. **收尾。** 用 `/review-it` 审这一份 diff（先定 Spec 轴：这条 issue 到底要求什么），改掉被接受的发现、再跑一次门禁，然后 `/ship-it` 交付；走查按 `/walkthrough` 的时机判断。
 
-在 `/graph` 的节点里或本技能的串行循环里运行时，**第 4 步的交付不做**——只 commit 到自己的分支，PR 与合入由编排器在波末 / 批末各做一次。串行循环的每条 issue 仍过一次 supervisor 检查（见「批处理模型」）；`/graph` 的节点不自审，评审留波末一次做。
+在 `/graph` 的节点里或本技能的串行循环里运行时，**第 4 步的交付不做**——只 commit 到需求分支，PR 与合入由编排器在波末 / 批末各做一次。串行循环的每条 issue 仍过一次 supervisor 检查（见「批处理模型」）；`/graph` 的节点不自审，评审留波末一次做。
 
 ## 批处理模型
 
-默认（也是推荐）模式：**每个 issue 过一次 supervisor 检查，ship 只在批末做一次**。
+默认（也是推荐）模式：**整批在一条需求分支上推进**，每个 issue 一个 commit，过一次 supervisor 检查，ship 只在批末做一次。
 
 ```
-每个 issue（N 次）:  内联实现 → 用项目门禁自证 → supervisor 检查 → 在该 issue 的分支上 commit
-批末（1 次）:        /review-it 审整批合并 diff → /walkthrough → /ship-it → 1 个 PR → merge → 关闭本批满足的 issue
+每个 issue（N 次）:  内联实现 → 用项目门禁自证 → supervisor 检查 → 在需求分支上 commit
+批末（1 次）:        /review-it 审整批 diff → /walkthrough → /ship-it → 1 个 PR → merge → 关闭本批满足的 issue
 ```
 
-- 每个 issue 用自己的分支，命名不变：`feat/issue-N-slug`（与 `/ship-it` 一致）。**不 push、不开 PR。**
+- **一个需求一条分支，整批共用**：`feat/<scope-slug>`（仓库有分支命名约定就用它的）。**不逐 issue 开分支**——N 条分支要 N 次汇总、N 套上下文，换来的只是「单个 issue 能单独回滚」，而那个用一个 commit 就拿到了。
+- **每个 issue 一个 commit**，message 带 issue 编号与标题：单个 issue 的追溯与回滚靠 **commit**（`git revert <那个 commit>`），不靠分支。**整批不 push、不开 PR**——push 与 PR 在批末做一次。
 - 「项目门禁」= 目标仓库自己的构建/测试/lint（如 `go build ./...`、`go test ./...`、`pnpm lint`、`mise run check`），以 issue 所属项目为准。
 - 为什么逐 issue 过一次检查：**审自己刚写完的代码是最弱的评审**，但把反馈全推到批末同样有代价——批末才发现的方向性错误，会让前面每个 issue 跟着返工。逐 issue 的检查由**另一个上下文**做，判据是证据。
 - 为什么 ship 仍然只在批末做：per-issue PR = N 个 PR、N 次 CI、N 次 merge 争用。默认不做。
 - 批末那次 review 不因此取消：它看集成后的完整 diff，专找逐 issue 检查看不见的**结合部**缺陷（共享接口、装配文件、配置与状态）。
-- 批末把各 issue 分支汇总到一条批次分支（`git merge --no-ff` 各分支，或直接在累积分支上顺序 commit；**`failed` 的分支不要并入**），`/review-it` 看这条分支相对默认分支（`main` 或 `master`，先解析，别假设）的 diff，`/ship-it` 从它开一个 PR。批末 PR 关闭多个 issue，因此按 `/ship-it` 的「多个 issue 共用一个 PR」逐项列出 commit / 关闭的 issue / 验收证据 / 人工验收状态——否则单个 issue 的实现无法追溯与回滚。
+- 批末不用汇总（本来就只有一条分支）：`/review-it` 直接看它相对默认分支（`main` 或 `master`，先解析，别假设）的完整 diff，`/ship-it` 从它开一个 PR。批末 PR 关闭多个 issue，因此按 `/ship-it` 的「多个 issue 共用一个 PR」逐项列出 commit / 关闭的 issue / 验收证据 / 人工验收状态——单个 issue 的实现靠 commit 追溯与回滚。
 - **per-issue PR 模式**（仅当用户明确要求）：每个 issue 都走 `/review-it` + `/ship-it`，成本是 N 个 PR / N 次 CI / N 次 merge；这就是「昂贵模式」，用户没点名就用默认。
 
 ## 前置检查（串行循环）
@@ -107,16 +108,23 @@ python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status in_progress
 
 # 分支：每次 bash 都是全新 shell，多步 git 必须写在同一条命令里
 set -e   # 任一步失败就停：基线切错比中断更贵
-# 默认分支不一定是 main，先解析再切
-BASE="$(git symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')"
-BASE="${BASE:-$(git rev-parse --abbrev-ref HEAD)}"
-git checkout "$BASE"
-# 只有配置了 upstream 才 pull —— 裸 `git pull` 在没有 upstream 的仓库里退出 1
-git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1 && git pull
-git checkout -b feat/issue-N-slug
+# 一个需求一条分支，整批共用。已存在就直接切回去——恢复循环时走的也是这条路，
+# 所以这里必须幂等，不能无条件 checkout -b。
+BRANCH="feat/<scope-slug>"
+if git show-ref --verify --quiet "refs/heads/$BRANCH"; then
+  git checkout "$BRANCH"
+else
+  # 默认分支不一定是 main，先解析再切
+  BASE="$(git symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')"
+  BASE="${BASE:-$(git rev-parse --abbrev-ref HEAD)}"
+  git checkout "$BASE"
+  # 只有配置了 upstream 才 pull —— 裸 `git pull` 在没有 upstream 的仓库里退出 1
+  git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1 && git pull
+  git checkout -b "$BRANCH"
+fi
 ```
 
-然后**内联实现**：读 issue 标题与正文，提取全部验收条件；正文引用的 PRD/SPEC（如 `<scope>/documents/prd-*.md`）一并读；按目标仓库既有风格改代码；跑该项目的门禁自证；长时间构建/测试作为**后台任务**运行。持续到验收条件全部满足、门禁通过，然后在该 issue 的分支上 commit。
+然后**内联实现**：读 issue 标题与正文，提取全部验收条件；正文引用的 PRD/SPEC（如 `<scope>/documents/prd-*.md`）一并读；按目标仓库既有风格改代码；跑该项目的门禁自证；长时间构建/测试作为**后台任务**运行。持续到验收条件全部满足、门禁通过，然后**在这条需求分支上 commit 一个 issue**——一个 issue 一个 commit，message 带编号与标题。
 
 **验收条件满足一条就记一条证据**，当场写进检查点——哪次实际观测证明了哪条，附上产生它的命令，而不是事后回忆：
 
@@ -164,12 +172,12 @@ python3 <SKILL_DIR>/scripts/loop_state.py followup add --from-issue N \
 
 它写进检查点、随需求资料版本化、由 `summary` 列出来。批末若还有 open 的，`set` 会提醒你收口。**不允许"记在脑子里"**——这就是"任务树允许在执行中增长"的落点，没有它，RFC 里的 follow-up 只是一个结论词。
 
-**打回或重做的 issue 不进批次分支**：`set --status failed` 记下原因并保留分支，继续下一个。**ship 仍然只在批末做一次**——每个 issue 一次 PR 是这条流水线明确排除的。
+**打回或重做的 issue 不留在这条分支上**：还没 commit 就别 commit，已经 commit 了就 `git revert` 掉。`set --status failed` 记下原因，继续下一个。**ship 仍然只在批末做一次**——每个 issue 一次 PR 是这条流水线明确排除的。
 
 收尾时记录结果（脚本据此重算下一项）：
 
 ```bash
-python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status shipped --branch feat/issue-N-slug
+python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status shipped --branch feat/<scope-slug>
 python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status shipped --waive "<为什么拿不到观察>"
 python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status skipped
 python3 <SKILL_DIR>/scripts/loop_state.py set --issue N --status blocked
@@ -189,7 +197,7 @@ python3 <SKILL_DIR>/scripts/loop_state.py note --issue N \
 
 - **跳过**：提问/讨论、纯文档、已实现、重复、带 `wontfix`/`question`/`discussion`/`invalid` 标签、无验收条件且推不出需求。
 - **blocked**：依赖未 `shipped`（`next` 已经给出，不要自己判断）。依赖不在本批（issue 已关闭）也按未 `shipped` 处理；确实要放行就 `set --issue <dep> --status shipped` 手工补记。
-- 每个 issue 结束后切回默认分支；**失败的分支保留**，不要删。
+- **整批都留在需求分支上**，不要每个 issue 切回默认分支：下一个 issue 接着在这条分支上做。
 - 回到 `next` 处理下一项，直到 `set` 输出「全部 issue 处理完毕」。
 
 ### 3. 批末收尾（只做一次）
@@ -197,7 +205,7 @@ python3 <SKILL_DIR>/scripts/loop_state.py note --issue N \
 ```bash
 # 0) 先收口 follow-up：promote 成新 issue 再跑一轮，或写清理由 drop
 python3 <SKILL_DIR>/scripts/loop_state.py followup list
-# 1) 把各 issue 分支汇总成批次分支后，审整批合并 diff
+# 1) 就在这条需求分支上审整批 diff
 /review-it
 # 2) 一份走查件：改了什么、跑了什么、证明了什么，并给出 PR body 与合并清单
 /walkthrough
@@ -210,7 +218,7 @@ python3 <SKILL_DIR>/scripts/loop_state.py summary
 
 批末评审同样**逐 issue 分节**过一遍合并 diff，重点看 issue 之间的结合部（共享接口、装配文件、配置与状态），而不是每个 issue 的内部实现。
 
-`walkthrough` 也只在批末做一次，理由与评审相同：它证明的是集成后的整体，而逐 issue 走查会为每个可能活不过集成的 diff 各付一轮截图。PR body 由 `/ship-it` 产出——它是唯一产出者，`/walkthrough` 只提供证据。批级的**设计决策/偏离/权衡/待确认**四类由 `/ship-it` 的实现总结评论承载一次；**逐 issue 的四类**（进度/关键决策/验证记录/未决事项）落在检查点里（上面的 `note`），每条验收条件的结构化观测落在 `evidence`，新发现的任务落在 `followup`，都不另出笔记文件——只有仓库约定要求时才另写一份，并把路径写进 `--verification`。批末 PR 按 `/ship-it` 的「多个 issue 共用一个 PR」逐项列出每个 issue 的 commit、关闭编号、验收证据与人工验收状态。`failed` 的 issue 不进批次分支，也不进这张表。
+`walkthrough` 也只在批末做一次，理由与评审相同：它证明的是集成后的整体，而逐 issue 走查会为每个可能活不过集成的 diff 各付一轮截图。PR body 由 `/ship-it` 产出——它是唯一产出者，`/walkthrough` 只提供证据。批级的**设计决策/偏离/权衡/待确认**四类由 `/ship-it` 的实现总结评论承载一次；**逐 issue 的四类**（进度/关键决策/验证记录/未决事项）落在检查点里（上面的 `note`），每条验收条件的结构化观测落在 `evidence`，新发现的任务落在 `followup`，都不另出笔记文件——只有仓库约定要求时才另写一份，并把路径写进 `--verification`。批末 PR 按 `/ship-it` 的「多个 issue 共用一个 PR」逐项列出每个 issue 的 commit、关闭编号、验收证据与人工验收状态。`failed` 的 issue 已经 `revert` 掉了，也不进这张表。
 
 `/ship-it` 之后保留 `.loop-state.json` 作为记录，由用户决定何时删除。
 
@@ -243,7 +251,7 @@ python3 <SKILL_DIR>/scripts/loop_state.py summary
                           ├─→ /loop-it  串行：一次一个 issue（本文件默认路径）
                           └─→ /graph    并行：波次 fan-out
 
-每个 issue:  内联实现 → 门禁自证 → 记 evidence → supervisor 检查 → commit 到自己的分支
+每个 issue:  内联实现 → 门禁自证 → 记 evidence → supervisor 检查 → 在需求分支上 commit
 每个节点:    内联实现 → 门禁自证 → commit 到自己的分支（节点不自审，评审留波末）
 批末 / 波末（各一次）:  follow-up 收口 → /review-it → /walkthrough → /ship-it
                         （决策/偏离/权衡由 /ship-it 的 issue 评论承载一次）

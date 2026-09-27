@@ -541,6 +541,12 @@ func assertCheckpointLocation(caseID, workdir string, spec AssertionSpec) (bool,
 // 所以这条是廉价的兜底，不是主要防线。
 func assertWorkspaceClean(caseID, workdir string, spec AssertionSpec) (bool, string) {
 	parent := filepath.Dir(filepath.Clean(workdir))
+	// 只在 harness 自己的运行目录里才有意义：那里除了 `work/` 与 harness 自己写的
+	// 那几样，不该有别的东西。手工把 fixture 铺到 /tmp 下时父目录是 /tmp，
+	// 满屏都是无关文件——那种情况下如实说「不适用」，而不是报一堆假越界。
+	if !exists(filepath.Join(parent, "work.seed.json")) {
+		return true, "不适用：这个 fixture 不在 harness 的运行目录里（父目录没有 work.seed.json），无从判断越界"
+	}
 	entries, err := os.ReadDir(parent)
 	if err != nil {
 		return false, fmt.Sprintf("读不了 fixture 的父目录 %s：%v", parent, err)
