@@ -35,9 +35,8 @@ it through the `skill` tool.
 ## Reviewing
 
 DSH wires up no external review CLI, so the calling agent is the reviewer: it generates the diff
-and applies the Review Focus itself. The per-CLI command matrix, including DSH's
-`none — review it yourself` row, stays in [`other-clis.md`](other-clis.md). The bundled runner
-detects DSH from `DSH_SESSION_ID` / `DSH_HOME` and falls back to DSH when no host probe matches.
+and applies the Review Focus itself. There is no per-CLI command matrix to consult and no bundled
+runner to probe the host — this repo is DSH-only, so read the diff and judge it.
 
 ## Delegation and completion
 

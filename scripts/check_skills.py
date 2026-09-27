@@ -127,6 +127,31 @@ def load_frontmatter(path: str) -> dict | str:
     return data
 
 
+def check_reference_links(repo_root: str, skills: list[tuple[str, str, str]]) -> list[str]:
+    """Every `references/x.md` a skill links to must exist.
+
+    A rename leaves these behind, and the failure is quiet in the worst way: the model follows a
+    link into nothing, then improvises around the missing guidance. `check_skill_references`
+    covers `/skill-name` routes; this covers the files beside the skill.
+    """
+    problems = []
+    for _, name, path in skills:
+        directory = os.path.dirname(path)
+        for root, _, files in os.walk(directory):
+            for entry in files:
+                if not entry.endswith(".md"):
+                    continue
+                source = os.path.join(root, entry)
+                body = open(source, encoding="utf-8").read()
+                for target in re.findall(r"\]\(([^)#:]+\.md)\)", body):
+                    if target.startswith(("http://", "https://")):
+                        continue
+                    if not os.path.exists(os.path.normpath(os.path.join(root, target))):
+                        rel = os.path.relpath(source, repo_root)
+                        problems.append(f"{rel} links to {target}, which does not exist")
+    return problems
+
+
 def check_router_coverage(repo_root: str, skills: list[tuple[str, str, str]]) -> list[str]:
     """Every skill this repo owns must be reachable from the router.
 
@@ -225,6 +250,7 @@ def main() -> int:
     failures.extend(check_bundle_patch(repo_root, {b for b, _, _ in skills}))
     failures.extend(check_skill_references(repo_root, skills))
     failures.extend(check_router_coverage(repo_root, skills))
+    failures.extend(check_reference_links(repo_root, skills))
 
     warnings: list[str] = []
     for bucket, name, path in skills:
