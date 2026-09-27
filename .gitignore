@@ -17,3 +17,4 @@ evals/results/**/work.seed.json
 # eval 跑出来的产物：work/ 里是 fixture 的 git 仓库，不进版本库
 **/results/**/work/
 **/results/iteration-*/**/work/
+evals/evals/

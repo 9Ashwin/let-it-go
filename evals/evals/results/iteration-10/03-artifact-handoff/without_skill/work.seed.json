@@ -1,7 +1,0 @@
-{
- "protected": {
-  "Makefile": "897bd9ad62d93dce81afbc6f64680919e1b0792e7e9e29f9c7ea1c76eff3655d",
-  "inventory/stock_test.go": "3bc0a3e4aa68a58a964feb1cdbe4d653c4d08a392a8c38d4fb3d51175a5584f4"
- },
- "protected_missing_at_seed": []
-}
