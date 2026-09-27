@@ -16,16 +16,16 @@
 | `path_glob` / `path_absent` | 产物落在仓库声明的作用域根下，还是落在技能的默认值 `tasks/` 下 |
 | `checkpoint_location` | 检查点在 `requirements/<scope>/issues/` 下吗 |
 | `tamper_guard` | 门禁与自带断言被改弱了吗（把测试删掉换绿要能抓住） |
-| `workspace_clean` | 有没有写到 fixture 之外（子代理没有自己的 cwd，这是这条路的典型失败） |
+| `workspace_clean` | 有没有写到 fixture 之外（臂的 cwd 就是 fixture，越界仍然是这条路的典型失败） |
 
 ## 两条臂
 
-每个用例跑两次，同一回合一起派出：
+每个用例跑两次：
 
 - `with_skill` — 正常目录 + 「先加载并遵循 let-it-go 里对应的技能」
 - `without_skill` — 同一 prompt + 「不要加载任何技能，凭你自己的判断做」
 
-后缀在 [arms.json](arms.json)。delta 就是这套技能的价值。
+后缀在 [arms.json](arms.json)，`evalctl run --arm` 会去那里取。delta 就是这套技能的价值。
 
 ## 抄了 DSH 自己的三个模式
 
@@ -45,13 +45,16 @@
 
 ```bash
 go -C evals/harness run . selfcheck                 # 用例结构自检（也挂在 make check 上）
-go -C evals/harness run . materialize 01-single-unit --dest /tmp/eval-01-with
-go -C evals/harness run . assert 01-single-unit /tmp/eval-01-with --phase preflight
-# …在同一个回合里派两条臂的子代理（见 run.md 第 3 步）…
-go -C evals/harness run . assert 01-single-unit /tmp/eval-01-with \
-    --phase grade --out results/iteration-1/01-single-unit/with_skill/grading.json
+go -C evals/harness run . list                      # 有哪些用例
+go -C evals/harness run . run 01-single-unit --arm with_skill \
+    --out results/iteration-1/01-single-unit/with_skill
+go -C evals/harness run . run 01-single-unit --arm without_skill \
+    --out results/iteration-1/01-single-unit/without_skill
 go -C evals/harness run . bench results/iteration-1 --skill-name flow
 ```
+
+`run` 自己铺工作区、卡起点（必须是红的）、把任务交给 `dsh --profile headless`、
+再从外部打分——一条命令一条臂。
 
 最后用 skill-creator 的 viewer 交人评审：
 
@@ -68,12 +71,16 @@ python ~/.agents/skills/skill-creator/eval-viewer/generate_review.py \
 | [02-mid-flight-change](cases/02-mid-flight-change/case.json) | 需求在实现**中途**变化：流程能不能在同一轮内调整，而不是冻结计划或让两套并存 |
 | [03-artifact-handoff](cases/03-artifact-handoff/case.json) | **上一个会话留下的需求资料能不能用**：fixture 里种着一份 `requirements/<scope>/`，看一个全新会话能不能只凭它把待办的 issue-002 做对 |
 | [04-serial-batch](cases/04-serial-batch/case.json) | **串行批次**：三条有依赖边的 issue，`loop-it` 该建检查点、逐 issue 在自己的分支上做、推到 origin——这套技能区别于裸模型的那台机器 |
+| [05-full-pipeline](cases/05-full-pipeline/case.json) | **全流程**：prompt 只给一个还没成形的业务诉求，看流程会不会自己走完 `prd → to-issues → loop-it`——前面四条都从流水线中段进入，规划半边只有这条测到了 |
 
 ## 已知限制
 
-- **运行方式目前是会话内派子代理**，所以测不到 DSH 的 workspace 指令机制
-  （`subagent` 工具没有 cwd 参数，子代理继承父会话 cwd，fixture 的 `AGENTS.md`
-  不会自动加载，只能在 prompt 里显式指认）。要做干净端到端得用 DSH 自己的程序化
-  harness（`codingHarness(workdir)`，`LocalBashExecutor { cwd: workdir }`），
-  那需要先把 DSH checkout 构建出来——见 run.md 的模式 B。
 - **单轮、单次运行**，没有跑 3 次求方差。波动大时 `bench` 的 analyst pass 会标出来。
+- **中途变更还没验证**：headless 一个任务跑完就退，`--session-id` 能接回同一个会话
+  再跑一个任务，但「变更递送」这件事本身没实测过——别在结论里当成已验证。
+- **无人值守就没人可问**：headless 里 `ask_user_question` 没有人类可答。所以澄清类场景
+  要断言**它留下了什么**（决策记录、假设标注、未决项），不要断言它问了。
+- **探针能测什么，取决于验收条件说清了什么。** 探针带进隐含假设会把正确实现判成错的：
+  case 05 第一版没写配置放哪，两条臂各自挑了文件名；后来又发现探针默认「进程 cwd 就是
+  仓库根」，而 Go 把测试的 cwd 设成包目录——一个完全合理的实现被判成没实现。加断言前先问：
+  这条假设任务里说过吗？

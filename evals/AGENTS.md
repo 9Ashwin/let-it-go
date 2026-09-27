@@ -36,6 +36,7 @@ go -C evals/harness run . selfcheck
 go -C evals/harness run . list
 go -C evals/harness run . materialize <case-id> --dest <dir>
 go -C evals/harness run . assert <case-id> <dir> --phase preflight|grade [--out FILE]
+go -C evals/harness run . run <case-id> --arm with_skill|without_skill --out results/iteration-N/<case>/<arm>
 go -C evals/harness run . bench <iteration-dir> --skill-name flow
 ```
 
@@ -44,8 +45,8 @@ go -C evals/harness run . bench <iteration-dir> --skill-name flow
 
 ## 落点
 
-- `results/` **不进版本库**（只有 `results/README.md` 记每轮 benchmark 的快照）。
-- 子代理通知里的 `total_tokens` / `duration_ms` **只在通知里出现一次**，
-  收到就写进对应臂的 `timing.json`，不落盘就没了。
+- `results/` **进版本库**——结果就是证据。臂的工作副本 `work/` 是 scratch，在 `.gitignore` 里排掉。
+- 耗时与 token 由 `evalctl run` 自己采：wall clock 计时，token 从 `dsh --json` 的
+  `status/step_end` 事件里累加。**别手工填 `timing.json`。**
 - 新增用例：fixture 用哪种语言由**被测仓库的样子**决定（现在都是 Go），
   harness 不用改——探针是声明式的。

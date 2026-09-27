@@ -1070,6 +1070,7 @@ func main() {
 			"",
 			"  materialize <case-id> [--dest DIR] [--json]",
 			"  assert <case-id> <workdir> --phase preflight|grade [--out FILE] [--json]",
+			"  run <case-id> --arm with_skill|without_skill --out DIR [--dsh PATH] [--keep]",
 			"  bench <iteration-dir> [--skill-name NAME] [--executor-model M]",
 			"  selfcheck",
 			"  list",
@@ -1082,6 +1083,8 @@ func main() {
 		os.Exit(cmdMaterialize(rest))
 	case "assert":
 		os.Exit(cmdAssert(rest))
+	case "run":
+		os.Exit(cmdRun(rest))
 	case "bench":
 		os.Exit(cmdBench(rest))
 	case "selfcheck":

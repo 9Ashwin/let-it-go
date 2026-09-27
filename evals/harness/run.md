@@ -1,138 +1,109 @@
 # 怎么跑一轮 eval
 
-一轮 = 每个用例 × 两条臂，各跑一次，然后机械核对。
-
-两条臂**在同一个回合里一起派出**（skill-creator 的要求）：否则先后顺序、上下文压力、
-网络抖动都会混进差异里。
+一轮 = 每个用例 × 两条臂，各跑一次，然后从外部机械核对。
 
 - `with_skill`：正常目录 + prompt 后缀「先加载并遵循 let-it-go 里对应的技能」
 - `without_skill`：同一 prompt + 后缀「不要加载任何技能，凭你自己的判断做」
 
-后缀写在 [`arms.json`](../arms.json)，改一处就改了所有用例的两条臂。
+两条臂**只有最后一行不同**，否则测的就不是技能，是 prompt 差异。后缀写在
+[`arms.json`](../arms.json)，改一处就改了所有用例的两条臂。
 
 ---
 
-## 模式 A：会话内派子代理（现在就能用）
-
-### 1. 备好两条臂的工作目录
+## 一条命令跑一条臂
 
 ```bash
-go -C evals/harness run . materialize 01-single-unit --dest /tmp/eval-1-01-with
-go -C evals/harness run . materialize 01-single-unit --dest /tmp/eval-1-01-without
+go -C evals/harness run . run 05-full-pipeline --arm with_skill \
+    --out results/iteration-6/05-full-pipeline/with_skill \
+    --dsh /path/to/dsh
 ```
 
-`materialize` 会把 fixture 复制到目标目录、`git init`、打一个 seed commit，
-并把 seed 清单（受保护文件的哈希 + 当时的 let-it-go 脏快照）写到 **目标目录外面**的
-`<dest>.seed.json`。
+它按顺序做四件事：
 
-### 2. 证明起点是红的
+1. **materialize** 到 `<out>/work`——复制 fixture、`git init`、打 seed commit、
+   建一个本地 bare origin（`loop-it` 的串行前置会跑 `git ls-remote origin`，没有它跑不起来）。
+2. **preflight**：起点必须是红的（fixture 自己的门禁绿 + 探针红）。不红就直接停——
+   一个在开跑之前就已经满足的用例，之后无论跑成什么样都测不出这条臂做了什么。
+3. **让 dsh 把任务做完**：`dsh --profile headless --json "<prompt>\n\n<suffix>"`，
+   **cwd 指到 `<out>/work`**。
+4. **从外部打分**：`grade` 的结果写进 `grading.json`，耗时与 token 写进 `timing.json`，
+   臂最后说了什么写进 `notes.md`。
+
+`--out` 的相对路径以 `evals/` 为基准。加 `--keep` 就不清掉已有的 `work/`。
+
+### 前提：一个 dsh 可执行文件
+
+`run` 按 `--dsh` → `$EVAL_DSH` → `PATH` 里的 `dsh` 的顺序找。本机没有装 dsh 命令，
+需要先把这个 checkout 构建出来：
 
 ```bash
-go -C evals/harness run . assert 01-single-unit /tmp/eval-1-01-with --phase preflight
+cd ~/workspaces/github/deepseek-harness && pnpm install && pnpm build
 ```
 
-必须输出「门禁绿 + 探针红」。探针在起点就是绿的，说明这条断言区分不了任何东西
-（DSH 自己的 swebench 冒烟测试也是先 `expect(before.status).not.toBe(0)`）。
+入口是 `apps/cli/lib/bin.js`（**不是** `apps/cli/lib/index.js`——构建不会产出那个名字，
+第一次找错就卡在这里）。它是本仓库之外的东西、路径随环境变，所以不写死进 harness，
+用包装脚本指过去：
 
-### 3. 在**同一个回合**里派两条臂的子代理
-
-子代理的 prompt 必须自包含。照这个模板填（`<...>` 是变量）：
-
-```
-在这个目录里完成一件事：<工作目录的绝对路径>
-
-它**已经是一个独立的 git 仓库**（有自己的 .git 与 seed commit）。先读它的 AGENTS.md
-与 requirements/README.md 并遵守——它声明了自己的作用域根与门禁。
-
-只在这个目录里工作，所有路径用绝对路径（每个 shell 都是新 shell，cd 不会保持）。
-做完把改动留在工作目录里：不要 push、不要开远程 PR。
-
-任务：
-<case.json 的 prompt 字段>
-
-<arms.json 里这条臂的 suffix>
+```sh
+#!/bin/sh
+exec /opt/homebrew/bin/node "$HOME/workspaces/github/deepseek-harness/apps/cli/lib/bin.js" "$@"
 ```
 
-两条臂用**同一段任务文字**，只有最后一行不同；否则测的就不是技能，是 prompt 差异。
+## 为什么这条路对了，而手工派子代理不对
 
-⚠️ **跑臂期间冻结仓库。** `workspace_clean` 断言拿 materialize 时的脏快照比，
-所以你在臂运行期间顺手改一行 `skills/` 或 `.gitignore`，会被记成那条臂的越界。
-要么别改，要么接受这条断言当轮无效（在 `notes.md` 里写明，别让它冒充结果）。
+headless profile **从进程的 cwd 出发**——铺出来的仓库就是它的工作目录。于是：
 
-⚠️ **DSH 的 `subagent` 工具没有 cwd 参数**——子代理继承父会话的 cwd。
-所以 fixture 的 `AGENTS.md` **不会**自动加载，必须在 prompt 里显式指认它
-（模板里那句「先读它的 AGENTS.md」就是干这个的）。
-`workspace_clean` 断言就是用来兜住这条路的典型失败：写到 fixture 外面去。
+- fixture 自己的 `AGENTS.md` **自动加载**。实测：在一个只有 `AGENTS.md` 的目录里让它
+  复述约定里的暗号，它复述了，还自己指出「这个目录不是 git 仓库」。
+- `~/.agents/skills/` 下的技能**照常发现**。实测：它能列出技能名，`loop-it`、`prd`、
+  `to-issues`、`review-it`、`walkthrough` 都在里面。
+- `--json` 的事件流里 `status/step_end` 带 `usage`，token 从那里累加；wall clock 自己计时。
+  **`timing.json` 不再是永远的 0。**
 
-### 3b. 想注入「中途变更」？模式 A 做不到
+手工派的代价（留个记录，别再走回去）：`subagent` 工具**没有 cwd 参数**，臂继承父会话的
+cwd，仓库约定根本不生效，只能在 prompt 里手动指认 `AGENTS.md`；派出去的臂**寻址不到**，
+没法中途递东西进去；而且它们**会静默消失**，消失后没有痕迹可查。
 
-**实测结论：`send_message` 寻址不到正在运行的 subagent**（两条臂都返回
-`active teammate "…" not found`），所以模式 A **无法**在臂跑到一半时把新需求递进去。
+## 中途变更与澄清：还没验证
 
-替代做法（case 02 用的就是这个）：把变更**明确写进 prompt**，同时在 fixture 里
-**种下作废的旧产物**——于是「不许两套并存」这条断言就不是空洞的，臂必须真的去删掉它。
+headless 一个任务跑完就退。`--session-id <id>` 可以接回同一个会话再跑一个任务——
+这是「中途变更」的路径，**但还没实测**，别在结论里当成已验证。
 
-**还有一条：模式 A 里子代理问不了人。** 实测 `ask_user_question` 会被拒——
-`human interaction is unavailable while the calling agent is owned by another live agent`。
-所以臂遇到该澄清的事，只能「记录问题 + 带着假设继续」，拿不到答案。
+无人值守的 headless 也**没人可问**。所以「有不懂的先问」落不到实处，臂只会带着假设继续。
+判定要看**结果对不对**（探针），以及**它留下了什么**（决策记录、假设标注、未决项），
+而不是看它有没有问。
 
-这条会**低估**技能的 clarify 行为：真实使用里 agent 问得到人。所以：
+## 跑臂期间冻结仓库
 
-- 别把「臂没有停下来问」记成缺陷
-- 该澄清的场景要断言**它留下了什么**（决策记录、假设标注、未决项），而不是断言它问了
-- 想在评测里真正回答澄清问题，得用模式 B（或让 Lead 在臂跑动中介入——但见上一条，模式 A 也递不进去）
+`workspace_clean` 拿 materialize 时的脏快照比，所以跑臂期间顺手改一行 `skills/` 或
+`.gitignore`，会被记成那条臂的越界。要么别改，要么在 `notes.md` 里写明这条断言当轮无效。
 
-真正的「中途变更」只有**模式 B**（`dsh headless`，可以把消息推进正在跑的会话）能测。
-在模式 B 可用之前，别在文档里把这类用例说成「中途」——它测的是**变更后的调整**，
-不是**变更的送达**。
+（`evals/` 下的改动会被跳过，所以改 harness 本身不影响正在跑的臂。）
 
-### 4. 收结果
+## 机械核对
 
-子代理一返回就**立刻**把通知里的 `total_tokens` / `duration_ms` 写进
-`results/iteration-N/<case>/<arm>/timing.json`——这个数据只在通知里出现一次，
-不落盘就没了。
-
-```json
-{"total_tokens": 84852, "duration_ms": 23332, "duration_seconds": 23.3, "run_number": 1}
-```
-
-### 5. 机械核对
+断言全部在这个脚本里跑，**不读臂的自述**。`run` 已经替你做了，单独跑是为了复核或重打分：
 
 ```bash
-go -C evals/harness run . assert 01-single-unit /tmp/eval-1-01-with \
-    --phase grade --out results/iteration-1/01-single-unit/with_skill/grading.json
+go -C evals/harness run . assert 05-full-pipeline results/iteration-6/05-full-pipeline/with_skill/work \
+    --phase grade --out results/iteration-6/05-full-pipeline/with_skill/grading.json
 ```
 
-断言全部在这个脚本里跑，**不读子代理的自述**。
-
-### 6. 汇总并交人评审
+## 汇总
 
 ```bash
-go -C evals/harness run . bench results/iteration-1 --skill-name flow
+go -C evals/harness run . bench results/iteration-6 --skill-name flow
+```
+
+可选：交给 skill-creator 的 viewer 出评审页。
+
+```bash
 nohup python ~/.agents/skills/skill-creator/eval-viewer/generate_review.py \
-    results/iteration-1 --skill-name flow \
-    --benchmark results/iteration-1/benchmark.json > /dev/null 2>&1 &
+    results/iteration-6 --skill-name flow \
+    --benchmark results/iteration-6/benchmark.json > /dev/null 2>&1 &
 ```
 
 没有显示环境时加 `--static <输出路径>`，写一个独立 HTML。
-
----
-
-## 模式 B：headless（升级路径，尚未启用）
-
-模式 A 测不到两件事：**workspace 指令机制**（fixture 的 `AGENTS.md` 自动加载）和
-**一键重跑**。要做这两件事，得用 DSH 自己的程序化 harness——它建 `Context` 时
-把 cwd 交给 bash executor，cwd 就是受控的：
-
-- `apps/cli/tests/profiles/headless/tests/harness.ts` 的 `codingHarness(workdir, …)`：
-  `LocalBashExecutor, { cwd: workdir }`、`waitForIdle`、`finalText`
-- `apps/cli/tests/profiles/headless/tests/coding-task.e2e.ts`：swebench 风格冒烟测试，
-  断言在 agent 之外执行（自己重跑测试、核对 fixture 文件逐字节未变）
-- CLI 侧有 `dsh headless "run the tests"`（`apps/cli/src/args.ts` 的示例）
-
-前置条件是把这个 checkout 构建出来——本机 `node_modules` 未安装、`apps/cli/lib` 不存在，
-所以要先 `pnpm install` 再 build。构建成功之后，`materialize` + `assert_case` 这套
-原样可用，只把「派子代理」换成 `dsh headless`，并把 `dsh` 的 cwd 指到工作目录。
 
 ---
 
@@ -150,19 +121,21 @@ nohup python ~/.agents/skills/skill-creator/eval-viewer/generate_review.py \
 **关键在于臂拿不到别的东西**：没有 PRD 之外的任务描述，没人告诉它 issue-002 是什么。
 它只能靠那份资料。做得对 = 资料是可用的契约；做不对或卡住 = 那份资料只是没人读的文本。
 
-⚠️ 模式 A 里子代理**问不了人**（见上），所以「有不懂的先问」落不到实处——它会带着假设继续。
-判定看的是**结果对不对**（探针），不是它有没有问。真要看它会不会问，得用模式 B。
+判定看的是**结果对不对**（探针），不是它有没有问——见上面「没人可问」那条。
 
 ## 命名与落点
 
 ```
-results/iteration-N/<case-id>/<arm>/grading.json   ← assert_case.py --out
-results/iteration-N/<case-id>/<arm>/timing.json    ← 子代理通知
-results/iteration-N/<case-id>/<arm>/notes.md       ← 可选，观察（`-` 开头的行会被 bench 收进 notes）
-results/iteration-N/benchmark.json / benchmark.md  ← bench.py
+results/iteration-N/<case-id>/<arm>/grading.json   ← 从外部打的分（证据）
+results/iteration-N/<case-id>/<arm>/timing.json    ← 耗时 / token / 工具调用
+results/iteration-N/<case-id>/<arm>/notes.md       ← 臂最后说了什么（`-` 开头的行会被 bench 收进 notes）
+results/iteration-N/<case-id>/<arm>/work/          ← 臂的工作副本，scratch，不进库
+results/iteration-N/benchmark.json / benchmark.md  ← bench
 ```
 
-`results/` 不进版本库（`.gitignore`），只把每轮的 `benchmark.md` 快照进 `results/README.md` 记一笔。
+`results/` **进版本库**——结果就是证据。`work/`、`work.origin.git`、`work.seed.json`
+是 scratch（整个仓库副本 + `.git` + 本地 origin），在 `.gitignore` 里排掉；
+留在原处是为了复核：分数在 `grading.json` 里，产物在 `work/` 里。
 
 ## 加一个用例
 
@@ -170,5 +143,9 @@ results/iteration-N/benchmark.json / benchmark.md  ← bench.py
    里面写一份 `AGENTS.md` 声明它自己的作用域根与门禁——这就是被测的「仓库地图」。
 2. `cases/<id>/probe/` 放**只观察不判断**的探针（打印实际生效的值）。
 3. `cases/<id>/case.json` 写 prompt、断言、`tamper_guard`。
-4. 跑 `materialize` + `preflight` 确认起点是红的；再用一个参考解跑 `grade` 确认能全绿。
+4. 用一个参考解跑一遍，确认能全绿；再确认起点是红的（`run` 会自己卡这一步）。
 5. 加负例：把 fixture 的门禁或断言改弱，确认 `tamper_guard` 会红。
+
+⚠️ **探针能测什么，取决于验收条件有没有说清楚。** case 05 第一版没写配置放哪、
+也没写「改配置不重新构建」，两条臂就各自挑了文件名、其中一条还把配置 `go:embed`
+进了二进制——探针「写文件再观察」的做法直接失效。那不是臂的错，是任务没说清。
