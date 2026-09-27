@@ -99,13 +99,18 @@ func cmdRun(args []string) int {
 		fmt.Fprintln(os.Stderr, "run:", err)
 		return 1
 	}
-	work := filepath.Join(out, "work")
-	if !keep {
-		if err := os.RemoveAll(work); err != nil {
-			fmt.Fprintln(os.Stderr, "run:", err)
-			return 1
-		}
+	// 臂的工作树建在**仓库之外的私有临时根**里，不能待在 results/ 下：
+	// 那样 `../../..` 就爬到 evals/ 了——用例定义（连断言一起）、arms.json、
+	// 别的臂的 results/、harness 源码全在那里。实测有臂真的爬出去读了自己这一轮的
+	// 期望值，还读到了别的臂的检查点。DSH 自己的 benchmarks/AGENTS.md 要求
+	// private mkdtemp roots，就是为了这个。打完分再把树搬回 results/ 供复核。
+	root, err := os.MkdirTemp("", "letitgo-eval-")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "run:", err)
+		return 1
 	}
+	work := filepath.Join(root, "work")
+	_ = keep // 工作树现在每次都是全新的；留着这个旗标只为不改调用方
 	if code := cmdMaterialize([]string{caseID, "--dest", work}); code != 0 {
 		return code
 	}
@@ -158,6 +163,11 @@ func cmdRun(args []string) int {
 		fmt.Fprintln(os.Stderr, "run:", err)
 		return 1
 	}
+	// 打分完了才搬回来：此时它已经影响不到任何一次运行。
+	if err := parkWorkTree(work, out); err != nil {
+		fmt.Fprintf(os.Stderr, "run: 搬工作树失败（不影响分数）：%v\n", err)
+	}
+	os.RemoveAll(root)
 
 	fmt.Printf("%s/%s  %.2f（%d/%d）  %.1fs  %d tokens  %d 次工具调用\n",
 		caseID, arm, g.PassRate, g.Passed, g.Total, elapsed, events.totalTokens, events.toolCalls)
@@ -474,4 +484,21 @@ func regradeExisting(out, caseID, arm string, c Case) int {
 	}
 	fmt.Printf("%s/%s  重打分 %.2f（%d/%d）\n", caseID, arm, g.PassRate, g.Passed, g.Total)
 	return 0
+}
+
+// parkWorkTree 把打完分的臂工作树从私有临时根搬进 results/，供人事后复核。
+// 只有跑完之后才搬——跑的时候它必须待在一个别的臂够不着的地方。
+func parkWorkTree(work, out string) error {
+	dst := filepath.Join(out, "work")
+	os.RemoveAll(dst)
+	if err := os.Rename(work, dst); err != nil {
+		return err
+	}
+	if seed := work + ".seed.json"; exists(seed) {
+		os.Remove(filepath.Join(out, "work.seed.json"))
+		if err := os.Rename(seed, filepath.Join(out, "work.seed.json")); err != nil {
+			return err
+		}
+	}
+	return nil
 }
