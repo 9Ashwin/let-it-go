@@ -95,15 +95,20 @@ func mustJSON(v any) []byte {
 
 // Case 是 cases/<id>/case.json。字段与 Python 版一一对应。
 type Case struct {
-	ID            string          `json:"id"`
-	Name          string          `json:"name"`
-	WhatItTests   string          `json:"what_it_tests"`
-	Prompt        string          `json:"prompt"`
-	ExpectedOut   string          `json:"expected_output"`
-	Fixture       string          `json:"fixture"`
-	TamperGuard   []string        `json:"tamper_guard"`
-	Assertions    []AssertionSpec `json:"assertions"`
-	unknownFields []string
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	WhatItTests string `json:"what_it_tests"`
+	Prompt      string `json:"prompt"`
+	ExpectedOut string `json:"expected_output"`
+	Fixture     string `json:"fixture"`
+	// UndeclaredWorkspace 声明「这个 fixture **故意**没有 AGENTS.md / 作用域根声明」。
+	// 默认每个 fixture 都要有地图，因为流程的产物落点靠它；但「没声明时会怎样」也是一条
+	// 真实路径（技能写着「仓库完全没约定时用默认值 tasks/<feature>/」），测它就必须没有地图。
+	// 做成显式字段而不是删掉那条检查：误删地图仍然要在自检里报出来。
+	UndeclaredWorkspace bool            `json:"undeclared_workspace"`
+	TamperGuard         []string        `json:"tamper_guard"`
+	Assertions          []AssertionSpec `json:"assertions"`
+	unknownFields       []string
 }
 
 // AssertionSpec 是声明式断言。同一种 kind 在不同用例里的附加字段不同，
@@ -510,20 +515,27 @@ func assertCheckpointLocation(caseID, workdir string, spec AssertionSpec) (bool,
 	if len(found) == 0 {
 		return true, "没有产生 loop 检查点（单单元模式不该产生，允许）"
 	}
+	// 作用域根是**仓库的事实**，不是通用事实：技能说「仓库有约定就用它的根，没约定才用
+	// 默认的 tasks/」。所以期望的根要能由用例指定，写死 requirements/ 会让「没声明根」的
+	// 用例即使做对了也判错。
+	root := spec.str("root")
+	if root == "" {
+		root = "requirements"
+	}
 	var bad, good []string
 	for _, path := range found {
 		rel, _ := filepath.Rel(workdir, path)
 		parts := strings.Split(rel, string(os.PathSeparator))
-		// 期望 requirements/<scope>/issues/.loop-state.json
-		if len(parts) == 4 && parts[0] == "requirements" && parts[2] == "issues" {
+		// 期望 <root>/<scope>/issues/.loop-state.json
+		if len(parts) == 4 && parts[0] == root && parts[2] == "issues" {
 			good = append(good, rel)
 		} else {
 			bad = append(bad, rel)
 		}
 	}
 	if len(bad) > 0 {
-		return false, fmt.Sprintf("检查点落点不对：%s（期望 requirements/<scope>/issues/）",
-			strings.Join(bad, "、"))
+		return false, fmt.Sprintf("检查点落点不对：%s（期望 %s/<scope>/issues/）",
+			strings.Join(bad, "、"), root)
 	}
 	return true, "检查点落点正确：" + strings.Join(good, "、")
 }
@@ -1028,8 +1040,9 @@ func selfcheckCase(name string) []string {
 		if exists(filepath.Join(fixture, ".git")) {
 			problems = append(problems, name+": fixture 里有 .git —— 嵌套仓库无法被 let-it-go 正常入库，版本控制留给运行时")
 		}
-		if !exists(filepath.Join(fixture, "AGENTS.md")) {
-			problems = append(problems, name+": fixture 缺 AGENTS.md —— 它自己的地图正是被测对象之一")
+		if !exists(filepath.Join(fixture, "AGENTS.md")) && !c.UndeclaredWorkspace {
+			problems = append(problems, name+": fixture 缺 AGENTS.md —— 它自己的地图正是被测对象之一。"+
+				"若这条用例测的就是「没声明时会怎样」，在 case.json 里加 \"undeclared_workspace\": true")
 		}
 	}
 	for _, rel := range c.TamperGuard {
