@@ -336,6 +336,53 @@ def test_shipping_gate_is_layered():
         check("非法 layer 被拒", code != 0, err)
 
 
+def test_shipping_waiver_records_why():
+    """拿不到观测时 `--waive` 是自愿声明：放行、把原因记进检查点，但不是「不用记证据」。"""
+    with tempfile.TemporaryDirectory() as tmp:
+        state_path = os.path.join(tmp, ".loop-state.json")
+        issues = write_issues(tmp, [(1, "Only", "no deps")])
+        run("scan", "--issues", issues, "--state", state_path, "--repo", "o/r")
+
+        code, _, err = run("set", "--issue", 1, "--status", "shipped", "--state", state_path,
+                           "--waive", "这台机器上没有可跑的链路")
+        check("声明原因后 shipped 被放行", code == 0, err)
+        entry = read_state(state_path)["issues"]["1"]
+        check("原因写进检查点",
+              (entry.get("evidence_waiver") or {}).get("reason") == "这台机器上没有可跑的链路",
+              str(entry))
+        check("豁免不会凭空造出一条 evidence", not entry.get("evidence"), str(entry))
+        check("summary 标出这是已声明的",
+              "已声明拿不到观察" in run("summary", "--state", state_path)[1])
+
+        # 有观察时不该再记豁免：那条记录会让后来的人以为这次 shipped 背后什么都没有。
+        with tempfile.TemporaryDirectory() as tmp2:
+            sp2 = os.path.join(tmp2, ".loop-state.json")
+            i2 = write_issues(tmp2, [(1, "Only", "no deps")])
+            run("scan", "--issues", i2, "--state", sp2, "--repo", "o/r")
+            run("evidence", "add", "--issue", 1, "--state", sp2, "--layer", "L3",
+                "--kind", "runtime", "--command", "curl -si localhost:8080/users",
+                "--result", "pass")
+            run("set", "--issue", 1, "--status", "shipped", "--state", sp2,
+                "--waive", "顺手带上的")
+            check("有 evidence 时不记豁免",
+                  not read_state(sp2)["issues"]["1"].get("evidence_waiver"),
+                  str(read_state(sp2)["issues"]["1"]))
+
+
+def test_evidence_without_a_layer_still_warns():
+    """有 evidence 却一条都没标 layer：比只到 L1 还弱，闸门不能因为「有记录」就放过。"""
+    with tempfile.TemporaryDirectory() as tmp:
+        state_path = os.path.join(tmp, ".loop-state.json")
+        issues = write_issues(tmp, [(1, "Only", "no deps")])
+        run("scan", "--issues", issues, "--state", state_path, "--repo", "o/r")
+
+        run("evidence", "add", "--issue", 1, "--state", state_path,
+            "--kind", "test", "--command", "go test ./...", "--result", "pass")
+        code, _, err = run("set", "--issue", 1, "--status", "shipped", "--state", state_path)
+        check("没标 layer 也能 shipped", code == 0, err)
+        check("但要告警说层次无从判断", "--layer" in err and "层次" in err, err)
+
+
 def test_shipping_without_notes_warns():
     """缺 decisions / verification / open 只告警不拦——那是判断，不是可核验的事实。"""
     with tempfile.TemporaryDirectory() as tmp:
@@ -468,6 +515,8 @@ def main() -> int:
         test_untracked_dependency_waits,
         test_notes_are_kept_verbatim,
         test_shipping_gate_is_layered,
+        test_shipping_waiver_records_why,
+        test_evidence_without_a_layer_still_warns,
         test_shipping_without_notes_warns,
         test_evidence_is_recorded_structured,
         test_evidence_batch_appends_in_one_write,

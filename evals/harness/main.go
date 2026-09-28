@@ -591,6 +591,61 @@ func allowedInRunDir(name string) bool {
 	return false
 }
 
+// assertToolAbsent 读同一次运行的事件流，确认 `tools` 里点名的工具一次都没被调用。
+//
+// 有些边界在文件系统里看不到：单单元模式「不开图」不会留下任何文件，而编排式的
+// `workflow` 调用会出现在 events.jsonl 里。事件流是 harness 自己的产物、不在 workdir
+// 内，所以和 workspace_clean 一样从 fixture 的父目录读。断言哪些工具由用例自己的
+// `tools` 字段决定。
+//
+// **读不到事件流判红，不判「不适用」**：一次真实运行至少会调用几次工具，读不到或解析到
+// 零个 `tool_call`，说明这次运行的记录不可核实（dsh 没吐事件、或事件字段改了名），
+// 把它记成通过就是一条假绿。唯一说「不适用」的场合和 workspace_clean 相同——
+// 父目录不是 harness 的运行目录（没有 work.seed.json），那是手工铺开、无从判断。
+func assertToolAbsent(caseID, workdir string, spec AssertionSpec) (bool, string) {
+	tools := spec.strs("tools")
+	parent := filepath.Dir(filepath.Clean(workdir))
+	if !exists(filepath.Join(parent, "work.seed.json")) {
+		return true, "不适用：这个 fixture 不在 harness 的运行目录里（父目录没有 work.seed.json），无从判断工具调用"
+	}
+	eventsPath := filepath.Join(parent, "events.jsonl")
+	raw, err := os.ReadFile(eventsPath)
+	if err != nil {
+		return false, "读不到事件流 " + eventsPath + " —— 这次运行的工具调用无法核实"
+	}
+	called := map[string]int{}
+	toolCalls := 0
+	for _, line := range strings.Split(string(raw), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		var event map[string]any
+		if json.Unmarshal([]byte(line), &event) != nil || event["type"] != "tool_call" {
+			continue
+		}
+		toolCalls++
+		name, _ := event["tool"].(string)
+		for _, tool := range tools {
+			if name == tool {
+				called[name]++
+			}
+		}
+	}
+	if toolCalls == 0 {
+		return false, "事件流里一条 tool_call 都没有 —— 这次运行没跑起来，或者事件格式变了，无法核实"
+	}
+	if len(called) > 0 {
+		var names []string
+		for name, count := range called {
+			names = append(names, fmt.Sprintf("%s×%d", name, count))
+		}
+		sort.Strings(names)
+		return false, "被调用了：" + strings.Join(names, "、")
+	}
+	return true, fmt.Sprintf("事件流里 %d 次工具调用，没有 %s", toolCalls, strings.Join(tools, "、"))
+}
+
 func assertTamperGuard(caseID, workdir string, spec AssertionSpec) (bool, string) {
 	// fixture 自带的门禁与断言不许被改弱——DSH 那句「一个把测试废掉而不是把 bug 修好的
 	// agent，应该在这里失败，而不是只栽在关键词探针上」说的就是这个。
@@ -625,6 +680,7 @@ var assertKinds = map[string]assertFunc{
 	"path_absent":         assertPathAbsent,
 	"checkpoint_location": assertCheckpointLocation,
 	"workspace_clean":     assertWorkspaceClean,
+	"tool_absent":         assertToolAbsent,
 	"tamper_guard":        assertTamperGuard,
 }
 

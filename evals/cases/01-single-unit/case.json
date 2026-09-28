@@ -1,7 +1,7 @@
 {
   "id": "01-single-unit",
   "name": "single-unit",
-  "what_it_tests": "单个单元的改动：loop-it 应该判成单单元模式内联做完，不建 worktree、不派子代理；**不顺手扩张范围**（不产出任务没要求的需求资料），万一产出了也得落在 fixture 声明的作用域根下、而不是技能默认的 `tasks/`；门禁与 fixture 自带的断言不许被改弱。\n\n⚠️ 这条用例**故意不要求**需求资料必须存在：`loop-it` 的单单元模式四步是「读清楚 → 内联实现 → 自证 → 收尾」，从不产出需求资料，技能里 `/prd（可选）` 也写着它是可选的。早先这里有一条 `path_glob requirements/*/README.md min 1`，于是**照技能做对的臂被扣了分**——断言要求了任务和技能都没要求的东西。真正的风险由 `path_absent tasks` 与 `checkpoint_location` 守住。",
+  "what_it_tests": "单个单元的改动：loop-it 应该判成单单元模式内联做完，不建 worktree、不开 graph 波次；**不顺手扩张范围**（不产出任务没要求的需求资料），万一产出了也得落在 fixture 声明的作用域根下、而不是技能默认的 `tasks/`；门禁与 fixture 自带的断言不许被改弱。\n\n⚠️ 这条用例**故意不要求**需求资料必须存在：`loop-it` 的单单元模式四步是「读清楚 → 内联实现 → 自证 → 收尾」，从不产出需求资料，技能里 `/prd（可选）` 也写着它是可选的。早先这里有一条 `path_glob requirements/*/README.md min 1`，于是**照技能做对的臂被扣了分**——断言要求了任务和技能都没要求的东西。真正的风险由 `path_absent tasks` 与 `checkpoint_location` 守住。\n\n⚠️ 「不派子代理」**故意没有断言**：单单元的收尾要按 `/review-it` 派一次评审子代理，那是正确路径。机械守住的是编排仪式——`.git/worktrees` 不存在（没留下 worktree 登记），事件流里没有 `workflow` 调用（没开图）。",
   "prompt": "我们库存服务现在只有一个全局的低库存阈值，所有仓库共用。业务要按仓库配：每个仓库能设自己的阈值，没配的仓库沿用原来的默认值。\n\n阈值来源定成 `inventory/thresholds.json`，形如 {\"shanghai\": 20}；文件不存在或某个仓库没配，就回退到 `DefaultLowStockThreshold`。\n\n帮我改掉，改完跑一遍门禁确认没弄坏。",
   "expected_output": "inventory/stock.go 按仓库读阈值；测试覆盖新行为；make check 绿；Makefile 与 stock_test.go 逐字节未变；没有落到 `tasks/` 下。",
   "fixture": "fixture",
@@ -37,6 +37,16 @@
     {
       "kind": "tamper_guard",
       "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）"
+    },
+    {
+      "kind": "path_absent",
+      "text": "单单元模式没有留下 worktree 登记（`.git/worktrees` 不存在）",
+      "glob": ".git/worktrees"
+    },
+    {
+      "kind": "tool_absent",
+      "text": "单单元模式不开 graph 波次（事件流里没有 workflow 调用）",
+      "tools": ["workflow"]
     },
     {
       "kind": "workspace_clean",

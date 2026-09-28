@@ -17,6 +17,7 @@
 | `checkpoint_location` | 检查点在 `requirements/<scope>/issues/` 下吗 |
 | `tamper_guard` | 门禁与自带断言被改弱了吗（把测试删掉换绿要能抓住） |
 | `workspace_clean` | 有没有写到 fixture 之外（臂的 cwd 就是 fixture，越界仍然是这条路的典型失败） |
+| `tool_absent` | 不该走的编排有没有发生（读 `events.jsonl`：例如单单元模式里出现 `workflow` 调用） |
 
 ## 两条臂
 
@@ -70,7 +71,7 @@ python ~/.agents/skills/skill-creator/eval-viewer/generate_review.py \
 
 ## 用例
 
-**只有两条在量技能的价值**（两条臂分数不同），其余三条是护栏（两条臂一样）。
+**只有两条在量技能的价值**（两条臂分数不同），其余六条是护栏（两条臂一样）。
 所以每轮只跑前两条；护栏**改了对应路径才跑**。
 
 ### 每轮必跑
@@ -84,7 +85,7 @@ python ~/.agents/skills/skill-creator/eval-viewer/generate_review.py \
 
 | 用例 | 护的是什么 | 什么时候跑 |
 |---|---|---|
-| [01-single-unit](cases/01-single-unit/case.json) | 单单元任务也会不会建需求资料；不落到技能默认的 `tasks/` | 动了 `loop-it` 的单单元路径 |
+| [01-single-unit](cases/01-single-unit/case.json) | 单单元任务也会不会建需求资料；不落到技能默认的 `tasks/`；编排仪式没有渗进来（不建 worktree、不开 graph 波次） | 动了 `loop-it` 的单单元路径 |
 | [02-mid-flight-change](cases/02-mid-flight-change/case.json) | 同一轮内调整，而不是冻结计划或让两套并存 | 动了中途变更／follow-up 逻辑 |
 | [03-artifact-handoff](cases/03-artifact-handoff/case.json) | 一个全新会话只凭上一个会话留下的 `requirements/<scope>/` 能不能把待办的 issue-002 做对 | 动了 `prd`／产物的字段结构 |
 | [06-exception-path](cases/06-exception-path/case.json) | 打回的 issue 挪到 `feat/issue-N-*` 留档、检查点记成 `failed` 并写下那条分支 | 动了例外路径／失败处理 |
@@ -92,7 +93,7 @@ python ~/.agents/skills/skill-creator/eval-viewer/generate_review.py \
 | [08-undeclared-workspace](cases/08-undeclared-workspace/case.json) | **工作区什么都不声明**时退到默认作用域根 `tasks/<feature>/`，而不是凭空发明一个约定 | 动了产物落点／作用域根那条约定 |
 
 01/02/03 是**纯护栏**：两条臂分数一样，它们只告诉你「技能没把简单事做复杂」。
-**06 与 07 不一样——它们有区分度**（06 是 9/9 vs 6/9，07 是 10/10 vs 6/10，是七个用例里最大的差距），
+**06 与 07 不一样——它们有区分度**（06 是 9/9 vs 6/9，07 是 10/10 vs 6/10，是八个用例里最大的差距），
 但不放进每轮：07 一次 `with_skill` 要付三次子代理生命周期（实测 210.8s / 1,568,225 tokens）。
 **改了对应路径就必须跑它们**，这正是它们存在的理由。
 

@@ -181,9 +181,7 @@ gh issue list --state open --json number,title,labels,body | python3 <SKILL_DIR>
 # 也可先落盘：python3 <SKILL_DIR>/scripts/loop_state.py scan --issues issues.json [--repo owner/name]
 ```
 
-脚本负责：解析 `Dependencies: #3, #5` / `Depends on: #3` / `depends on #3` / `requires #3`；建依赖图；按编号打破环并打印警告；拓扑排序；与已有状态合并（**已记录的状态绝不丢失**，损坏文件报错拒绝覆盖）；写检查点；打印有序列表、下一项、blocked/skipped。
-
-状态文件 schema 与旧版一致（`version`、`repo`、`total_issues`、`issues.<n>.{status,branch,phase,error_class,attempts,started_at,updated_at,completed_at,last_error}`），旧状态文件可直接恢复；`title`、`deps` 是 `scan` 追加的附加字段。
+脚本负责解析依赖边、排序、与已有状态合并（**已记录的状态绝不丢失**，损坏文件报错拒绝覆盖）和写检查点；**解析支持哪些写法、怎么破环、状态文件有哪些字段，一律以 `scripts/loop_state.py` 的 docstring 为准**——本文件不复述那些规则，旧版本的状态文件可直接恢复。
 
 随时查进度，不要自己算：
 
