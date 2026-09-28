@@ -864,16 +864,12 @@
       <pre><code><span class="comment"># Recommended — install all skills into ~/.agents/skills</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span>
 
-<span class="comment"># Or install specific skills — flow (8)</span>
-<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">prd</span>
-<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">to-design</span>
-<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">to-issues</span>
-<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">loop-it</span>
-<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">graph</span>
-<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">review-it</span>
-<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">ship-it</span>
+<span class="comment"># flow is ONE SET — install it whole, never one skill at a time.</span>
+<span class="comment"># The contract lives in `loop-it/`, and `prd` / `to-issues` / `review-it`</span>
+<span class="comment"># execute `loop-it/scripts/loop_state.py` directly, so a lone flow skill</span>
+<span class="comment"># cannot run. `npx skills add 9Ashwin/let-it-go` installs all eight.</span>
 
-<span class="comment"># bonus (7)</span>
+<span class="comment"># bonus (7) and vendor (10) have no such dependency — install those singly if you like</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">test-first</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">triage</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">diagnose</span>

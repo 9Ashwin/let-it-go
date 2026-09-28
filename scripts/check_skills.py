@@ -94,6 +94,10 @@ def _doc_text(path: str) -> str:
     markdown 链接的**目标**也要剥掉，只留标签：`[\`/review-it\`](skills/flow/review-it/SKILL.md)`
     里的 `skills/flow/` 会让「flow 后面跟着数字」命中后面那句「（8 个维度）」——那是评审轴数，
     不是 flow 桶的个数。
+
+    **换行要留着。** 计数模式写的是 `[^\n]{0,90}`，本意是「同一行附近」；早先把所有空白
+    （含换行）压成一个空格，那个上界就形同虚设，匹配会跨过无关的行——`mid-flow` 和一段新加的
+    安装说明都这样误命中过。所以只压**水平**空白，换行与空行单独收一收。
     """
     import html as _html
 
@@ -101,7 +105,8 @@ def _doc_text(path: str) -> str:
     body = re.sub(r"<(style|script)\b.*?</\1>", " ", body, flags=re.S | re.I)
     body = re.sub(r"\]\([^)]*\)", "]", body)          # markdown 链接目标
     body = _html.unescape(re.sub(r"<[^>]+>", " ", body))
-    return re.sub(r"\s+", " ", body)
+    body = re.sub(r"[^\S\n]+", " ", body)             # 水平空白压成一个空格
+    return re.sub(r" *\n[ \n]*", "\n", body)          # 空行与行尾空白收掉
 
 
 def check_stated_counts(repo_root: str, skills: list[tuple[str, str, str]]) -> list[str]:
@@ -321,6 +326,37 @@ def _flatten_problem(
     return []
 
 
+def check_no_partial_flow_install(repo_root: str, skills: list[tuple[str, str, str]]) -> list[str]:
+    """文档里不许教「单装一个 flow 技能」。
+
+    flow 是一套，不是八个可以拆开卖的技能：契约住在 `loop-it/` 里，而 `prd` / `to-issues` /
+    `review-it` **直接执行** `loop-it/scripts/loop_state.py`。所以单装任何一个都跑不起来。
+
+    而这个错写起来太顺手——两份指南里曾经并排列着 24 行 `--skill <flow 技能>`，每一行单独看
+    都合法，只有把它们和「flow 怎么跑」放在一起看才不对。能机械拦住的只有这里：`--skill` 后面
+    跟一个 flow 技能名就报红。bonus 与 vendor 没有这种依赖，单装随你。
+    """
+    flow = {name for bucket, name, _ in skills if bucket == "flow"}
+    problems: list[str] = []
+    for rel in ("README.md", "README_EN.md", "docs/index_cn.html", "docs/index_en.html"):
+        path = os.path.join(repo_root, rel)
+        if not os.path.isfile(path):
+            continue
+        text = open(path, encoding="utf-8").read()
+        # 先剥标签：HTML 里 `--skill</span> <span class="value">prd</span>`，不剥就会先匹配到 `span`。
+        plain = re.sub(r"<[^>]+>", " ", text)
+        for match in re.finditer(r"--skill\s+([a-z][a-z0-9-]+)", plain):
+            if match.group(1) not in flow:
+                continue
+            line = plain.count("\n", 0, match.start()) + 1
+            problems.append(
+                f"{rel}:{line}: teaches installing the flow skill `{match.group(1)}` on its own — "
+                f"flow is one set (the contract and `loop_state.py` live in loop-it), so a lone flow "
+                f"skill cannot run. Install the whole set, or drop the example"
+            )
+    return problems
+
+
 def check_script_references(repo_root: str, skills: list[tuple[str, str, str]]) -> list[str]:
     """Every `scripts/<name>` a skill mentions must exist somewhere in the set.
 
@@ -532,6 +568,7 @@ def main() -> int:
     failures.extend(check_bundle_patch(repo_root, {b for b, _, _ in skills}))
     failures.extend(check_skill_references(repo_root, skills))
     failures.extend(check_reference_links(repo_root, skills))
+    failures.extend(check_no_partial_flow_install(repo_root, skills))
     failures.extend(check_script_references(repo_root, skills))
     failures.extend(check_installer_manifest(repo_root, skills))
     failures.extend(check_stated_counts(repo_root, skills))

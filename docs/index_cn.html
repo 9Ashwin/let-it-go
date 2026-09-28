@@ -861,7 +861,34 @@
         <h3>2. 安装</h3>
       </div>
       <h3>作为 skill 目录安装</h3>
-      <pre><code><span class="cmd">npx skills add</span> <span class="value">9Ashwin/let-it-go</span></code></pre>
+      <pre><code><span class="cmd">npx skills add</span> <span class="value">9Ashwin/let-it-go</span>
+
+<span class="comment"># flow 是一套——整套装，别单装其中一个。</span>
+<span class="comment"># 契约住在 `loop-it/` 里，而 `prd` / `to-issues` / `review-it` 直接执行</span>
+<span class="comment"># `loop-it/scripts/loop_state.py`，所以单装一个 flow 技能跑不起来。</span>
+<span class="comment"># `npx skills add 9Ashwin/let-it-go` 一次装齐八个。</span>
+
+<span class="comment"># bonus（7 个）与 vendor（10 个）没有这种依赖，可以单装</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">test-first</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">triage</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">diagnose</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">conflict</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">refactor</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">modern-go</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">understand</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">svg-diagram</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">find-skills</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">frontend-design</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">humanizer-zh</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">pptx</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">resume-optimizer</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">skill-creator</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">teach</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">ui-ux-pro-max</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">web-design-guidelines</span>
+
+<span class="comment"># 全局安装（对所有项目生效）</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">-g</span></code></pre>
       <ul class="step-list">
         <li>skills 落到 <code class="inline-code">~/.agents/skills</code>，这条装法不必动任何 profile 依赖。</li>
         <li><code class="inline-code">npx skills</code> 递归扫描，安装时把 <code class="inline-code">skills/&lt;桶&gt;/&lt;技能&gt;</code> <strong>拍平</strong>成 <code class="inline-code">~/.agents/skills/&lt;技能&gt;</code>——技能根只扫一层，所以必须拍平。</li>
