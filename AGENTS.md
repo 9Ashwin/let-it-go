@@ -39,9 +39,14 @@ make test    # 再跑各技能自带脚本的自测
   `references` = 解释、例子与故障排查；`README` / `docs` = 项目地图，不写细节规则；
   `evals` = 验证契约，不反向定义流程。**同一条规则不要在多层各写一份**——
   要复述就在那一层指向唯一说明，别把脚本已经实现的 schema 或算法抄进 SKILL。
-- **产物落点由技能定义、仓库只决定作用域根。** 会写产物的技能
-  （`prd` / `to-design` / `to-issues` / `loop-it` / `graph`，以及 `ship-it` 的
-  `references/walkthrough.md`）开头那段「产物落点」是唯一正文，别在别处复述。
+- **flow 的唯一真相源是 [`skills/flow/CONTRACT.md`](skills/flow/CONTRACT.md)。** 工作状态、
+  证据层、三个 profile 的边界、产物落点、goal 燃料都在那里；七份 `SKILL.md` 只写「何时调用、
+  边界、失败怎么办」，开头一句链接过去。**别把契约抄回 SKILL，也别在 README 里复述细节规则。**
+- **提交与推送**：分支只留 `master`，做完就提交并推 `origin/master`；临时分支用完就删（远端一起删）。
+- **并发用 `subagent` / `workflow`，不用 Agent Teams。** 要并行就派普通子代理，或写一个 workflow
+  脚本 fan-out；不要建 teammates。
+- **技能正文里不写来源出处**（谁写的、从哪读的都不写），也不带任何具体项目的工作约定——
+  参考别人的仓库时只借机制，不借内容。要留出处就放 [`docs/references-notes.md`](docs/references-notes.md)。
 - **flow 技能不设审批闸门。** 规划半边是连续的——`理解 → 做 → 观察 → 追问 → 调整`，不是
   `问 → 写文档 → 等人批准 → 才敢继续`；闸门还奖励"一次问够"，于是澄清问题膨胀成一份要通读的清单。
   所以：**该问的当场问，剩下的边做边收**，产物落盘即视为可用（原文在 `skills/flow/prd/SKILL.md`
