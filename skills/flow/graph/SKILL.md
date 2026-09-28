@@ -10,6 +10,8 @@ description: "并行实现：**只在节点互不共享文件、彼此也没有�
 
 **工作状态、证据层、三个 profile 的边界、产物落点见 [`../CONTRACT.md`](../CONTRACT.md)——本文件不复述。** 这里只写三件事：怎么拆节点、怎么跑波、fan-in 怎么收。
 
+下文中的工具名与 `workflow` 脚本写法是 DSH 侧用法；在 Codex 下执行时，工具映射见 [`references/codex-runtime.md`](references/codex-runtime.md)，节点边界、检查点与 fan-in 契约不变。
+
 本技能的两个产物——`.graph_state.json`（检查点）与 `graph.html`（看板）——落在**作用域根**；`.graph-worktrees/` 留在仓库根。下面命令里的相对路径都相对作用域根理解。
 
 **这是指导，不是脚本。** 排序的算术——环检测、作用域冲突、波分层、检查点状态转换——属于 `scripts/graph_state.py`，它有测试。跑它、读它的输出；不要用散文重推分层。
@@ -192,6 +194,7 @@ python3 <SKILL_DIR>/scripts/graph_state.py prompt --node {N}
 
 - [`references/planning.md`](references/planning.md) — 节点文件字段、规划器旗标（`--keep-shipped` / `--only-pending` / `--max-parallel`）、忽略规则与看板、状态机谁写哪个状态、常见错误表。
 - [`references/dsh-runtime.md`](references/dsh-runtime.md) — DSH 的委派机制、两个工作目录陷阱、depth/并发/成本、分支布局、状态 schema，以及为什么评审与交付放在波级。
+- [`references/codex-runtime.md`](references/codex-runtime.md) — Codex 下的独立子代理、worktree 路径、波屏障与 fan-in 映射。
 - [`references/node-prompt.md`](references/node-prompt.md) — 节点提示词模板、怎么填、`workflow` 派发脚本、怎么读节点的报告。
 - [`references/lean-subagent.md`](references/lean-subagent.md) — 仅 DSH 的部署补丁，去掉节点子代理的技能目录（可选成本杠杆），附注意事项。
 - `scripts/graph_state.py`（`plan` / `set` / `prompt` / `show`）——校验、分层、检查点，以及由它们渲染出的节点提示词。`set --branch` 记录节点实际所在；`prompt` 优先用它而不是从标题派生的名字。

@@ -81,7 +81,7 @@ ship 只在批末做一次。**分支是例外路径的工具，不是每个 iss
 **要拿到结果才能往下走，就传 `run_in_background: false`。** DSH 的 `subagent` 默认后台跑，而**后台子代理
 不会让本回合保持忙碌**：你以「等它返回」结束回合，回合就是 `turn_end: completed`，在 headless 里整个运行
 到此为止——后面的收尾、push 与交付都不会发生。实测过一次：一条臂把批末对抗性评审派成后台子代理后停在 8/9，
-唯一没过的断言正是它结尾那句「收到结论后继续批末收尾与 push」。机制细节见 [`dsh-runtime.md`](dsh-runtime.md)。
+唯一没过的断言正是它结尾那句「收到结论后继续批末收尾与 push」。DSH 机制见 [`dsh-runtime.md`](dsh-runtime.md)，Codex 等待方式见 [`codex-runtime.md`](codex-runtime.md)。
 
 ## follow-up 的落点
 

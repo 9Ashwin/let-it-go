@@ -9,6 +9,8 @@ commit 或交付之前的一次评审：由一个**不共享上下文的子代�
 
 **工作状态、证据层、三个 profile 的边界、零人工闸门见 [`../CONTRACT.md`](../CONTRACT.md)——本文件不复述。** 这里只写四件事：何时调用、评审什么、怎么判、判不过怎么办。
 
+下文中的 `subagent`、`run_in_background` 与 `job_*` 是 DSH 工具名；在 Codex 下执行时，委派与等待方式见 [`references/codex-runtime.md`](references/codex-runtime.md)，评审判据不变。
+
 ## 何时调用
 
 - 用户要求 code review / review-it / autoreview
@@ -106,4 +108,5 @@ git diff "origin/$base"...HEAD > "$diff_file"
 
 ## 运行时参考
 
-DSH 是这套技能唯一面向的宿主。[`references/dsh-runtime.md`](references/dsh-runtime.md) 覆盖技能加载、委派机制与 goal 边界——**没有外部评审 CLI，评审者就是一个全新子代理**。
+- [`references/dsh-runtime.md`](references/dsh-runtime.md) — DSH 的技能加载、委派机制与 goal 边界；评审者是一个全新子代理。
+- [`references/codex-runtime.md`](references/codex-runtime.md) — Codex 下如何创建独立评审上下文、提供自包含提示词并等待结论。

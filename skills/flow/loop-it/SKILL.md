@@ -10,6 +10,8 @@ description: "实现入口：一个单元就内联做完，一批有依赖的 is
 
 **工作状态、证据层、三个 profile 的边界、产物落点见 [`../CONTRACT.md`](../CONTRACT.md)——本文件不复述。** 这里只写三件事：怎么选模式、单个 issue 的边界、批末怎么收。
 
+本文件里的 `create_goal`、`run_in_background` 等工具名描述 DSH 用法；在 Codex 下执行时，委派、等待、长命令和跨回合恢复见 [`references/codex-runtime.md`](references/codex-runtime.md)，流程边界与检查点规则不变。
+
 **这是指导，不是脚本。** 排序（拓扑 + 环打破）、下一项判定、检查点读写全部由 `scripts/loop_state.py` 完成并落盘——不要用散文重推这些算法，跑脚本、读它的输出即可。
 
 检查点固定在**作用域根的 `issues/.loop-state.json`**（默认 `tasks/<feature>/issues/.loop-state.json`）。下面命令里的相对路径都相对作用域根；从别处跑就显式传 `--state <路径>`。**先设一次，后面所有命令原样可抄**：
@@ -57,7 +59,7 @@ python3 $S next --state $ST
 - **每个 issue 一个 commit**，message 概括改动、**不带 issue 编号**（编号由分支名承载，逐 issue 追溯靠 commit 顺序、检查点与批末 PR 描述）。
 - **整批不 push、不开 PR**——push 与 PR 在批末做一次。
 - **怎么实现：内联，还是派一个实现者子代理。** issue 少或都小就内联；一批多或每个都大就派——编排者的上下文要活到批末。派的时候子代理看不到这段对话，prompt 必须自包含（卡片正文、工作目录 + 分支名、门禁命令、检查点协议、边界，五样缺一不可，清单见 [`references/batch-model.md`](references/batch-model.md)）。**子代理说它做完了不是证据**——证据核对与检查点落盘仍由编排者负责。
-- **要拿到结果才能往下走，就传 `run_in_background: false`。** 后台子代理不会让本回合保持忙碌：以「等它返回」结束回合就是 `turn_end: completed`，headless 里整个运行到此为止。实测过一次：把批末对抗性评审派成后台子代理后停在 8/9，唯一没过的断言正是结尾那句「收到结论后继续批末收尾与 push」。
+- **要拿到结果才能往下走，就传 `run_in_background: false`。** 后台子代理不会让本回合保持忙碌：以「等它返回」结束回合就是 `turn_end: completed`，headless 里整个运行到此为止。实测过一次：把批末对抗性评审派成后台子代理后停在 8/9，唯一没过的断言正是结尾那句「收到结论后继续批末收尾与 push」。Codex 下的等待映射见 [`references/codex-runtime.md`](references/codex-runtime.md)。
 - **`failed` 的 issue 一律挪到 `feat/issue-N-slug` 上留档**，需求分支上不留它——**按状态触发，不按措辞**：打回 / 重做 / 等用户裁决 / 信息不足，只要记成 `failed` 就走这条。
 
 ## 前置检查（串行循环）
@@ -82,7 +84,7 @@ git add .gitignore && git commit -m "chore: ignore the loop checkpoint"
 上面的前置检查要求工作树干净，留着未提交的忽略规则会让循环卡在第一步。（不想往 `.gitignore` 里加规则，
 就把同一行写进未被跟踪的 `.git/info/exclude`。）
 
-## 开跑前先开 goal
+## DSH：开跑前先开 goal
 
 **这一轮如果是人交来的活，现在就 `create_goal`。** 它的门禁是「当前打开的回合里有人类消息 + 调用者是顶层 agent」——**模型自己就能开**，不需要人敲 `/goal`；子代理开不了，所以只能在顶层开。
 
@@ -197,6 +199,7 @@ python3 $S set --issue N --status failed --error-class build_failure --error "<m
 - [`references/edge-cases.md`](references/edge-cases.md) — 边界情况处理表。
 - [`references/error-recovery.md`](references/error-recovery.md) — 错误分类表与恢复协议。
 - [`references/dsh-runtime.md`](references/dsh-runtime.md) — DSH 侧的发现/调用方式与委派工具映射。
+- [`references/codex-runtime.md`](references/codex-runtime.md) — Codex 下的委派、串行等待、命令会话与检查点恢复。
 - `scripts/loop_state.py` — `scan` / `set` / `note` / `evidence` / `followup` / `next` / `summary`，顺序与检查点的唯一实现。
 - `scripts/test_loop_state.py` — 自测：`python3 <SKILL_DIR>/scripts/test_loop_state.py`。
 
