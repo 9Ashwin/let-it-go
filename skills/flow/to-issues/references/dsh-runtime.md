@@ -26,5 +26,8 @@ DSH 在扫描根的下一层、按 `<root>/<name>/SKILL.md` 发现技能，
 | 继承上下文的 **fork 出来的子代理** | `subagent_fork` |
 
 GitHub CLI 发布这条路不需要映射：`gh` 在任何宿主上跑法都一样。其余几行
-本来就是中立的——`/loop-it` 与 `/graph` 是 DSH 技能，长跑目标则是人自己敲的
-`/goal`，不是模型能起的东西。
+本来就是中立的——`/loop-it` 与 `/graph` 是 DSH 技能。
+
+**长跑目标不是"人自己敲 `/goal`"。** 面向模型的那一半是 `create_goal` / `update_goal`：它的门禁是
+「当前打开的回合里有人类消息」+「调用者是顶层 agent」——**模型自己就能开**，子代理开不了。
+一批活开工时创建它，会话就会跨回合自动续跑；批末 `update_goal complete`。见 `skills/flow/CONTRACT.md` 第 6 节。

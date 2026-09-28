@@ -8,7 +8,7 @@ description: "实现入口：一个单元就内联做完，一批有依赖的 is
 
 这是**实现**这一步的入口。进来先判规模，别默认开循环。
 
-**产物落点：作用域内的形状固定，仓库只决定作用域根。** 都落在 `<scope>/` 下——`documents/`（PRD、SPEC、设计：`prd-<feature>.md`、`spec-<feature>.md`、`design-<feature>.md`）、`issues/`（`issue-NNN-<slug>.md`）、`notes/`（走查件、实现笔记、`environment.md`）、`records/`（`<YYYY-MM-DD>-delivery.md`）、`checklists/`（`<YYYY-MM-DD>-<服务>.md`）。**作用域根默认 `tasks/<feature>/`**；仓库有约定（如 `requirements/<scope>/`，或 `AGENTS.md` 里的路由表）就用它的根，目录名不变；仓库完全没约定时用默认值。本文件下面写的路径若与此冲突，以这一段为准。
+**工作状态、证据层、三个 profile 的边界、产物落点见 [`../CONTRACT.md`](../CONTRACT.md)——本文件不复述。** 这里只写三件事：怎么选模式、单个 issue 的边界、批末怎么收。
 
 **这是指导，不是脚本。** 排序（拓扑 + 环打破）、下一项判定、检查点读写全部由 `scripts/loop_state.py` 完成并落盘——不要用散文重推这些算法，跑脚本、读它的输出即可。本文件只说明怎么选模式、单个 issue 的边界，以及批末收尾。
 
@@ -158,6 +158,25 @@ python3 $S next --state $ST
 | 在默认分支 | `git branch --show-current` | 提示切回默认分支，并在有 upstream 时 `git pull` |
 | 远程可达（**仅远端模式**） | `git ls-remote --heads origin` | 停止，检查网络与权限；纯本地仓库跳过这条 |
 | 恢复还是重来 | `<scope>/issues/.loop-state.json` 是否存在 | 恢复 / 删除重来 / 中止；`scan` 会自动合并旧状态，只有损坏文件才要求用户处理 |
+
+### 开跑前先开 goal——这是唯一让循环不靠人推的东西
+
+**这一轮如果是人交来的活，现在就 `create_goal`。** 它的门禁是「当前打开的回合里有人类消息 +
+调用者是顶层 agent」——**模型自己就能开，不需要人敲 `/goal`**；子代理开不了，所以只能在顶层开。
+
+```
+create_goal(objective="把 <这批 issue> 按 /loop-it 做完，直到批末评审与交付",
+            max_goal_rounds=<issue 数 × 3 左右>)
+```
+
+- **`max_goal_rounds` 自己给。** 默认 256 太大；打满会变成 `blocked`（`round-limit`），而那时
+  `resume` 会被拒，得先 `edit` 提高上限才能接上。
+- **批末必须 `update_goal complete`。** 轮提示写的是「还有工作就保持 active」，不显式关掉会一直
+  烧到上限。
+- **中途被 disarm 不是灾难**：单步输出触顶（`max-tokens`）、turn 被 abort、agent 报错、插件重载
+  都会让续跑停下（目标仍 active）。检查点还在——人一句「继续」就 `resume` 接着跑。所以
+  **每个状态转换都要先落盘**。
+- 其余边界见 [`../CONTRACT.md`](../CONTRACT.md) 第 6 节。
 
 **检查点默认排除出版本库**，并**在开跑前把忽略规则提交掉**——仓库有约定要把它随需求资料一起版本化（例如就放在 `<scope>/issues/` 下随需求提交）就照仓库的来，跳过这一段：
 
@@ -337,6 +356,8 @@ python3 <SKILL_DIR>/scripts/loop_state.py followup list
 #    一个 PR、一次 CI、一次 merge，关闭本批满足的 issue
 /ship-it
 python3 <SKILL_DIR>/scripts/loop_state.py summary
+# 3) 关掉 goal——不显式关，续跑会一直烧到轮数上限
+#    update_goal(goal_id=<id>, revision=<rev>, action="complete")
 ```
 
 留着 open 直接 ship，等于把那些发现交给运气：`promoted` 的会变成新 issue，重跑 `scan` 就进下一轮；`dropped` 的必须写清为什么不做的。
@@ -348,7 +369,7 @@ python3 <SKILL_DIR>/scripts/loop_state.py summary
 **走查件与 PR body 都由 `/ship-it` 产出**——它是唯一产出者，走查件提供证据、body 采用它。四类内容各归一处，都不另出笔记文件：
 
 - **批级**的设计决策/偏离/权衡/待确认 → `/ship-it` 的实现总结评论，承载一次
-- **逐 issue 的四类**（进度/关键决策/验证记录/未决事项）→ 检查点里的 `note`
+- **逐 issue 的四类**（同样的四个标题：进度 / 关键决策 / 验证记录 / 未决事项）→ 检查点里那条 issue 的 `note`
 - 每条验收条件的结构化观测 → 检查点里的 `evidence`
 - 新发现的任务 → 检查点里的 `followup`
 - 仓库约定要求另写一份时，把路径写进 `--verification`
@@ -363,7 +384,8 @@ python3 <SKILL_DIR>/scripts/loop_state.py summary
 
 ## 运行须知
 
-- 「实现 issue」就是 agent 自己读 issue、写代码、跑门禁；不依赖任何外部命令替你完成，**也不要在循环里另起一个长期目标**。
+- 「实现 issue」就是 agent 自己读 issue、写代码、跑门禁；不依赖任何外部命令替你完成。
+- **一批活由 goal 供能**：开工时 `create_goal`，批末 `update_goal complete`——漏了任何一头，循环要么每条停在回合边界，要么一直烧到轮数上限。见上面「开跑前先开 goal」。
 - 每次 shell 调用都是全新 shell：`cd`、变量不跨调用保留；切基线 + 条件 pull + 开分支（含解析默认分支那两行）必须写在同一条命令里。
 - 维护每个 issue 一条的**任务清单**；它与 `.loop-state.json` 在同一状态转换后更新，冲突时以脚本为准。
 - 长构建/测试作为**后台任务**运行，不要阻塞在单次调用里。

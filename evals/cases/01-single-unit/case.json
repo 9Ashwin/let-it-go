@@ -31,8 +31,8 @@
       "glob": "tasks"
     },
     {
-      "kind": "checkpoint_location",
-      "text": "若产生了 loop 检查点，它必须在 requirements/<scope>/issues/ 下"
+      "kind": "checkpoint_absent",
+      "text": "单单元零仪式：不产生 loop 检查点（CONTRACT §3 的硬契约）"
     },
     {
       "kind": "tamper_guard",

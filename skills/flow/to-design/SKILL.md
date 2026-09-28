@@ -1,198 +1,94 @@
 ---
 name: to-design
-description: "从 PRD 写一份 Go 风格的设计提案——Abstract / Background / Design / Rationale / Compatibility / Implementation，重在「为什么」。原来的 /prd-to-spec 入口已并入本技能，所以 **SPEC / 规格说明 / 技术方案也走这里**；但产出的是**设计提案**（为什么这么选、取舍在哪），**不是字段级契约**——要「可以照着实现的精确契约」（表 / 接口 / schema）去 /to-issues 的 issue 正文。可选渲染成自包含的 house-style HTML 页面。Triggers: to-design, 设计文档, 设计提案, design doc, 生成设计文档, SPEC, spec, 规格说明, 写spec, 技术方案."
+description: "只在有真岔口要留档时才写设计提案：碰了公开 API / 数据迁移（含改数据模型）/ 权限与认证边界 / 兼容性 / 不可逆操作才用它；产出重在「为什么这么选」（Rationale / Compatibility），不是长 SPEC，也不是字段级契约——契约在 /to-issues 的 issue 正文。原来的 /prd-to-spec 入口已并入本技能，所以 **SPEC / 规格说明 / 技术方案也走这里**。可选渲染成自包含的 house-style HTML 页面。Triggers: to-design, 设计文档, 设计提案, design doc, 生成设计文档, SPEC, spec, 规格说明, 写spec, 技术方案."
+---
+
+# to-design — 设计提案（决策与取舍）
+
+**只在有真岔口要留档时才用。** 产出的是「为什么这么选」，不是长 SPEC。
+
+**工作状态、证据层、三个 profile 的边界、产物落点见 [`../CONTRACT.md`](../CONTRACT.md)——本文件不复述。**
+
+**设计文档不是契约。** 契约在 issue 正文（CONTRACT 第 1 节）。被实现证伪或已经过时，就直接重写或删掉，不要供着。
 
 ---
 
-# to-design — 需求 → 设计文档
+## 何时调用
 
-把 PRD（或一个还粗糙的想法）写成一份**设计文档**，风格照 Go 官方 design proposal：语言平实、例子具体，最重要的是**老实交代为什么选这条路而不是别的**。
+判据是固定清单，**不许自由心证**。碰了下面任何一条才用它：
 
-**产物落点：作用域内的形状固定，仓库只决定作用域根。** 都落在 `<scope>/` 下——`documents/`（PRD、SPEC、设计：`prd-<feature>.md`、`spec-<feature>.md`、`design-<feature>.md`）、`issues/`（`issue-NNN-<slug>.md`）、`notes/`（走查件、实现笔记、`environment.md`）、`records/`（`<YYYY-MM-DD>-delivery.md`）、`checklists/`（`<YYYY-MM-DD>-<服务>.md`）。**作用域根默认 `tasks/<feature>/`**；仓库有约定（如 `requirements/<scope>/`，或 `AGENTS.md` 里的路由表）就用它的根，目录名不变；仓库完全没约定时用默认值。本文件下面写的路径若与此冲突，以这一段为准。
-
-设计文档是一份**决策产物**：它为一个方案辩护、把取舍摊开、让团队在有人动手写代码之前先站在同一套事实上。它**不是**实现契约——那是 `/to-issues` 产出的 **issue 正文里的契约字段块**（表、接口、schema，工程师照着建）。问「*该怎么建、为什么这么建*」→ 设计文档；问「*给我可以照着实现的精确契约*」→ `/to-issues`。
-
-**Markdown 是主产物。** 渲染成自包含的 HTML 页面只是可选的呈现层，从不是必须——见文末「可选：渲染成 HTML」。
-
-> 设计哲学源自对 5 篇 Go 官方 proposal（泛型 / 错误包装 / loopvar / slog / try）的分析。核心信念：**文档的价值不取决于方案是否通过，而取决于它是否让讨论建立在同一套事实和取舍之上。**
-
----
-
-## 何时用 / 何时不用
-
-**用**：PRD 已存在，需要在动手前决定 *怎么建*；方案有真实取舍，且希望被记录、被讨论；变更风险高、破坏性强或难以回滚（设计文档逼你提前谈兼容性）；需要多人先对齐方向再分头开工；想要一份"为什么选 X、为什么不选 Y"的持久记录——即使方案最后被否。
-
-**不用**：只要实现契约 → 直接 `/to-issues`，契约字段块写在 issue 正文里；纯增量、无取舍的小改动 → 跳过，直接开工；内容已定、只要一份视觉固定的 HTML → 见文末 HTML 一节。
-
----
-
-## 第 1 步：找到输入
-
-```
-Provide the PRD (or idea) to design from:
-
-A. File path (e.g., <scope>/documents/prd-priority-system.md)
-B. GitHub Issue URL
-C. Paste content directly
-D. Just describe the idea — I'll design from the conversation
-```
-
-设计文档可以从半成形的想法起步，不必是打磨好的 PRD。输入越薄，第 2 步问得越多。
-
-**（可选）扫一遍代码库**，把设计落在现实上：既有模式（命名、错误处理、模块边界）、前例（这里是否试过或否过类似方案）、约束（兼容承诺、公开 API、不能动的数据）、真实痛点（找到本次要修的 buggy/别扭代码，让 Background 能引用它）。最有说服力的 Background 引用**用户仓库里的真实代码**，不是假设的例子。
-
----
-
-## 第 2 步：浮现决策
-
-设计文档的成败在 Rationale。动笔前先找出**路上真正的岔口**——一个有能力的工程师可能合理走两个方向的地方——并解决它们。只问真岔口：
-
-```
-Design decisions to settle before I write the doc:
-
-1. Where does this logic live?
-   A. Extend the existing X
-   B. New standalone component Y
-   C. Let me recommend based on the codebase
-
-2. Is this a breaking change for existing callers?
-   A. Yes — needs a migration path
-   B. No — purely additive
-   C. Unsure — I'll analyze and flag it
-
-3. What's the one promise this design must keep? (e.g. backward compatibility,
-   latency budget, no new dependencies)
-```
-
-每个岔口都记下**你没选的那条路**——它就是 Rationale。没有备选方案时，强迫自己想"最朴素的做法是什么、为什么不够"：总有一个被否决的基线。
-
----
-
-## 第 3 步：文档结构
-
-从 5 篇 Go proposal 提炼的标准骨架。保留章节名；确实不适用的可以删（删得显眼就说明原因）。
-
-```markdown
-Title: <一句话说清"做什么" —— 标题就是结论，不是名词短语>
-Author(s): <作者>
-Last updated: <YYYY-MM-DD>
-Discussion at <issue / PR / 文档链接>   # 让文档不孤立，永远附讨论入口
-Status: Draft | Under review | Accepted | Rejected
-
-## Abstract / 摘要
-一段话讲完全文：做什么、大致怎么做、以及**最重要的那个承诺**（如"向后兼容""不引入新依赖"）。读者读完这段就该知道全貌。
-
-## Background / 背景与动机
-用**具体、可感的例子**说明"痛在哪"，不要抽象地说"现状不好"。能贴真实的 bug 代码/别扭调用就贴，先让读者"疼"起来；量化痛点（频率、踩坑次数、损失），别堆形容词。
-
-## Design / Proposal / 设计
-文档主体。三条：**从简单到复杂，渐进式教学**；**声明 + 示例 + 边界**三件套；**改造前 vs 改造后对照**。能用一段可运行代码说清的，绝不用一段文字描述。
-
-## Rationale / 理由与取舍
-> "为什么是这个方案，而不是别的"的论证。这是区分好文档和平庸文档的关键章节。
-解释关键决策的动机；**主动列出被放弃的备选方案 + 放弃原因**（"我们没选 X，因为 Y"）——这比单方面论证更可信，也避免后人重复讨论；回应可预见的质疑。
-
-## Compatibility / 兼容性
-凡涉及破坏性变更，必须正面回应：**开门见山承认**是不是破坏性变更；**诚实列出**代价（性能、行为变化、迁移成本）；给出渐进迁移路径（按模块 opt-in、灰度、特性开关）；有先例佐证更好。
-
-## Implementation / Transition / 实现与过渡
-如何落地、分几步、配套什么工具。**用数据和工具支撑"可落地"**：实测失败率、灰度结果、自动化迁移工具，比"我们认为风险可控"管用；兼容老版本的过渡方案（如独立发布的兼容库）。
-
-## Appendix / 附录（可选）
-把打断主线的细节后置：完整 API、端到端示例、FAQ（"为什么叫这个名字""和 X 有何不同"）。
-```
-
-**PRD → 设计文档**：Problem → Background（找真实痛点并量化）；Goals → Abstract + Background（提炼"最重要的承诺"）；User Stories → Design（渐进式示例）；Technical Considerations → Design + Rationale（约束 → 决策 + 取舍）；Non-Goals → Rationale（"我们没做 X，因为 Y"）；Risks → Compatibility + Implementation（风险 → 兼容代价 + 迁移方案）；隐含的备选方案 → Rationale（显式列出并解释为何不选）。
-
-**评审与保存**：把反馈引到关键章节——Rationale（被放弃的方案站得住吗、有无遗漏备选）、Compatibility（破坏性与代价说清了吗、迁移路径可行吗）、Background（痛点是否具体）、文风（标题是否结论、有无被动腔）。保存到 `<scope>/documents/design-<feature>.md`（紧挨 PRD），自定义路径亦可。**落盘即视为可用，不等「回复 OK」**——与 `/prd` 同一条理由：闸门把澄清切成瀑布，而真实的澄清是 `理解 → 做 → 观察 → 追问 → 调整`。用户后来的反馈一律当修订，直接应用并重存。
-
----
-
-## 文风（照搬 Go 文档）
-
-- **主语**：决策用"我们 / We"（一群人可负责的选择，不是客观真理）；行为用代码本身当主语（"这段代码有 bug"）；说理对读者用"你 / you"。禁止无主语的被动腔（"据建议应当…"）。
-- **句子**：判断用短句，论证用长句。先用极短的句子拍板（"这段代码有 bug。"），再用信息密集的长句铺开机制；长短交替制造节奏。
-- **段落**：一段只讲一件事，观点放段首（结论先行）。小标题写成一句完整的论点，而不是名词短语——写 `老代码不受影响，编译结果与之前完全一致`，而不是 `兼容性`；读者光看标题就能读完整条论证链。
-- **语气**：克制的诚实，甚至自嘲。承认代价、承认自己也踩过坑，比形容词更有说服力。强调要省着用，全文只在最关键处加粗一次，反而最醒目。
-
----
-
-## 自检与常见错误
-
-- [ ] 标题是一句"做什么"的结论，不是名词短语，且附了讨论链接
-- [ ] 摘要里埋了最重要的承诺/约束
-- [ ] Background 用了**具体例子或真实代码**讲痛点，而非形容词
-- [ ] Design 遵循"声明 + 示例 + 边界"，并有渐进式教学
-- [ ] **Rationale 主动列出了至少一个被放弃的方案及原因**（最关键的检查项）
-- [ ] 凡破坏性变更，Compatibility 都正面承认并列出代价
-- [ ] Implementation 用数据/工具支撑"可落地"，而非空喊"风险可控"
-- [ ] 文风：决策用"我们"、行为用代码、无无主语被动腔；长短句交替；小标题是论点句
-- [ ] 没有 "TBD / TODO"——要么解决，要么挪进 Open Questions
-
-反模式：**只论证你选的方案**（不写被放弃的备选项，文档就少了一半价值）；**用形容词讲痛点**；**藏代价**；**把标题写成名词**；**用无主语的被动腔**；**把设计文档写成字段级契约**（讲"为什么这么选"和取舍才是它的活；表 / 接口 / schema 归 `/to-issues` 的 issue 正文）；**因为方案可能被否就敷衍**（文档质量与提案是否通过无关）。
-
----
-
-## 可选：渲染成 HTML
-
-**HTML 只是可选的呈现层，Markdown 提案才是主产物。** 默认交付 Markdown；只有当用户明确要一份可分享、视觉固定的页面，或要把既有 `.md` 规格转成 HTML 时才渲染。不渲染完全不影响本技能成立——不要把 HTML 当成必经步骤。
-
-### 工作流
-
-1. **整份复制 `template.html`**（同目录），不要手搓 `<head>`/`<style>`。改标题、TOC 与各 `<section>` 内容，保留 `<style>` 原样。
-2. **先取真实内容**：章节标题、字段名、SQL、`file:line`、protoIds 都必须来自真实需求文档与代码库。读代码，不要编造标识符；不知道的事实标 `<span class="pill todo">待确认</span>`，绝不猜。
-3. **填骨架**：按功能重命名/重排 `<section>`，但保留章节种类：已对齐结论 → 业务规则 → 架构图 → 时序 → 数据模型 → 契约 → 清单 → 幂等降级 → 测试用例 → 代码索引 → 变更记录。不适用的删掉，特性专属的按同样风格加。
-4. **TOC 与 section 保持同步**：每个 `<a href="#x">` 都要有对应的 `<section id="x">`，反之亦然。这是第一号破损点，最后必须校验。
-5. **保存**为 `<scope>/documents/<需求名>.html`。用户没要求就不要提交。
-
-### House-style 规则（不可协商）
-
-| 元素 | 规则 |
+| 判据 | 例子 |
 |---|---|
-| `<style>` 块 | 原样复制，永不重设样式。颜色只来自 `:root` CSS 变量。 |
-| 代码 / SQL / YAML | 一律用模板的 `<pre style="background:#f8fafc;...">`。**`<pre>` 内转义 `<`→`&lt;`、`>`→`&gt;`、`&`→`&amp;`**，未转义的 `<` 会静默吞掉内容。 |
-| Callout | `.note`（橙，提醒/易错）、`.tip`（蓝，正向补充）、`.warn`（红，风险），按语义选色。 |
-| 图表 | 手写内联 `<svg>` 放在 `<figure>` 里；文字用 `.svg-t`/`.svg-s`/`.svg-title`；节点填充用 `:root` 变量（`var(--new-bg)` 等），与 `.legend` 一致。 |
-| 引言 | 每个 section 以一句 `<p class="lead">` 开头，说明它回答什么。 |
-| Pills | `.pill.new/.old/.infra/.mq/.prod/.tech/.done/.todo` 状态标签，复用即可，不要新造 class。 |
-| 表格 | 普通 `<table>`，CSS 已处理斑马纹与表头底色。 |
-| 语言 | `<html lang="zh">`；正文用文档的语言（通常中文）。 |
+| 公开 API | 改签名、改响应形状、加必填字段 |
+| 数据迁移 | 改 schema、回填、删列 |
+| 权限 / 认证边界 | 谁能做什么、token 生命周期 |
+| 兼容性 | 旧调用方、旧数据、旧配置 |
+| 不可逆操作 | 发布、删除、对外承诺 |
 
-### HTML 常见错误
+（与 CONTRACT 第 5 节的危险面同源：那里是**停点**判据，这里是**留档**判据。）
 
-- **重设 CSS**：整套风格的意义就是每次输出完全一致，别"改进"颜色、间距、字体。
-- **`<pre>` 里未转义尖括号**：`List<String>` 会渲染成断标签，要写 `List&lt;String&gt;`。
-- **TOC 死链**：加了 section 没加 TOC 条目（或改了 `id` 忘了 `href`）。务必交叉核对。
-- **编造代码位置**：`file:line`、表名、protoIds 必须从仓库读出来；未知 → `待确认` pill，不是看起来合理的猜测。
-- **写成提案**：HTML 版是 *设计文档*（what/how、已锁定的决策），不是说服性 pitch。
+**一条都没碰 → 不要写设计文档，直接往下。** 装得进一个上下文就走 `/loop-it`；需求还没成形就先 `/prd`。
 
-### 最终自检
+不问「要不要写文档」，问「这里有没有真岔口值得留档」。
 
-```bash
-f="<scope>/documents/<需求名>.html"
-# TOC hrefs vs section ids 必须完全一致（无输出 = 通过）：
-diff <(grep -oE 'href="#[a-z0-9-]+"' "$f" | sed 's/.*#//;s/"//' | sort -u) \
-     <(grep -oE '<section id="[a-z0-9-]+"' "$f" | sed 's/.*"//' | sort -u)
-# 浏览器打开，肉眼确认图表与代码块渲染正常
-```
+## 输入
 
----
+PRD、issue、半成形的想法都行——**输入越薄，浮现决策问得越多**。
 
-## 边界情况
+（可选）扫一遍代码库，把设计落在现实上：既有模式、前例、约束、真实痛点。Background 引**用户仓库里的真实代码**最有说服力。
+
+## 输出
+
+`<scope>/documents/design-<feature>.md`，紧挨 PRD（落点规则见 CONTRACT 第 8 节）。
+
+Go 提案的骨架可以保留，但**按需取用**：
+
+| 章节 | 写什么 |
+|---|---|
+| Abstract | 一段话讲完全文 + 最重要的那个承诺 |
+| Background | 具体例子 / 真实代码讲痛点，能量化就量化 |
+| Design | 声明 + 示例 + 边界；改造前 vs 改造后 |
+| **Rationale** | **重点**：为什么选它，以及被放弃的备选与原因 |
+| **Compatibility** | **重点**：是不是破坏性变更、代价、迁移路径 |
+| Implementation | 只写方向与过渡，**不写细粒度步骤**——planner 写细了会级联出错 |
+
+不适用就删，删得显眼就说明原因。**没有 Rationale 的设计文档不值得写**：把已知的东西抄一遍不是产出。
+
+PRD 的映射：Problem → Background（真实痛点 + 量化）；Goals → Abstract（提炼最重要的承诺）；User Stories → Design（渐进式示例）；Technical Considerations → Design + Rationale；Non-Goals → Rationale（「我们没做 X，因为 Y」）；Risks → Compatibility + Implementation。
+
+### 文风（照搬 Go 文档）
+
+- **主语**：决策用「我们」，行为用代码本身当主语；禁止无主语的被动腔。
+- **句子**：先用短句拍板，再用信息密集的长句铺开机制，长短交替。
+- **段落**：一段只讲一件事，结论先行；小标题写成完整论点句——写 `老代码不受影响，编译结果与之前完全一致`，而不是 `兼容性`。
+- **语气**：克制的诚实，承认代价；加粗全文只用一次。
+
+自检三条：标题是「做什么」的结论不是名词短语；Rationale 至少列一个被放弃的方案；没有 TBD / TODO——要么解决，要么挪进 Open Questions。
+
+## 浮现决策
+
+动笔前先找出**真岔口**——一个有能力的工程师可能合理走两个方向的地方——并解决它们。
+
+每个岔口都记下**你没选的那条路**，它就是 Rationale。没有备选方案时，强迫自己想「最朴素的做法是什么、为什么不够」：总有一个被否决的基线。
+
+## 边界
+
+- **契约不在这里**：表 / 接口 / schema 归 `/to-issues` 的 issue 正文。
+- **HTML 只是可选呈现层**，Markdown 才是主产物 → [`references/html-render.md`](references/html-render.md)。
+- **不新增审批闸门**：落盘即视为可用，不等「回复 OK」；反馈一律当修订，直接应用并重存。
+- 方案最终被否也照写——记录「这条路为什么走不通」本身就是产物，Status 标 Rejected。
+- 特性太大 → 按边界拆成多篇，互相链接。
+
+## 失败怎么办
 
 | 场景 | 处理 |
-|------|------|
-| PRD 含糊不全 | 在第 2 步多问，把缺失项写进 Open Questions / 假设 |
+|---|---|
+| PRD 含糊不全 | 能问人就 `ask_user_question` 问真岔口；问不到（子代理 / 无人值守）就自己定并标 `[Assumption]`，照常产出 |
+| 不是破坏性变更 | Compatibility 一句话「纯增量、无破坏」，不硬凑 |
 | 没有真实痛点代码可引 | 用最小可信的示例代码代替，并注明是构造的 |
-| 不是破坏性变更 | Compatibility 一句话说明"纯增量、无破坏"，不必硬凑 |
-| 方案最终被否决 | 照样写好——记录"这条路为什么走不通"本身就是高价值产物，Status 标 Rejected |
-| 特性太大 | 拆成多篇 design doc（按边界），互相链接 |
-| 用户只要实现契约 | 提示改用 `/to-issues`——契约字段块写在 issue 正文里 |
-
----
+| 用户只要实现契约 | 改走 `/to-issues`——契约字段块写在 issue 正文 |
+| 文档被实现证伪 | 重写或删掉；不让文档活着和代码打架 |
 
 ## 与其它技能的关系
 
-`/prd`（需求 what）→ **`/to-design`**（决策与取舍 why/which，本 skill）→ `/to-issues`（拆成 agent-ready 的 issue，实现契约写在 issue 正文的契约字段块里）→ `/goal` → `/review-it` → `/ship-it`。
-
-> 写设计文档的终极目的不是"说服别人同意你"，而是"让所有人在同一个事实和取舍基础上做决定"。
+`/prd`（要什么）→ **`/to-design`**（为什么这么选，本技能）→ `/to-issues`（issue 正文里的契约）→ `/loop-it` → `/review-it` → `/ship-it`

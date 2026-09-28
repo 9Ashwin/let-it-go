@@ -26,19 +26,23 @@
 
 ## What is let-it-go?
 
-The core of let-it-go is the 7 development-workflow skills in [`skills/flow`](skills/flow). Describe your goal, and the agent clarifies requirements, breaks down Issues, implements, verifies, and ships as the task requires. Each step has a defined responsibility and completion criteria.
+The core of let-it-go is the 7 development-workflow skills in [`skills/flow`](skills/flow). Describe your goal, and the agent clarifies requirements, breaks down Issues, implements, verifies, and ships as the task requires.
 
-These 7 skills form the banner's five stages:
+**One work state, three profiles, no human gates.** What to change and what counts as done live in one place — the GitHub issue body (`goal` / `acceptance` / `invariants` / `unknowns` / `human_checkpoint`); how far the batch has got lives in the checkpoint. Every other document (PRD, walkthrough, PR body) is a **projection** of it. The full contract is [`skills/flow/CONTRACT.md`](skills/flow/CONTRACT.md).
 
-| Stage | Skills | Outcome |
+**Not sure which entry to take? Go by shape:**
+
+| What you have | Where it goes | Ceremony |
 | --- | --- | --- |
-| Requirements & design | `/prd` · `/to-design` | Define acceptance criteria and, when needed, document the design and its tradeoffs |
-| Task breakdown | `/to-issues` | Create Issues with implementation contracts, acceptance criteria, and dependencies |
-| Implementation | `/loop-it` or `/graph` | Implement and verify the change; choose a single task, serial batch, or parallel execution based on dependencies |
-| Review | `/review-it` | Check the change against requirements |
-| Delivery | `/ship-it` | Commit, open a PR, merge, and close satisfied Issues; merge locally when there is no remote |
+| One sentence, and the landing plan is still yours to decide | `/prd` → `/to-issues` | The requirement is not shaped yet — settle the decisions first |
+| One issue / one card / one item of a spec that fits in one context | `/loop-it` (single unit) | **Zero ceremony**: no checkpoint, no worktree, no walkthrough |
+| A batch of issues with real blocking edges | `/loop-it` (serial batch) | One requirement branch + one commit per card; review and ship once at the end |
+| Nodes that are genuinely parallel | `/graph` | Worktree waves + fan-in; review and ship once per wave |
+| A real fork worth recording (public API / data migration / permissions / compatibility) | insert `/to-design` | Only when a dangerous surface is touched |
+| A hard-to-reproduce bug / flaky test / performance regression | `/diagnose` | Get a command already red on this bug first |
+| A raw inbound issue | `/triage` | Reproduce it, then make it an agent-ready card |
 
-Start at the stage your task needs. A single task with clear acceptance criteria can go straight to `/loop-it`; use `/graph` when independent tasks can run in separate worktrees.
+**A batch does not wait to be pushed.** Open a persisted goal (`create_goal`) when the batch starts, and run it to the end; **no per-issue "continue"**, and **no human review gate** — `/review-it` dispatches a subagent that does not share this context, and **gates green plus a same-layer observation for every acceptance criterion** is the release condition. A human is called exactly once: the dangerous surfaces (public API / data migration / permissions / irreversible operations).
 
 Skills decide the steps and boundaries. Python scripts with self-tests handle ordering, layering, cycle detection, and checkpoints.
 
@@ -61,14 +65,18 @@ The skills land in `~/.agents/skills`, and this route changes nothing in any pro
 
 ## Set Up Your Repository
 
-Once the skills are installed, **your repository declares four things** — the flow reads them to know where artifacts go and which gate to run.
+**The flow reads `AGENTS.md`; it does not write one for you.** Writing repository conventions is a human's job — the universal red lines are already the flow's own defaults (no force-push, no committing credentials, the default branch only via PR, never weakening a frozen test to get green), and repository-specific dangerous surfaces are caught by `human_checkpoint` at the moment they are touched (public API / data migration / permissions / irreversible operations).
 
-| Declare | Decided by | Notes |
-|---|---|---|
-| **Scope root** | Scan the repo | Where requirement material lives. If the repo has a convention (`requirements/<scope>/`, `docs/`, `specs/`), use its root |
-| **Gate** | Scan the repo | The command that must stay green: `make check` · `go build ./... && go test ./...` · `pnpm lint` · `mise run check` |
-| **Acceptance baseline** | **A human decides** | Which tests are frozen, and where new tests go. Left undeclared, appending to an existing test file can read as weakening it |
-| **Only touch files in this repo** | Recommended | Keeps the agent from writing outside the repository |
+To make it more certain, put these — the things it cannot scan — in the repository-root `AGENTS.md`:
+
+| Write it down | Notes |
+|---|---|
+| **Gate** | The command that must stay green: `make check` · `go build ./... && go test ./...` · `pnpm lint` · `mise run check`. Without it the flow scans the Makefile / `package.json` / `go.mod` / `.github/workflows` itself |
+| **Acceptance baseline** | Which tests are frozen, and where new tests go. Left undeclared, appending to an existing test file can read as weakening it |
+| **Scope root** | Only if the repo already has a requirement-directory convention (`requirements/<scope>/`); otherwise leave it out and the skills use their own default |
+| **Red lines** | The repository's non-negotiable bottom lines. Write "none yet" if there are none |
+
+**A convention that is not written into `AGENTS.md` does not exist for the flow** — it can only read what is in the repository. There is no need for `RULES.md` / `CONSTRAINTS.md`-style registers: they need a maintainer to avoid rotting, and a rotted convention is worse than none.
 
 ## How It Runs
 
@@ -78,7 +86,7 @@ Parallel tasks are implemented by node and shipped by wave; serial tasks are wra
 | --- | --- | --- |
 | **Node** | Implements in its own worktree, proves itself with the project's gates, and **only commits to its own branch** | No push, no PR, no merge, no self-review |
 | **Wave** | Leak check → merge only the nodes that finished → run gates on the integrated tree → **review once** (one section per node, focused on the seams between nodes) → **ship once** (writes the walkthrough first - evidence only: what changed, what was run, what it proved - then the PR body and merge checklist, produced here and nowhere else; one PR with a per-item evidence table) | No node-level PRs; no per-node walkthrough |
-| **Batch** | `/loop-it` implements and commits one Issue at a time, inline or through an implementation subagent; small batches get one adversarial review at the end, while large batches add per-Issue supervisor checks; delivery - walkthrough included - happens once at the end | No skipping the final review; no per-Issue PRs |
+| **Batch** | `/loop-it` implements and commits one Issue at a time, inline or through an implementation subagent; review strength follows the **dangerous surface** (concurrency / auth boundary / shared interface); delivery - walkthrough included - happens once at the end | No skipping the final review; no per-Issue PRs |
 
 A few deliberate design choices:
 
@@ -114,10 +122,10 @@ The project centers on [`skills/flow`](skills/flow). Names below use the `/` pre
 
 | Directory | Contents |
 | --- | --- |
-| [`skills/bonus`](skills/bonus) | `/conflict`, `/diagnose`, `/modern-go`, `/refactor`, `/star`, `/test-first`, `/triage`, `/understand`: conflict resolution, diagnosis, code quality, workspace initialisation, testing, triage, and change explanations |
+| [`skills/bonus`](skills/bonus) | `/conflict`, `/diagnose`, `/modern-go`, `/refactor`, `/test-first`, `/triage`, `/understand`: conflict resolution, diagnosis, code quality, testing, triage, and change explanations |
 | [`skills/vendor`](skills/vendor) | `/find-skills`, `/frontend-design`, `/humanizer-zh`, `/pptx`, `/resume-optimizer`, `/skill-creator`, `/svg-diagram`, `/teach`, `/ui-ux-pro-max`, `/web-design-guidelines`: tools for skill management, design, writing, presentations, resumes, and diagrams |
 
-The repository contains 25 skills in total: 7 core and 18 supplementary. Of these, 24 support automatic selection by description; `/teach` retains upstream's `disable-model-invocation` setting and requires manual invocation. Skills in `vendor` are verbatim upstream copies; see each directory's `NOTICE.md` for source, version, and license.
+The repository contains 24 skills in total: 7 core and 17 supplementary. Of these, 23 support automatic selection by description; `/teach` retains upstream's `disable-model-invocation` setting and requires manual invocation. Skills in `vendor` are verbatim upstream copies; see each directory's `NOTICE.md` for source, version, and license.
 
 </details>
 
@@ -126,7 +134,7 @@ The repository contains 25 skills in total: 7 core and 18 supplementary. Of thes
 ```
 skills/
 ├── flow/          # the PRD → ship workflow, used as the task requires (7)
-├── bonus/         # supplementary engineering tools collected for personal use (8)
+├── bonus/         # supplementary engineering tools collected for personal use (7)
 └── vendor/        # personal collection of upstream copies, pinned by the manifest (10)
 scripts/           # check_skills.py (layout / frontmatter / cross-refs / patch)
                    # sync_vendor.py (vendor sync and additions)

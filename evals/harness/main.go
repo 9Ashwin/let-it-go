@@ -497,7 +497,8 @@ func assertPathAbsent(caseID, workdir string, spec AssertionSpec) (bool, string)
 	return !present, fmt.Sprintf("%s → %s", spec.str("glob"), state)
 }
 
-func assertCheckpointLocation(caseID, workdir string, spec AssertionSpec) (bool, string) {
+// findCheckpoints 找出工作树里所有的 loop 检查点。
+func findCheckpoints(workdir string) []string {
 	var found []string
 	filepath.WalkDir(workdir, func(path string, entry os.DirEntry, err error) error {
 		if err != nil {
@@ -512,6 +513,28 @@ func assertCheckpointLocation(caseID, workdir string, spec AssertionSpec) (bool,
 		}
 		return nil
 	})
+	return found
+}
+
+// assertCheckpointAbsent 检查**没有**产生 loop 检查点。
+//
+// 契约 §3 把「单单元零仪式」写成硬契约：不碰检查点、不建 worktree、不开 graph 波次。
+// `checkpoint_location` 只约束「产生了就放对地方」——它允许产生，守不住零仪式。
+func assertCheckpointAbsent(caseID, workdir string, spec AssertionSpec) (bool, string) {
+	found := findCheckpoints(workdir)
+	if len(found) == 0 {
+		return true, "没有产生 loop 检查点（单单元模式：零仪式）"
+	}
+	rels := make([]string, 0, len(found))
+	for _, path := range found {
+		rel, _ := filepath.Rel(workdir, path)
+		rels = append(rels, rel)
+	}
+	return false, "单单元模式不该产生检查点，却找到了：" + strings.Join(rels, "、")
+}
+
+func assertCheckpointLocation(caseID, workdir string, spec AssertionSpec) (bool, string) {
+	found := findCheckpoints(workdir)
 	if len(found) == 0 {
 		return true, "没有产生 loop 检查点（单单元模式不该产生，允许）"
 	}
@@ -679,6 +702,7 @@ var assertKinds = map[string]assertFunc{
 	"path_glob":           assertPathGlob,
 	"path_absent":         assertPathAbsent,
 	"checkpoint_location": assertCheckpointLocation,
+	"checkpoint_absent":   assertCheckpointAbsent,
 	"workspace_clean":     assertWorkspaceClean,
 	"tool_absent":         assertToolAbsent,
 	"tamper_guard":        assertTamperGuard,

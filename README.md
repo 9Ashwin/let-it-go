@@ -26,19 +26,23 @@
 
 ## let-it-go 是什么
 
-let-it-go 的核心是 [`skills/flow`](skills/flow) 中的 7 个研发工作流技能。你描述目标，Agent 按任务需要澄清需求、拆解 Issue、实现、验证并交付。每一步都有明确的职责和完成条件。
+let-it-go 的核心是 [`skills/flow`](skills/flow) 中的 7 个研发工作流技能。你描述目标，Agent 按任务需要澄清需求、拆解 Issue、实现、验证并交付。
 
-这 7 个技能组成配图中的五个阶段：
+**一个工作状态，三个 profile，零人工闸门。** 要做什么、什么算做完，写在一处——GitHub issue 正文（`goal` / `acceptance` / `invariants` / `unknowns` / `human_checkpoint`）；走到哪了写在检查点里。其余文档（PRD、走查件、PR 描述）都是它的**投影**。契约全文见 [`skills/flow/CONTRACT.md`](skills/flow/CONTRACT.md)。
 
-| 阶段 | 技能 | 完成什么 |
+**拿不准走哪条，先看形态：**
+
+| 你手上的东西 | 走哪条 | 仪式量 |
 | --- | --- | --- |
-| 需求与设计 | `/prd` · `/to-design` | 明确验收条件，必要时记录设计方案与取舍 |
-| 任务拆解 | `/to-issues` | 拆成带实现契约、验收条件和依赖关系的 Issue |
-| 实现 | `/loop-it` 或 `/graph` | 完成代码与验证；按任务依赖选择单项、串行或并行 |
-| 审查 | `/review-it` | 检查是否满足需求 |
-| 交付 | `/ship-it` | 先写走查件（把观测整理成给人看的交付证据），再提交、开 PR、合入并关闭已满足的 Issue；无远端时本地合入 |
+| 只有一句诉求，落地方案还要自己定 | `/prd` → `/to-issues` | 需求还没成形，先把决策定清楚 |
+| 一条 issue / 一张卡 / spec 里的一项，装得进一个上下文 | `/loop-it`（单单元） | **零仪式**：不碰检查点、不建 worktree、不写走查件 |
+| 一批有真实阻塞边的 issue | `/loop-it`（串行批次） | 一条需求分支 + 每卡一个 commit；批末一次评审与交付 |
+| 节点之间真并行 | `/graph` | worktree 波 + fan-in；波末一次评审与交付 |
+| 有真岔口要留档（公开 API / 数据迁移 / 权限 / 兼容性） | 插一步 `/to-design` | 只在碰危险面时 |
+| 一个难复现的 bug / 偶发 flake / 性能回归 | `/diagnose` | 先拿到一条已经变红的命令 |
+| 别人提来的原始 issue | `/triage` | 先复现，再补成 agent 可执行的卡片 |
 
-从任务当前所处的阶段进入即可。已有明确验收条件的单项任务可以直接交给 `/loop-it`；独立任务能在各自 worktree 中实现时，再用 `/graph` 并行推进。
+**一批活不靠人推。** 开工时开一个持久目标（`create_goal`），跑到批末；**不逐条等人说"继续"**，也**不需要人工评审才放行**——评审由 `/review-it` 派一个不共享上下文的子代理做，**门禁绿 + 每条验收条件有它那一层的证据**就是放行条件。人只在一个地方被叫一次：危险面（公开 API / 数据迁移 / 权限 / 不可逆操作）。
 
 技能负责判断步骤与边界；排序、分层、环检测和检查点读写交给自带测试的 Python 脚本。
 
@@ -61,14 +65,18 @@ npx skills add 9Ashwin/let-it-go
 
 ## 接入到你的仓库
 
-技能装好之后，**你的仓库声明四件事**——流程读它们，才知道产物放哪、跑哪个门禁。
+**流程读 `AGENTS.md`，但不替你写它。** 写仓库约定是人的事——通用底线已经是流程自己的默认（不 force-push、不提交凭据、默认分支只经 PR 进入、不把冻结的测试改弱），仓库特有的危险面由 `human_checkpoint` 在碰到的那一刻问你（公开 API / 数据迁移 / 权限 / 不可逆操作）。
 
-| 要声明 | 谁决定 | 说明 |
-|---|---|---|
-| **作用域根** | 扫仓库 | 需求资料放哪。仓库有约定（`requirements/<scope>/`、`docs/`、`specs/`）就用它的根 |
-| **门禁** | 扫仓库 | 改动之后必须绿的命令：`make check` · `go build ./... && go test ./...` · `pnpm lint` · `mise run check` |
-| **验收基线** | **人拍板** | 哪些测试是冻结的、新测试写在哪。不声明的话，往现有测试文件里追加也可能被当成「把测试改弱」 |
-| **只改本仓库内的文件** | 建议 | 防止 agent 写到仓库外去 |
+想让它更确定，就在仓库根的 `AGENTS.md` 里写这几件它扫不出来的事：
+
+| 要写进去 | 说明 |
+|---|---|
+| **门禁** | 改动之后必须绿的命令：`make check` · `go build ./... && go test ./...` · `pnpm lint` · `mise run check`。不写的话流程自己扫 Makefile / `package.json` / `go.mod` / `.github/workflows` |
+| **验收基线** | 哪些测试是冻结的、新测试写在哪。不写的话，往现有测试文件里追加也可能被当成「把测试改弱」 |
+| **作用域根** | 仓库**已经有**需求目录约定（如 `requirements/<scope>/`）才写；没有就不写，技能用自己的默认值 |
+| **红线** | 这个仓库不可协商的底线。没有就写「暂无」 |
+
+**没写进 `AGENTS.md` 的约定，流程当作不存在**——它只读得到仓库里的东西。`RULES.md` / `CONSTRAINTS.md` 这类登记表不用铺：它们要有维护者才不腐烂，而腐烂的约定比没有更糟。
 
 ## 它是怎么跑起来的
 
@@ -78,7 +86,7 @@ npx skills add 9Ashwin/let-it-go
 | --- | --- | --- |
 | **节点** | 在自己的 worktree 里实现、用项目门禁自证、**只 commit 到自己的分支** | 不 push、不开 PR、不合并、不自审 |
 | **波次** | 泄漏检查 → 只合并已完成的节点 → 在集成后的树上跑门禁 → **评审一次**（逐节点分节，重点看节点之间的结合部）→ **交付一次**（先写走查件：改了什么、跑了什么、证明了什么；PR body 与合并清单在这里唯一产出，一个 PR，带逐项证据表） | 不做节点级 PR；不做节点级走查 |
-| **批次** | `/loop-it` 一次实现并 commit 一个 Issue，可内联完成或交给实现者子代理；小批次只做批末对抗性评审，大批次增加逐 Issue supervisor 检查，批末统一交付（先写走查件） | 不省略批末评审；不逐 Issue 开 PR |
+| **批次** | `/loop-it` 一次实现并 commit 一个 Issue，可内联完成或交给实现者子代理；评审强度按**危险面**选（并发 / 认证边界 / 共享接口），批末统一交付（先写走查件） | 不省略批末评审；不逐 Issue 开 PR |
 
 几个刻意设计的地方：
 
@@ -114,10 +122,10 @@ npx skills add 9Ashwin/let-it-go
 
 | 目录 | 收录内容 |
 | --- | --- |
-| [`skills/bonus`](skills/bonus) | `/conflict`、`/diagnose`、`/modern-go`、`/refactor`、`/star`、`/test-first`、`/triage`、`/understand`：冲突处理、排障、代码质量、**工作区初始化**、测试、分诊与变更解释 |
+| [`skills/bonus`](skills/bonus) | `/conflict`、`/diagnose`、`/modern-go`、`/refactor`、`/test-first`、`/triage`、`/understand`：冲突处理、排障、代码质量、测试、分诊与变更解释 |
 | [`skills/vendor`](skills/vendor) | `/find-skills`、`/frontend-design`、`/humanizer-zh`、`/pptx`、`/resume-optimizer`、`/skill-creator`、`/svg-diagram`、`/teach`、`/ui-ux-pro-max`、`/web-design-guidelines`：技能管理、设计、写作、演示文稿、简历与制图等工具 |
 
-仓库合计收录 25 个技能（核心 7 个，补充 18 个）。其中 24 个支持模型按 description 自动选择；`/teach` 按上游设置保留 `disable-model-invocation`，需要手动调用。`vendor` 中的技能为上游逐字副本，来源、版本与许可见各目录的 `NOTICE.md`。
+仓库合计收录 24 个技能（核心 7 个，补充 17 个）。其中 23 个支持模型按 description 自动选择；`/teach` 按上游设置保留 `disable-model-invocation`，需要手动调用。`vendor` 中的技能为上游逐字副本，来源、版本与许可见各目录的 `NOTICE.md`。
 
 </details>
 
@@ -126,7 +134,7 @@ npx skills add 9Ashwin/let-it-go
 ```
 skills/
 ├── flow/          # PRD → 交付的主流程，按任务需要选用（7 个）
-├── bonus/         # 收集自用的工程补充工具（8 个）
+├── bonus/         # 收集自用的工程补充工具（7 个）
 └── vendor/        # 收集自用的上游逐字副本，由 manifest 钉住 commit（10 个）
 scripts/           # check_skills.py（布局 / frontmatter / 交叉引用 / patch 校验）
                    # sync_vendor.py（vendor 同步与新增）

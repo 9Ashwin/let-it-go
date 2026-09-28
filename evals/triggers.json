@@ -192,36 +192,6 @@
     "ship-it"
    ],
    "why": "允许串联：两个都在期望里，先加载谁不强制"
-  },
-  {
-   "id": "star-empty-workspace",
-   "prompt": "我刚 git init 了一个空仓库，准备用 let-it-go 这套流程开发。帮我把工作区初始化一下。",
-   "expect": [
-    "star"
-   ],
-   "why": "star 的本职：空仓库铺约定"
-  },
-  {
-   "id": "star-missing-agents-md",
-   "prompt": "我这个仓库已经有代码了，但没有 AGENTS.md，也没有别的约定。我想开始按流程做需求，先帮我把工作区约定补上。",
-   "expect": [
-    "star"
-   ],
-   "why": "扫仓库 + 铺约定，仍是 star"
-  },
-  {
-   "id": "near-star-vs-loop-it",
-   "prompt": "把这批 issue 开始做，按依赖顺序一条条来。",
-   "expect": [
-    "loop-it"
-   ],
-   "why": "近邻：star 与 loop-it 的「开始做」撞车的正面测试——这句该走 loop-it（实现入口），不该被 star 抢走"
-  },
-  {
-   "id": "near-github-star",
-   "prompt": "帮我 star 一下 anthropics/skills 这个 GitHub 仓库。",
-   "expect": [],
-   "why": "近邻：star 的名字撞 GitHub 的 star 动作——这是 gh 的操作，不该加载任何技能"
   }
  ]
 }

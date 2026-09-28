@@ -38,7 +38,14 @@
 
 `/goal` 是 DSH 的**命令**，不是技能：敲它是人的动作。同一个界面的模型侧是 goal 工具（`create_goal` / `update_goal`）。
 
-它们的门禁是**权限，不是措辞**：`create_goal` 只在**直接的人类顶层回合**里运行——节点子代理的权限是子代理的权限，不能为自己铸造长期目标，编排器在波中也一样不能。这不等于要等"goal"这个词：当人交来一个长期目标（"把整张图跑完"）时，创建 goal *就是*被设计的行为，也是让 session 在波与波之间继续工作的东西。`edit` / `pause` / `resume` 受同样的限制；`complete` / `blocked` 在这个 goal 自己的轮次里也允许。
+它们的门禁是**回合的来源，不是措辞**：`create_goal` 要求「当前打开的回合里有人类消息」+「调用者是顶层 agent」。
+所以**编排器自己就能开**——人交来一张图时，创建 goal *就是*被设计的行为，也是让 session 在波与波之间继续工作的东西；
+**节点子代理开不了**（非 root 的调用直接被拒），所以只能由编排器在顶层开。`edit` / `pause` / `resume` 同样要求直接人类回合；
+`complete` / `blocked` 额外允许「当前目标轮」这一权限来源。
+
+**图跑完必须 `update_goal complete`**——不显式关掉，续跑会一直烧到轮数上限（默认 256，自己按波数给更小的值）。
+单步输出触顶（`max-tokens`）、turn 被 abort、agent 报错、插件重载都会让续跑**解除武装**（目标仍 active，只是不再自动续跑）——
+那不是灾难：`.graph_state.json` 还在，人一句「继续」就 `resume` 接着跑。
 
 一次 graph 运行正是这种情况：goal 驱动 session，`.graph_state.json` 记住布局——两件不同的东西，两个不同的计数器。
 
@@ -97,6 +104,20 @@ python3 <SKILL_DIR>/scripts/render_graph_html.py .graph_state.json graph.html
 - 逐节点的 `/review-it` 是**自审**：刚写完代码的 agent 带着同样的假设重读它，而且是在一个可能活不过集成的 diff 上。同样的 token 买到的信号，远少于让一个没写过它的人评审集成后的 diff。
 - 逐节点的 `/ship-it` 意味着 **N 个 PR**：N 次 CI、N 次 merge，以及 N 次让 merge 冲突卡住一个本来已经完成的波的机会。一个波级 PR 把这三样都收敛成一次。
 - harness 没有规定任何一种做法；这个位置是关于 token 和墙上时钟实际花在哪的判断，也是节点提示词止于 commit 的原因。
+
+## `workflow` 的真实边界（源码实测）
+
+- **脚本是纯 vm 沙箱**：只挂 `agent` / `parallel` / `pipeline` / `phase` / `log` / `args`，**没有**
+  文件系统、网络、计时器或 Node API。要读文件、跑命令，都得在 `agent()` 的子代理里做。
+- **`parallel` 是屏障**（等全部）；**`pipeline` 没有跨 stage 屏障**，逐 item 串完所有 stage，某个
+  stage 抛错 → 该 item 变 `null` 并跳过余下 stage。节点之间要屏障就用 `parallel`，或者分波。
+- **cap 由引擎配置定，脚本改不了**：`maxConcurrentAgents` 默认 `min(16, max(1, cores-2))`、
+  `maxTotalAgents` 1000、`maxItemsPerCall` 4096。**并发上限得自己控制**（技能第 2 步默认 3–4）。
+- **返回值截断 50000 字符**：不要把大块 diff 或日志从 `agent()` 里带回来。
+- **`agent()` 的子代理同样受 `maxDepth = 1` 限制**：一个节点**不能再 fan-out**。所以「每个波每个节点
+  一个子代理」只能由**顶层编排器**直接派——波的结构由编排器持有，不能下放给节点。
+- 这个工具自带的指引就是「只在用户明确要 workflow，或大规模多代理时用」——它是给 fan-out 用的，
+  不是给两三个串行步骤用的。
 
 放在波级有真实成本，本技能是去偿还它们，而不是假装它们不存在：
 
