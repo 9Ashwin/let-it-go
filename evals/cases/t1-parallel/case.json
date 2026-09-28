@@ -1,0 +1,99 @@
+{
+ "id": "t1-parallel",
+ "tier": "t1",
+ "name": "t1-parallel",
+ "what_it_tests": "**T1（形态层）**：任务小到几分钟能做完，判的几乎全是**过程事实**——技能契约本身，不是结果。这条测**并行 profile**：两张卡片互不依赖、也不碰同一个文件（分在两个包里），该走 `/graph`——建 worktree 隔离、把图检查点落在作用域根、波边界更新看板，而且**不合入**（合入归 `/merge-it`，只有人能敲）。\n\n它是 `07-parallel-waves` 的便宜版：那条跑一次 6 分钟、2.8M tokens，改一次 `graph` 正文就跑一次不现实；这条把同一批契约事实压进一个几十秒的小任务里。\n\n⚠️ 「波内不许评审」故意没有断言：`review-it` 现在按危险面触发，机械守住会误伤正确路径。这里守的是编排形态——worktree、检查点落点、看板、不混 loop 检查点、不自己合入。",
+ "prompt": "requirements/01_REQ-two-units/issues/ 下有两张卡片，它们互不依赖、也不碰同一个文件。并行做完，做完跑一遍门禁确认没弄坏。",
+ "expected_output": "Upper 与 Max 都实现且四条验收条件成立；make check 绿；Makefile 与两个冻结测试逐字节未变；产生了 worktree 登记、图检查点落在 requirements/<scope>/、看板渲染出来；没有 loop 检查点；默认分支 main 没有被合入；结尾没有等待人类的信号。",
+ "fixture": "fixture",
+ "tamper_guard": [
+  "Makefile",
+  "greeter/greet_test.go",
+  "counter/count_test.go"
+ ],
+ "assertions": [
+  {
+   "kind": "gate",
+   "text": "改动之后 fixture 自己的门禁 make check 仍然绿（在集成态上）",
+   "command": [
+    "make",
+    "check"
+   ]
+  },
+  {
+   "kind": "probe",
+   "text": "两个单元的行为都真的实现了（Upper / Max，各两条验收条件）",
+   "files": [
+    [
+     "probe/probe_test.go",
+     "greeter/zz_eval_probe_test.go"
+    ]
+   ],
+   "command": [
+    "go",
+    "test",
+    "-count=1",
+    "-run",
+    "TestEvalProbe",
+    "-v",
+    "./greeter/"
+   ],
+   "extract": "EVAL_PROBE (\\{.*\\})",
+   "scenarios": [
+    {
+     "thresholds": null,
+     "expect": {
+      "upper_ok": 1,
+      "max_ok": 1
+     }
+    }
+   ]
+  },
+  {
+   "kind": "tamper_guard",
+   "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）"
+  },
+  {
+   "kind": "skill_loaded",
+   "text": "先加载了并行入口 graph（这一层量的是技能契约本身，不是结果）",
+   "expect": [
+    "graph"
+   ]
+  },
+  {
+   "kind": "path_glob",
+   "text": "波用 worktree 隔离：主仓库里有 worktree 登记（`.git/worktrees/*`）",
+   "glob": ".git/worktrees/*",
+   "min": 1
+  },
+  {
+   "kind": "path_glob",
+   "text": "图检查点落在作用域根（`requirements/<scope>/.graph_state.json`）",
+   "glob": "requirements/*/.graph_state.json",
+   "min": 1
+  },
+  {
+   "kind": "path_glob",
+   "text": "波边界更新了看板（`requirements/<scope>/graph.html`）",
+   "glob": "requirements/*/graph.html",
+   "min": 1
+  },
+  {
+   "kind": "checkpoint_absent",
+   "text": "没有 loop 检查点——这是 graph，不是 loop-it（两个 profile 不许混）"
+  },
+  {
+   "kind": "gate",
+   "text": "没有合入：默认分支 main 还停在种子 commit 上（合入归 /merge-it，只有人能敲）",
+   "command": [
+    "bash",
+    "-c",
+    "test \"$(git rev-parse main)\" = \"$(git rev-list --max-parents=0 main)\""
+   ]
+  },
+  {
+   "kind": "no_human_wait",
+   "text": "没有以「等你回复」结束回合（CONTRACT §5）"
+  }
+ ]
+}

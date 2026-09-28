@@ -75,7 +75,7 @@
   },
   {
    "kind": "path_absent",
-   "glob": "**/.git/worktrees/**",
+   "glob": ".git/worktrees",
    "text": "单单元不建 worktree：没有 worktree 登记（零仪式）"
   }
  ]
