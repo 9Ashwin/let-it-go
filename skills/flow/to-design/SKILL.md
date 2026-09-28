@@ -54,7 +54,7 @@ Go 提案的骨架可以保留，但**按需取用**：
 
 不适用就删，删得显眼就说明原因。**没有 Rationale 的设计文档不值得写**：把已知的东西抄一遍不是产出。
 
-PRD 的映射：Problem → Background（真实痛点 + 量化）；Goals → Abstract（提炼最重要的承诺）；User Stories → Design（渐进式示例）；Technical Considerations → Design + Rationale；Non-Goals → Rationale（「我们没做 X，因为 Y」）；Risks → Compatibility + Implementation。
+PRD 的映射：Problem → Background（真实痛点 + 量化）；Goals → Abstract（提炼最重要的承诺）；验收条件 → Design（渐进式示例）；Technical Considerations → Design + Rationale；Non-Goals → Rationale（「我们没做 X，因为 Y」）；Risks → Compatibility + Implementation。
 
 ### 文风（照搬 Go 文档）
 
