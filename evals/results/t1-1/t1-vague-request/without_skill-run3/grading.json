@@ -1,0 +1,46 @@
+{
+ "case_id": "t1-vague-request",
+ "case_name": "t1-vague-request",
+ "workdir": "/Users/mervyn/workspaces/github/let-it-go/evals/results/t1-1/t1-vague-request/without_skill-run3/work",
+ "expectations": [
+  {
+   "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+   "kind": "gate",
+   "passed": true,
+   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.004s"
+  },
+  {
+   "text": "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
+   "kind": "probe",
+   "passed": true,
+   "evidence": "  ok   null → {\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+  },
+  {
+   "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+   "kind": "tamper_guard",
+   "passed": true,
+   "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+  },
+  {
+   "text": "先加载了规划入口 prd（一句诉求 + 落地方式自己定 → 不是单单元）",
+   "kind": "skill_loaded",
+   "passed": false,
+   "evidence": "没有加载任何技能，期望先加载 prd"
+  },
+  {
+   "text": "规划半边真的走了：scope 下产出了 PRD",
+   "kind": "path_glob",
+   "passed": false,
+   "evidence": "requirements/*/documents/prd-*.md → 命中 0 个（需要 ≥1）"
+  },
+  {
+   "text": "没有以「等你回复」结束回合（CONTRACT §5：问不到人就自己定并标 [Assumption]）",
+   "kind": "no_human_wait",
+   "passed": true,
+   "evidence": "结尾没有等待人类的信号（最后一句：做完了。没有加载任何技能，按仓库既有约定直接落地。）"
+  }
+ ],
+ "passed": 4,
+ "total": 6,
+ "pass_rate": 0.6666666666666666
+}

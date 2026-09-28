@@ -1,0 +1,72 @@
+{
+  "id": "t1-single-unit",
+  "tier": "t1",
+  "name": "t1-single-unit",
+  "what_it_tests": "**T1（形态层）**：任务小到几十秒能做完，判的几乎全是**过程事实**——技能契约本身，不是结果。现有八个用例（T2）靠 prompt 后缀强制加载技能、跑几十分钟，量的是「加载之后做得对不对」；这一层量「加载之后**形态**对不对」：先加载了哪个技能、单单元有没有偷偷建检查点、有没有开图、有没有停在等人。它便宜是因为**任务小**，不是因为少判断言——臂跑本身才是成本。\n\n这条测单单元：一条卡片、一个纯函数，`loop-it` 该判成单单元内联做完，**不碰检查点、不建 worktree、不开 graph 波次**（CONTRACT §3 的硬契约），并且**不停在「等你回复」上**（CONTRACT §5）。\n\n⚠️ 「不派子代理」故意没有断言：单单元的收尾要按 `/review-it` 派一次评审子代理，那是正确路径。机械守住的是编排仪式。",
+  "prompt": "requirements/01_REQ-greeting/issues/issue-001-slug.md 里有一张卡片，做掉它。做完跑一遍门禁确认没弄坏。",
+  "expected_output": "Slug 实现且三条验收条件都成立；make check 绿；Makefile 与 greeter/greet_test.go 逐字节未变；没有产生 loop 检查点、没有 worktree 登记、事件流里没有 workflow 调用；结尾没有等待人类的信号。",
+  "fixture": "fixture",
+  "tamper_guard": [
+    "Makefile",
+    "greeter/greet_test.go"
+  ],
+  "assertions": [
+    {
+      "kind": "gate",
+      "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+      "command": [
+        "make",
+        "check"
+      ]
+    },
+    {
+      "kind": "probe",
+      "text": "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
+      "files": [
+        [
+          "probe/probe_test.go",
+          "greeter/zz_eval_probe_test.go"
+        ]
+      ],
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-run",
+        "TestEvalProbe",
+        "-v",
+        "./greeter/"
+      ],
+      "extract": "EVAL_PROBE (\\{.*\\})",
+      "scenarios": [
+        {
+          "thresholds": null,
+          "expect": {
+            "slug_hello_world": 1,
+            "slug_trim": 1,
+            "slug_collapse": 1
+          }
+        }
+      ]
+    },
+    {
+      "kind": "tamper_guard",
+      "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）"
+    },
+    {
+      "kind": "skill_loaded",
+      "text": "先加载了实现入口 loop-it（这一层量的是技能契约本身，不是结果）",
+      "expect": [
+        "loop-it"
+      ]
+    },
+    {
+      "kind": "no_human_wait",
+      "text": "没有以「等你回复」结束回合（CONTRACT §5）"
+    },
+    {
+      "kind": "checkpoint_absent",
+      "text": "单单元零仪式：不产生 loop 检查点（CONTRACT §3 的硬契约）"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+ "assertions": [
+  "改动之后 fixture 自己的门禁 make check 仍然绿（在集成态上）",
+  "两张卡的行为都真的实现了（Slug 与 JoinSlug）",
+  "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+  "先加载了实现入口 loop-it（这一层量的是技能契约本身，不是结果）",
+  "开工先开了 goal（事件流里有 create_goal，CONTRACT §6）",
+  "串行批次产生了检查点，且落在 requirements/<scope>/issues/ 下",
+  "检查点里的证据带了层（每条 evidence 都标了 L1–L4，CONTRACT §4）",
+  "没有以「等你回复」结束回合（CONTRACT §5）",
+  "没有落到技能默认的 tasks/<feature>/ 下",
+  "没有写到 fixture 之外（臂的 cwd 就是 fixture，越界仍然是这条路的典型失败）"
+ ],
+ "eval_id": 0,
+ "eval_name": "t1-serial-batch",
+ "prompt": "requirements/01_REQ-greeting/issues/ 下有两张卡片（issue-002 依赖 issue-001），按依赖顺序做完。做完跑一遍门禁确认没弄坏。"
+}

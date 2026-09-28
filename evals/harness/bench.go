@@ -419,11 +419,15 @@ func benchmarkMarkdown(b Benchmark) string {
 	}
 	fmt.Fprintf(&out, "| **delta** | **%s** | %s | %s |\n\n",
 		b.RunSummary.Delta["pass_rate"], b.RunSummary.Delta["time_seconds"], b.RunSummary.Delta["tokens"])
-	out.WriteString("## 逐用例\n\n| 用例 | 配置 | 通过 | pass_rate |\n|---|---|---|---|\n")
-	for _, run := range b.Runs {
-		fmt.Fprintf(&out, "| %s | %s | %d/%d | %.0f%% |\n",
-			run.EvalName, run.Configuration, run.Result.Passed, run.Result.Total, run.Result.PassRate*100)
+	out.WriteString("## 逐用例\n\n| 用例 | 配置 | 每次 | 判定 |\n|---|---|---|---|\n")
+	for _, row := range caseArmRuns(b.Runs) {
+		fmt.Fprintf(&out, "| %s | %s | %s | %s |\n", row.Case, row.Arm, row.PerRun, row.Verdict)
 	}
+	out.WriteString("\n**判定口径：一次都没全过就不算通过。** 同一配置的每次运行都是 100% 才是「通过」；")
+	out.WriteString("每次都一样但不满分是「不通过」；几次之间不一致是 **flaky，不算通过**——60% 不是通过。\n")
+
+	out.WriteString(discriminationMarkdown(b.Runs))
+
 	if len(b.Notes) > 0 {
 		out.WriteString("\n## 观察\n\n")
 		for _, note := range b.Notes {
@@ -431,4 +435,191 @@ func benchmarkMarkdown(b Benchmark) string {
 		}
 	}
 	return out.String()
+}
+
+// caseArmRow 是「用例 × 配置」的多次运行汇总。
+type caseArmRow struct {
+	Case    string
+	Arm     string
+	PerRun  string
+	Verdict string
+}
+
+// caseArmRuns 把同一条臂的多次运行并成一行，并给出判定——**不许把 60% 记成通过**。
+func caseArmRuns(runs []Run) []caseArmRow {
+	type key struct{ eval, arm string }
+	grouped := map[key][]Run{}
+	var keys []key
+	for _, run := range runs {
+		k := key{run.EvalID, run.Configuration}
+		if _, seen := grouped[k]; !seen {
+			keys = append(keys, k)
+		}
+		grouped[k] = append(grouped[k], run)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		if keys[i].eval != keys[j].eval {
+			return keys[i].eval < keys[j].eval
+		}
+		return keys[i].arm < keys[j].arm
+	})
+	var rows []caseArmRow
+	for _, k := range keys {
+		group := grouped[k]
+		var parts []string
+		lowest, highest := 1.0, 0.0
+		for _, run := range group {
+			parts = append(parts, fmt.Sprintf("%d/%d", run.Result.Passed, run.Result.Total))
+			if run.Result.PassRate < lowest {
+				lowest = run.Result.PassRate
+			}
+			if run.Result.PassRate > highest {
+				highest = run.Result.PassRate
+			}
+		}
+		verdict := "不通过"
+		switch {
+		case lowest == 1.0:
+			verdict = "通过"
+		case lowest != highest:
+			verdict = "flaky（不算通过）"
+		}
+		rows = append(rows, caseArmRow{Case: k.eval, Arm: k.arm,
+			PerRun: strings.Join(parts, " / "), Verdict: verdict})
+	}
+	return rows
+}
+
+// discRow 是「用例 × 断言」在两条臂上的通过率。
+type discRow struct {
+	Case                        string
+	Text                        string
+	Kind                        string
+	WithPassed, WithTotal       int
+	WithoutPassed, WithoutTotal int
+}
+
+func (r discRow) withRate() float64    { return rate(r.WithPassed, r.WithTotal) }
+func (r discRow) withoutRate() float64 { return rate(r.WithoutPassed, r.WithoutTotal) }
+
+func rate(passed, total int) float64 {
+	if total == 0 {
+		return -1
+	}
+	return float64(passed) / float64(total)
+}
+
+// discrimination 按 用例 × 断言 汇总两条臂的通过率。
+//
+// 这是 NEXT.md 第一刀要求的那张表：**每条断言先量区分度再留**。两边都满分的断言花掉 token
+// 却什么都没测出来；某条臂几次之间不一致的是 flaky，单独列，不算通过。
+func discrimination(runs []Run) []discRow {
+	type key struct{ eval, text string }
+	grouped := map[key]*discRow{}
+	var keys []key
+	for _, run := range runs {
+		for _, item := range run.Expectations {
+			k := key{run.EvalID, item.Text}
+			row, seen := grouped[k]
+			if !seen {
+				row = &discRow{Case: run.EvalID, Text: item.Text, Kind: item.Kind}
+				grouped[k] = row
+				keys = append(keys, k)
+			}
+			if run.Configuration == "with_skill" {
+				row.WithTotal++
+				if item.Passed {
+					row.WithPassed++
+				}
+			} else {
+				row.WithoutTotal++
+				if item.Passed {
+					row.WithoutPassed++
+				}
+			}
+		}
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		if keys[i].eval != keys[j].eval {
+			return keys[i].eval < keys[j].eval
+		}
+		return keys[i].text < keys[j].text
+	})
+	var rows []discRow
+	for _, k := range keys {
+		rows = append(rows, *grouped[k])
+	}
+	return rows
+}
+
+// verdictOf 把一条断言归到四类之一。判定顺序很重要：flaky 优先于「区分」与「两边满分」，
+// 因为「3 次里过了 2 次」既不是通过也不是不通过。
+//
+// `gate` / `probe` / `tamper_guard` 是用例的**结果底线**，由 evals/AGENTS.md 强制每条用例
+// 必须有，不参与「两边满分就删」这条规则——那条规则管的是契约断言（过程传感器）。
+func verdictOf(r discRow) string {
+	with, without := r.withRate(), r.withoutRate()
+	flakyWith := with > 0 && with < 1
+	flakyWithout := without > 0 && without < 1
+	switch {
+	case flakyWith || flakyWithout:
+		return "flaky（不算通过）"
+	case isFloorKind(r.Kind):
+		return "底线（必留）"
+	case with == 1 && without == 1:
+		return "两边满分（无区分度 → 删掉或改成能失败的形态）"
+	case with == 0 && without == 0:
+		return "两边全红（用例或断言坏了）"
+	default:
+		return "区分"
+	}
+}
+
+// isFloorKind 是每条用例都必须有的三样结果底线。
+func isFloorKind(kind string) bool {
+	switch kind {
+	case "gate", "probe", "tamper_guard":
+		return true
+	}
+	return false
+}
+
+func discriminationMarkdown(runs []Run) string {
+	rows := discrimination(runs)
+	if len(rows) == 0 {
+		return ""
+	}
+	var out strings.Builder
+	out.WriteString("\n## 断言区分度（用例 × 断言）\n\n")
+	out.WriteString("| 用例 | 断言 | with_skill | without_skill | 判定 |\n|---|---|---|---|---|\n")
+	for _, row := range rows {
+		fmt.Fprintf(&out, "| %s | %s | %s | %s | %s |\n",
+			row.Case, firstLine(row.Text),
+			fmtRate(row.WithPassed, row.WithTotal), fmtRate(row.WithoutPassed, row.WithoutTotal),
+			verdictOf(row))
+	}
+	out.WriteString("\n判定只看两条臂的**通过率差**与**同臂多次之间的一致性**。`gate` / `probe` / " +
+		"`tamper_guard` 是每条用例的结果底线（evals/AGENTS.md 强制），标「底线（必留）」；" +
+		"删留规则管的是其余契约断言（过程传感器）。\n")
+	var flaky []string
+	for _, row := range rows {
+		if strings.HasPrefix(verdictOf(row), "flaky") {
+			flaky = append(flaky, fmt.Sprintf("- `%s` / %s：with_skill %s，without_skill %s —— **不算通过**",
+				row.Case, firstLine(row.Text), fmtRate(row.WithPassed, row.WithTotal),
+				fmtRate(row.WithoutPassed, row.WithoutTotal)))
+		}
+	}
+	if len(flaky) > 0 {
+		out.WriteString("\n### flaky（单独列，不算通过）\n\n")
+		out.WriteString(strings.Join(flaky, "\n"))
+		out.WriteString("\n")
+	}
+	return out.String()
+}
+
+func fmtRate(passed, total int) string {
+	if total == 0 {
+		return "—"
+	}
+	return fmt.Sprintf("%d/%d", passed, total)
 }

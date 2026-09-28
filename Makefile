@@ -16,7 +16,7 @@ GO ?= $(shell command -v go 2>/dev/null \
 EVAL := $(GO) -C evals/harness run .
 
 .DEFAULT_GOAL := help
-.PHONY: help deps check test vendor vendor-check vendor-update vendor-list vendor-add \
+.PHONY: help deps check test link link-check vendor vendor-check vendor-update vendor-list vendor-add \
 	eval-build eval-check eval-list
 
 help:  ## List every target
@@ -35,10 +35,17 @@ test: check  ## Run the bundled scripts' self-tests, then validate
 	$(PY) skills/flow/graph/scripts/test_graph_state.py
 	$(PY) skills/flow/graph/scripts/test_render_graph_html.py
 
+link:  ## Symlink every skill into ~/.agents/skills (git pull keeps them current; no copies)
+	$(PY) scripts/link_skills.py
+
+link-check:  ## Report drift between this repo's skills and ~/.agents/skills
+	$(PY) scripts/link_skills.py --check
+
 eval-build:  ## Build the harness to evals/harness/evalctl — the name the docs use for it
 	$(GO) -C evals/harness build -o evalctl .
 
 eval-check:  ## Self-check the eval workspace (case structure, no .git in fixtures, tamper_guard paths)
+	$(GO) -C evals/harness test ./...
 	$(EVAL) selfcheck
 
 eval-list:  ## List the eval cases

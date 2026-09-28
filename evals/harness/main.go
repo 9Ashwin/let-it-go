@@ -101,6 +101,10 @@ type Case struct {
 	Prompt      string `json:"prompt"`
 	ExpectedOut string `json:"expected_output"`
 	Fixture     string `json:"fixture"`
+	// Tier 是用例所属的层：`t1` 是小任务 + 只读事件流的过程断言（分钟级，每次改 SKILL 正文
+	// 都跑）；留空 = `t2`，现有的结果用例（小时级，发版前跑）。分层按「要花多少钱」分，
+	// 不按重要性分——见 evals/NEXT.md。
+	Tier string `json:"tier"`
 	// UndeclaredWorkspace 声明「这个 fixture **故意**没有 AGENTS.md / 作用域根声明」。
 	// 默认每个 fixture 都要有地图，因为流程的产物落点靠它；但「没声明时会怎样」也是一条
 	// 真实路径（技能写着「仓库完全没约定时用默认值 tasks/<feature>/」），测它就必须没有地图。
@@ -337,6 +341,7 @@ func resolveGo(name string) string {
 
 type Expectation struct {
 	Text     string `json:"text"`
+	Kind     string `json:"kind"`
 	Passed   bool   `json:"passed"`
 	Evidence string `json:"evidence"`
 }
@@ -627,44 +632,26 @@ func allowedInRunDir(name string) bool {
 // 父目录不是 harness 的运行目录（没有 work.seed.json），那是手工铺开、无从判断。
 func assertToolAbsent(caseID, workdir string, spec AssertionSpec) (bool, string) {
 	tools := spec.strs("tools")
-	parent := filepath.Dir(filepath.Clean(workdir))
-	if !exists(filepath.Join(parent, "work.seed.json")) {
+	raw, applicable, err := runEventsIn(workdir)
+	if !applicable {
 		return true, "不适用：这个 fixture 不在 harness 的运行目录里（父目录没有 work.seed.json），无从判断工具调用"
 	}
-	eventsPath := filepath.Join(parent, "events.jsonl")
-	raw, err := os.ReadFile(eventsPath)
 	if err != nil {
-		return false, "读不到事件流 " + eventsPath + " —— 这次运行的工具调用无法核实"
+		return false, err.Error()
 	}
-	called := map[string]int{}
-	toolCalls := 0
-	for _, line := range strings.Split(string(raw), "\n") {
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
-		}
-		var event map[string]any
-		if json.Unmarshal([]byte(line), &event) != nil || event["type"] != "tool_call" {
-			continue
-		}
-		toolCalls++
-		name, _ := event["tool"].(string)
-		for _, tool := range tools {
-			if name == tool {
-				called[name]++
-			}
-		}
-	}
+	toolCalls, byName := countToolCalls(raw)
 	if toolCalls == 0 {
 		return false, "事件流里一条 tool_call 都没有 —— 这次运行没跑起来，或者事件格式变了，无法核实"
 	}
-	if len(called) > 0 {
-		var names []string
-		for name, count := range called {
-			names = append(names, fmt.Sprintf("%s×%d", name, count))
+	var called []string
+	for _, tool := range tools {
+		if n := byName[tool]; n > 0 {
+			called = append(called, fmt.Sprintf("%s×%d", tool, n))
 		}
-		sort.Strings(names)
-		return false, "被调用了：" + strings.Join(names, "、")
+	}
+	if len(called) > 0 {
+		sort.Strings(called)
+		return false, "被调用了：" + strings.Join(called, "、")
 	}
 	return true, fmt.Sprintf("事件流里 %d 次工具调用，没有 %s", toolCalls, strings.Join(tools, "、"))
 }
@@ -706,6 +693,11 @@ var assertKinds = map[string]assertFunc{
 	"workspace_clean":     assertWorkspaceClean,
 	"tool_absent":         assertToolAbsent,
 	"tamper_guard":        assertTamperGuard,
+	// T1 的只读过程断言（见 events.go）：量的是契约本身，不是结果。
+	"skill_loaded":   assertSkillLoaded,
+	"goal_opened":    assertGoalOpened,
+	"no_human_wait":  assertNoHumanWait,
+	"evidence_layer": assertEvidenceLayer,
 }
 
 // ---------------------------------------------------------------------------
@@ -740,12 +732,12 @@ func grade(caseID, workdir string, c Case) Grade {
 		}
 		handler, known := assertKinds[kind]
 		if !known {
-			expectations = append(expectations, Expectation{Text: text, Passed: false,
+			expectations = append(expectations, Expectation{Text: text, Kind: kind, Passed: false,
 				Evidence: fmt.Sprintf("未知的断言类型 `%s`", kind)})
 			continue
 		}
 		passed, evidence := handler(caseID, workdir, spec)
-		expectations = append(expectations, Expectation{Text: text, Passed: passed, Evidence: evidence})
+		expectations = append(expectations, Expectation{Text: text, Kind: kind, Passed: passed, Evidence: evidence})
 	}
 	abs, _ := filepath.Abs(workdir)
 	passed := 0
@@ -1217,10 +1209,18 @@ func cmdList(_ []string) int {
 			fmt.Printf("  %-16s （case.json 读不了）\n", name)
 			continue
 		}
-		fmt.Printf("  %-16s %s\n", name, c.Name)
+		fmt.Printf("  %-16s [%s] %s\n", name, c.tier(), c.Name)
 		fmt.Printf("      %s\n", c.WhatItTests)
 	}
 	return 0
+}
+
+// tier 是用例所属的层，缺省 t2：只有显式写了 `"tier": "t1"` 的才是小任务用例。
+func (c Case) tier() string {
+	if c.Tier == "" {
+		return "t2"
+	}
+	return c.Tier
 }
 
 func main() {

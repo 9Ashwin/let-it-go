@@ -56,6 +56,31 @@ for c in 04-serial-batch 05-full-pipeline; do
 done
 ```
 
+### T1：小任务 + 只读事件流
+
+T2 那八个用例一条臂几十分钟；T1 是**小任务**（一条卡片、一个纯函数），一条臂分钟级，量的是过程事实。
+每次改 `SKILL.md` 正文都该跑它：
+
+```bash
+cd evals
+for c in t1-single-unit t1-serial-batch t1-vague-request; do
+  for arm in with_skill without_skill; do
+    for k in 1 2 3; do
+      d="results/t1-N/$c/$arm"; [ "$k" -gt 1 ] && d="$d-run$k"
+      go -C evals/harness run . run "$c" --arm "$arm" --out "$d" --run "$k" --dsh /path/to/dsh &
+    done
+  done
+done; wait
+go -C evals/harness run . bench results/t1-N
+```
+
+**每条断言先量区分度再留。** `bench` 写出的 `benchmark.md` 里有「用例 × 断言」通过率表，
+判定四类（区分 / 两边满分 / 两边全红 / flaky），细则见 [../README.md](../README.md#t1小任务--只读事件流)。
+**flaky 单独列，不算通过**——3 次里过 2 次不是 60% 通过，是没有结论。
+
+过程断言本身的自测在 `evals/harness/events_test.go`：每条传感器都有一条故意做错的负例，
+证明它真的能判红。`make check` 会跑它（`go -C evals/harness test ./...`）。
+
 ### 并发跑：能省一大半时间，但别拿 timing 下结论
 
 臂之间没有共享状态（各自的 `--out`、各自的私有临时根），所以可以一起跑。上面那个三重循环
@@ -105,6 +130,22 @@ $PY ~/.agents/skills/skill-creator/eval-viewer/generate_review.py \
 
 ⚠️ 要用 **Python 3.10+**：系统 `python3` 是 3.9，viewer 直接挂在 `dict | None` 上。
 bundled runtime（3.12）在 `~/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/bin/python3`。
+
+### 前提：技能装齐（含 `CONTRACT.md`）
+
+臂从 `~/.agents/skills/` 发现技能，所以**跑之前先确认安装目录与仓库一致**——改了 `SKILL.md` 或
+`references/` 就要重新同步，否则量的是上一版：
+
+```bash
+make link          # 软链全部技能 + CONTRACT.md；替换旧的拷贝、清悬空链接
+make link-check    # 只报告漂移
+```
+
+**软链是刻意的**（`scripts/link_skills.py`）：拷贝式安装漏掉过 `CONTRACT.md`——八份 flow `SKILL.md`
+都写着「见 `../CONTRACT.md`」，而拍平之后那个相对路径指向 `~/.agents/skills/CONTRACT.md`。
+**T1 第一轮就是这么发现它的**：臂 `read` 它得到 `not found`，然后花好几个工具调用到处找；
+那不是技能的问题，是安装不齐。软链之后那个相对路径按 OS 解析会走回仓库里那份，脚本再在技能根
+软链一份，两种解析方式都成立。
 
 ### 前提：一个 dsh 可执行文件
 

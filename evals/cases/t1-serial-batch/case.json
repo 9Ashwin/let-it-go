@@ -1,0 +1,82 @@
+{
+  "id": "t1-serial-batch",
+  "tier": "t1",
+  "name": "t1-serial-batch",
+  "what_it_tests": "**T1（形态层）**：两张有真实阻塞边的小卡片（issue-002 依赖 issue-001），任务几十秒能做完，判的是过程事实。\n\n这条测串行批次的**那台机器**：`loop-it` 该判成串行循环——开 goal（CONTRACT §6：它是唯一让循环不靠人推的东西）、建检查点、按依赖顺序推进，并把每条验收条件的证据**带上层**记进检查点（CONTRACT §4：层级写在证据里）。与 `t1-single-unit` 相反：单单元不该产生检查点，串行批次必须产生。\n\n它同时量一条**已知的失败模式**：停在「等你回复」上。实测过一次（iteration-9 的 04-serial-batch/with_skill）：把批末对抗性评审派成后台子代理后，整个运行停在 `turn_end: completed`，唯一没过的断言就是它没把分支推到 origin。",
+  "prompt": "requirements/01_REQ-greeting/issues/ 下有两张卡片（issue-002 依赖 issue-001），按依赖顺序做完。做完跑一遍门禁确认没弄坏。",
+  "expected_output": "两张卡都实现且行为对；检查点在 requirements/01_REQ-greeting/issues/.loop-state.json；事件流里有 create_goal；检查点里的 evidence 带 L1–L4；结尾没有等待人类的信号；make check 绿；受保护文件未改。",
+  "fixture": "fixture",
+  "tamper_guard": [
+    "Makefile",
+    "greeter/greet_test.go"
+  ],
+  "assertions": [
+    {
+      "kind": "gate",
+      "text": "改动之后 fixture 自己的门禁 make check 仍然绿（在集成态上）",
+      "command": [
+        "make",
+        "check"
+      ]
+    },
+    {
+      "kind": "probe",
+      "text": "两张卡的行为都真的实现了（Slug 与 JoinSlug）",
+      "files": [
+        [
+          "probe/probe_test.go",
+          "greeter/zz_eval_probe_test.go"
+        ]
+      ],
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-run",
+        "TestEvalProbe",
+        "-v",
+        "./greeter/"
+      ],
+      "extract": "EVAL_PROBE (\\{.*\\})",
+      "scenarios": [
+        {
+          "thresholds": null,
+          "expect": {
+            "slug_hello_world": 1,
+            "slug_trim": 1,
+            "slug_collapse": 1,
+            "join_two": 1,
+            "join_skip_blank": 1
+          }
+        }
+      ]
+    },
+    {
+      "kind": "tamper_guard",
+      "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）"
+    },
+    {
+      "kind": "skill_loaded",
+      "text": "先加载了实现入口 loop-it（这一层量的是技能契约本身，不是结果）",
+      "expect": [
+        "loop-it"
+      ]
+    },
+    {
+      "kind": "goal_opened",
+      "text": "开工先开了 goal（事件流里有 create_goal，CONTRACT §6）"
+    },
+    {
+      "kind": "checkpoint_location",
+      "text": "串行批次产生了检查点，且落在 requirements/<scope>/issues/ 下"
+    },
+    {
+      "kind": "evidence_layer",
+      "text": "检查点里的证据带了层（每条 evidence 都标了 L1–L4，CONTRACT §4）"
+    },
+    {
+      "kind": "no_human_wait",
+      "text": "没有以「等你回复」结束回合（CONTRACT §5）"
+    }
+  ]
+}

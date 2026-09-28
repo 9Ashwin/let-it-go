@@ -1,0 +1,74 @@
+{
+  "id": "t1-vague-request",
+  "tier": "t1",
+  "name": "t1-vague-request",
+  "what_it_tests": "**T1（形态层）**：prompt 只给一句诉求、落地方案要自己定，fixture 里**没有**卡片、没有 PRD。任务本身很小（一个纯函数），判的是过程事实：流程会不会走规划半边（`prd`），而不是直接开写。\n\n这条补的是「入口选择」这一层里最容易被跳过的一格：`loop-it` 明写「手上只有一句诉求、落地方案还要自己定 → 不是单单元，是还没成形的需求，先走规划半边」。CONTRACT §3 也把判据写成三件事（验收条件可证伪、回滚路径明确、要哪一层证据已知），而不是「有没有计划文档」。\n\n⚠️ 这条用例**不要求产出 issue 卡**：`to-issues` 有规模下限——整个改动一个上下文装得下就不产卡。探针只验行为，PRD 断言只验「规划半边真的走了、且落在仓库声明的作用域根下」。",
+  "prompt": "我们的 greeter 模块要把名字转成 URL 友好的 slug，用来做页面锚点：大小写不敏感、空白折成连字符、首尾不留。怎么落地你定，做完让我知道。",
+  "expected_output": "规划半边真的走了：requirements/<scope>/documents/ 下有 PRD；Slug 实现且行为对；make check 绿；受保护文件未改；结尾没有等待人类的信号；没有落到 tasks/ 下。",
+  "fixture": "fixture",
+  "tamper_guard": [
+    "Makefile",
+    "greeter/greet_test.go"
+  ],
+  "assertions": [
+    {
+      "kind": "gate",
+      "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+      "command": [
+        "make",
+        "check"
+      ]
+    },
+    {
+      "kind": "probe",
+      "text": "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
+      "files": [
+        [
+          "probe/probe_test.go",
+          "greeter/zz_eval_probe_test.go"
+        ]
+      ],
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-run",
+        "TestEvalProbe",
+        "-v",
+        "./greeter/"
+      ],
+      "extract": "EVAL_PROBE (\\{.*\\})",
+      "scenarios": [
+        {
+          "thresholds": null,
+          "expect": {
+            "slug_hello_world": 1,
+            "slug_trim": 1,
+            "slug_collapse": 1
+          }
+        }
+      ]
+    },
+    {
+      "kind": "tamper_guard",
+      "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）"
+    },
+    {
+      "kind": "skill_loaded",
+      "text": "先加载了规划入口 prd（一句诉求 + 落地方式自己定 → 不是单单元）",
+      "expect": [
+        "prd"
+      ]
+    },
+    {
+      "kind": "path_glob",
+      "text": "规划半边真的走了：scope 下产出了 PRD",
+      "glob": "requirements/*/documents/prd-*.md",
+      "min": 1
+    },
+    {
+      "kind": "no_human_wait",
+      "text": "没有以「等你回复」结束回合（CONTRACT §5：问不到人就自己定并标 [Assumption]）"
+    }
+  ]
+}

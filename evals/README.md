@@ -18,6 +18,26 @@
 | `tamper_guard` | 门禁与自带断言被改弱了吗（把测试删掉换绿要能抓住） |
 | `workspace_clean` | 有没有写到 fixture 之外（臂的 cwd 就是 fixture，越界仍然是这条路的典型失败） |
 | `tool_absent` | 不该走的编排有没有发生（读 `events.jsonl`：例如单单元模式里出现 `workflow` 调用） |
+| `skill_loaded` | 该加载的技能**真的**加载了吗（只看第一个，串联不算——技能本来就互相点名下游） |
+| `goal_opened` | 开工先开 goal 了吗（`events.jsonl` 里有没有 `create_goal`，CONTRACT §6） |
+| `no_human_wait` | 有没有停在「等你回复」上（CONTRACT §5：headless 里那是唯一一定错的做法） |
+| `evidence_layer` | 检查点里的证据**带层**了吗（每条都标了 L1–L4，CONTRACT §4） |
+
+后四条是 **T1 的只读过程断言**：它们不看东西做出来没有，只看技能契约本身有没有被执行。判定全部在
+agent 之外，读的是 `dsh --json` 的事件流与工作树——**读不到事件流判红，不判「不适用」**。
+
+## 分层：按「要花多少钱」分
+
+分层不按重要性分，按代价分——贵的那层没人跑，就等于没有。
+
+| 层 | 量什么 | 代价 | 什么时候跑 |
+|---|---|---|---|
+| **T0 路由** | 24 条触发用例：这句话该加载哪个技能 | 秒级，可并发 | 每次改 description、加删技能 |
+| **T1 形态** | 小任务 + 只读事件流与文件树：加载了哪个技能、开没开 goal、有没有检查点 / worktree、有没有停在等人 | 分钟级 | 每次改 SKILL 正文 |
+| **T2 结果** | 现有 8 个用例的 gate / probe / tamper_guard | 小时级 | 发版前、改脚本或门禁之后 |
+| **T3 对抗** | 评审与证据的质量（独立子代理逐条判） | 最贵 | 改 `review-it` 或证据层之后 |
+
+T2 用例的 `case.json` 不写 `tier`（缺省就是 `t2`）；T1 用例写 `"tier": "t1"`。`evalctl list` 会把层标出来。
 
 ## 两条臂
 
@@ -69,7 +89,107 @@ python ~/.agents/skills/skill-creator/eval-viewer/generate_review.py \
     results/iteration-1 --skill-name flow --benchmark results/iteration-1/benchmark.json
 ```
 
+## T1：小任务 + 只读事件流
+
+现有八个用例靠 prompt 后缀强制加载技能、一条臂跑几十分钟——量的是「加载之后做得对不对」。
+T1 量的是**形态**：加载了哪个技能、单单元有没有偷偷建检查点、批末有没有开 goal、有没有停在等人。
+它便宜是因为**任务小**（一条卡片、一个纯函数），不是因为少判断言——臂跑本身才是成本，判几条断言不影响它。
+
+```bash
+# 3 用例 × 2 臂 × 3 次，6 路并发（每条臂一个独立临时根，见 run.md）
+cd evals
+for c in t1-single-unit t1-serial-batch t1-vague-request; do
+  for arm in with_skill without_skill; do
+    for k in 1 2 3; do
+      d="results/t1-N/$c/$arm"; [ "$k" -gt 1 ] && d="$d-run$k"
+      go -C harness run . run "$c" --arm "$arm" --out "$d" --run "$k" --dsh /tmp/bin/dsh &
+    done
+  done
+done; wait
+go -C harness run . bench results/t1-N
+```
+
+**每条断言先量区分度再留。** `bench` 的 `benchmark.md` 会出「用例 × 断言」的通过率表，判定四类：
+
+| 判定 | 含义 | 动作 |
+|---|---|---|
+| 区分 | 两条臂通过率不同 | 留 |
+| 两边满分 | 两条臂每次全过 | **删掉，或改成能失败的形态**——从不失败的传感器说明它不必要 |
+| 两边全红 | 两条臂每次全挂 | 用例或断言坏了，先查它 |
+| flaky | 同一条臂几次之间不一致 | **单独列，不算通过**——60% 不是通过 |
+
+`gate` / `probe` / `tamper_guard` 是每条用例的**结果底线**（[AGENTS.md](AGENTS.md) 强制），
+标「底线（必留）」，不参与「两边满分就删」这条规则——那条规则管的是契约断言（过程传感器）。
+
+**每条留下的断言都要能失败。** 过程断言的自测在 `harness/events_test.go`：每条传感器都被喂过一份
+故意做错的观测（没加载技能、没开 goal、结尾在等人、证据缺层、调了不该调的工具），确认它真的判红。
+`make check` 会连它一起跑。
+
+### 第一次结果（3 用例 × 2 臂 × 3 次，6 路并发，2026-09-28）
+
+原始表在 [`results/t1-1/benchmark.md`](results/t1-1/benchmark.md)。
+
+| 用例 | 配置 | 每次 | 判定 |
+|---|---|---|---|
+| t1-single-unit | with_skill | 6/6 · 6/6 · 6/6 | 通过 |
+| t1-single-unit | without_skill | 5/6 · 5/6 · 5/6 | 不通过 |
+| t1-serial-batch | with_skill | 8/8 · 8/8 · 8/8 | 通过 |
+| t1-serial-batch | without_skill | 5/8 · 5/8 · 5/8 | 不通过 |
+| t1-vague-request | with_skill | 6/6 · 6/6 · 6/6 | 通过 |
+| t1-vague-request | without_skill | 4/6 · 4/6 · 4/6 | 不通过 |
+
+| 断言 | with_skill | without_skill | 判定 | 动作 |
+|---|---|---|---|---|
+| `skill_loaded`（3 个用例） | 3/3 | 0/3 | 区分 | 留 |
+| `goal_opened`（batch） | 3/3 | 0/3 | 区分 | 留 |
+| `evidence_layer`（batch） | 3/3 | 0/3 | 区分 | 留 |
+| `path_glob` PRD（vague） | 3/3 | 0/3 | 区分 | 留 |
+| `checkpoint_absent`（single） | 3/3 | 3/3 | 两边满分 | **留**（回归守卫，见下） |
+| `checkpoint_location`（batch） | 3/3 | 3/3 | 两边满分 | **留**（回归守卫） |
+| `no_human_wait`（3 个用例） | 3/3 | 3/3 | 两边满分 | **留**（回归守卫） |
+| `tool_absent[workflow]`（single） | 3/3 | 3/3 | 两边满分 | **删**（与 `checkpoint_absent` 同一契约） |
+| `path_absent[.git/worktrees]`（single） | 3/3 | 3/3 | 两边满分 | **删**（同上） |
+| `path_absent[tasks]`（batch / vague） | 3/3 | 3/3 | 两边满分 | **删**（被 `checkpoint_location` / `path_glob` 覆盖） |
+| `workspace_clean`（3 个用例） | 3/3 | 3/3 | 两边满分 | **删**（隔离兜底，不是技能传感器） |
+
+**删留口径**（NEXT.md 第一刀的第二选项）：两边满分的断言逐条问一句——**它在 T1 里有没有一个说得通的
+失败模式，而且负例证明它真能判红？** 有 → 留成回归守卫（`events_test.go` 里有它的负例）；没有，或者
+与已留下的断言是同一个契约 → 删掉。这样删掉 7 条、留下 4 条。
+
+**flaky：无。** 18 次运行里同一条臂的三次结果完全一致——T1 这三条用例现在不掷硬币。已知的两条
+flaky 用例（`06-exception-path`、`07-parallel-waves`）留在 T2。
+
+**成本**（这才是 T1 存在的理由）：
+
+| 配置 | 平均用时 | 平均 token |
+|---|---|---|
+| with_skill | 266 s | 930 k |
+| without_skill | 48 s | 133 k |
+
+一轮 18 次臂 ≈ 8–10 分钟墙上时间（6 路并发），对比 T2 一轮 84 分钟 / 20 M token。**贵的是臂跑，不是断言**
+——所以判断言时不必省，该省的是任务本身的大小。
+
+两条顺带量出来的事实：
+
+- **仪式成本占大头。** `t1-single-unit` 的改动是十几行，`with_skill` 要 133–184 s / 400–480 k token，
+  `without_skill` 只要 19–25 s / 50–76 k——差额几乎全是 `/review-it` 的子代理与 `/ship-it` 的交付流程。
+  这是这套技能的**设计**（生成者与评判者分离），不是缺陷；但它解释了 T1 为什么必须把小任务选得这么小。
+- **`checkpoint_location` 不区分**：`without_skill` 也会照仓库的 `AGENTS.md` 建检查点，而且落点正确。
+  真正区分的是**检查点里有没有带层的证据**（`evidence_layer` 3/3 vs 0/3）与**开没开 goal**。
+
 ## 用例
+
+### T1（小任务，每次改 SKILL 正文都跑）
+
+| 用例 | 测什么 | 过程断言 |
+|---|---|---|
+| [t1-single-unit](cases/t1-single-unit/case.json) | **单单元**：一条卡片、一个纯函数，`loop-it` 该判成单单元内联做完 | `skill_loaded`、`checkpoint_absent`、`no_human_wait`、`tool_absent`、`path_absent` |
+| [t1-serial-batch](cases/t1-serial-batch/case.json) | **串行批次**：两张有依赖边的小卡片，该开 goal、建检查点、把证据带上层 | `skill_loaded`、`goal_opened`、`checkpoint_location`、`evidence_layer`、`no_human_wait` |
+| [t1-vague-request](cases/t1-vague-request/case.json) | **规划半边**：一句诉求 + 「怎么落地你定」，该先走 `prd` 而不是直接开写 | `skill_loaded`、`path_glob`（PRD 落点）、`no_human_wait` |
+
+三条用例都有完整的 `gate` / `probe` / `tamper_guard`，起点都是红的（探针在 seed commit 上编译不过）。
+
+### T2（结果，小时级）
 
 **只有两条在量技能的价值**（两条臂分数不同），其余六条是护栏（两条臂一样）。
 所以每轮只跑前两条；护栏**改了对应路径才跑**。
