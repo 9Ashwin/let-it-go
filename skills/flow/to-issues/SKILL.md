@@ -62,7 +62,7 @@ E. 直接粘贴需求
 3. **判定创建模式，自己判、不问：** 有 `origin` 且 `gh auth status` 通过 → **GitHub**（`gh` CLI，原生阻塞链接，v2.94+ 才有 `--blocked-by` / `--parent`）；否则 → **本地**（`<scope>/issues/` 下的 `NN-<slug>.md`，跟随 `AGENTS.md` 路由表）。判完在报告里说明选了哪个、依据是什么。
 4. **先建阻塞方**，好让它们的编号在依赖它们的 issue 之前就存在。GitHub：`gh issue create --title ... --body ... --label "priority: X" --blocked-by ...`；只有跟踪器拒绝该 flag 时，才退回在正文里写一行 `Blocked by #X`。本地：`mkdir -p` 后按依赖顺序写文件，`NN` 是真实卡片 ID。
 5. **摘要报告：** 来源 / 模式 / 条数 + 表格（`# | 标题（行为） | Blocked by | 标识`）+ **当前前沿**（没有未决阻塞、现在就能开始的那些）。模板见 [`references/examples.md`](references/examples.md)。
-6. **直接往下：** 报告完按形态进 `/loop-it`（单条或串行批次）或 `/graph`（真并行前沿），不要交回控制权。默认继续，判据全在仓库里。
+6. **直接往下：** 报告完跑 `route`（`python3 <SKILL_DIR>/../loop-it/scripts/loop_state.py route --scope <scope>`，`<SKILL_DIR>` 是加载本技能时报告的 Base directory），照它打印的 `next:` 用 `skill` 工具加载 `loop-it` 或 `graph`——同一个回合里接着走，不要交回控制权，也不要自己开写。
 7. **唯一的例外：** 真往**远端**建 issue 之前，把清单摆出来让人当场接住——建出去再撤要费手脚。本地写文件没这个问题，落盘即视为可用，反馈当修订。
 
 **怎么派发：**

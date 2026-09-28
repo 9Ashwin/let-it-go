@@ -92,11 +92,13 @@ follow-up。
 from __future__ import annotations
 
 import argparse
+import glob
 import json
 import os
 import re
 import subprocess
 import sys
+from collections import Counter
 from datetime import datetime, timezone
 
 STATUSES = ("pending", "in_progress", "shipped", "failed", "skipped", "blocked")
@@ -913,6 +915,99 @@ def cmd_note(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_route(args: argparse.Namespace) -> int:
+    """按磁盘事实推导「链上走到哪一段」，打印下一个该加载的技能。
+
+    接力失败过一次，值得记：`prd` 落盘之后模型直接开写实现，整条链一步没走，直到用户
+    当面追问「为什么不建 issue 不开 loop」才回头。病根不是它没读到「默认继续 /to-issues」
+    那句话——它读到了——而是**链上的位置没有任何载体**：那句话在二十多次调用之前读过，
+    而「下一步是谁」没有任何东西可查，只能靠回忆。
+
+    所以这条子命令**不发明新状态**（见 `.out-of-scope/no-second-truth-document.md`）：
+    它把已经存在的磁盘事实（`documents/`、`issues/`、检查点、工作树的改动）推导成一句话，
+    让任何一个决策点都能问「现在该加载谁」，而不是靠正文里的一句嘱咐。
+    """
+    scope = os.path.abspath(args.scope)
+    documents = sorted(glob.glob(os.path.join(scope, "documents", "*.md")))
+    cards = sorted(
+        path
+        for path in glob.glob(os.path.join(scope, "issues", "*.md"))
+        if not os.path.basename(path).startswith(".")
+    )
+    state_path = args.state
+    if state_path == DEFAULT_STATE:
+        candidate = os.path.join(scope, "issues", ".loop-state.json")
+        if os.path.exists(candidate):
+            state_path = candidate
+    state = load_state(state_path) if os.path.exists(state_path) else None
+
+    tail = "loop-it → review-it → ship-it → 合入归人（/merge-it）"
+    if cards and state:
+        counts = Counter(entry.get("status") for entry in state["issues"].values())
+        open_count = counts["pending"] + counts["in_progress"] + counts["blocked"]
+        if open_count == 0 and counts["shipped"] > 0:
+            stage, nxt = "batch-end", "review-it"
+            tail = "ship-it → 合入归人（/merge-it）"
+            why = f"检查点里 {counts['shipped']} 条 shipped、没有未决项"
+        else:
+            stage, nxt = "implement", "loop-it"
+            why = f"检查点里还有 {open_count} 条未决"
+    elif cards:
+        stage, nxt = "implement", "loop-it"
+        why = f"`issues/` 下 {len(cards)} 张卡，还没有检查点"
+    elif documents:
+        stage, nxt = "plan", "to-issues"
+        why = f"`documents/` 下 {len(documents)} 份文档，`issues/` 下还没有卡"
+    else:
+        stage, nxt = "plan", "prd"
+        why = "既没有 `documents/` 也没有 `issues/`"
+
+    # 越序：还在规划阶段，工作树里却已经有实现改动了——那正是踩过的那次（PRD 落盘 → 直接
+    # 开写代码）。只在 git 可用时判：**不按文件扩展名猜**，因为仓库自己有基线文件，按扩展名
+    # 判会把「什么都没动」误报成越序。
+    if stage == "plan" and not cards:
+        stray = uncommitted_outside_docs(scope)
+        if stray:
+            shown = "、".join(stray[:5]) + ("…" if len(stray) > 5 else "")
+            # 用 die 而不是 return 1：这个脚本的失败一律走 SystemExit，调用方（包括自测）
+            # 只认退出码。越序必须能被机械看见，否则它又变回一句嘱咐。
+            die(
+                f"越序：还在规划阶段（`documents/` 下有文档、`issues/` 下 0 张卡），"
+                f"但工作树里已经有 {len(stray)} 处实现改动：{shown} —— "
+                "先把 `/to-issues` 走完再动实现；这些改动若确实属于文档，就挪进 `documents/`"
+            )
+
+    print(f"stage: {stage}")
+    print(f"next:  用 `skill` 工具加载 {nxt}")
+    print(f"then:  {tail}")
+    print(f"依据:  {why}")
+    return 0
+
+
+def uncommitted_outside_docs(scope: str) -> list[str]:
+    """git 能用时，列出 `documents/` 与 `issues/` 之外的未提交改动；不能判就返回空。"""
+    if not os.path.isdir(os.path.join(scope, ".git")):
+        return []
+    try:
+        proc = subprocess.run(
+            ["git", "-C", scope, "status", "--porcelain"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return []
+    if proc.returncode != 0:
+        return []
+    stray: list[str] = []
+    for line in proc.stdout.splitlines():
+        path = line[3:].strip().strip('"')
+        if not path or path.startswith("documents/") or path.startswith("issues/"):
+            continue
+        stray.append(path)
+    return stray
+
+
 def cmd_summary(args: argparse.Namespace) -> int:
     state = load_state(args.state, required=True)
     print(render_summary(state))
@@ -997,6 +1092,11 @@ def main(argv: list[str] | None = None) -> int:
     followup_resolve.add_argument("--why", help="为什么丢弃它，或者什么变了")
     followup_resolve.add_argument("--state", default=DEFAULT_STATE)
     followup_resolve.set_defaults(func=cmd_followup)
+
+    route = sub.add_parser("route", help="按磁盘事实推导链上走到哪一段、下一个该加载谁")
+    route.add_argument("--scope", default=".", help="作用域根（默认当前目录）")
+    route.add_argument("--state", default=DEFAULT_STATE)
+    route.set_defaults(func=cmd_route)
 
     summary = sub.add_parser("summary", help="打印进度表")
     summary.add_argument("--state", default=DEFAULT_STATE)

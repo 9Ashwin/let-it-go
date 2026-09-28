@@ -178,7 +178,7 @@ python3 $S set --issue N --status failed --error-class build_failure --error "<m
 
 ### 3. 批末收尾（只做一次）
 
-`followup list` 收口 → `/review-it` 审整批 diff → `/ship-it`（先写走查件，再由它给出 PR body）→ `summary` → `update_goal complete` → **把 PR 链接与合入命令打给人**。合入归 [`/merge-it`](../merge-it/SKILL.md)，那一份只有人能敲。完整清单与逐项说明见 [`references/batch-model.md`](references/batch-model.md)。
+`followup list` 收口 → **跑 `route`**，照它打印的 `next:` 用 `skill` 加载 `review-it` 审整批 diff → 两轴都过后再跑一次 `route`（此时它给的是 `ship-it`）→ `summary` → `update_goal complete` → **把 PR 链接与合入命令打给人**。**这一串在同一个回合里走完**：链上的位置由 `route` 现算，不靠回忆——那句「下一步是 /ship-it」在你读完本技能二十多次调用之后就不在手边了。合入归 [`/merge-it`](../merge-it/SKILL.md)，那一份只有人能敲。完整清单与逐项说明见 [`references/batch-model.md`](references/batch-model.md)。
 
 ## 边界
 
@@ -200,7 +200,7 @@ python3 $S set --issue N --status failed --error-class build_failure --error "<m
 - [`references/error-recovery.md`](references/error-recovery.md) — 错误分类表与恢复协议。
 - [`references/dsh-runtime.md`](references/dsh-runtime.md) — DSH 侧的发现/调用方式与委派工具映射。
 - [`references/codex-runtime.md`](references/codex-runtime.md) — Codex 下的委派、串行等待、命令会话与检查点恢复。
-- `scripts/loop_state.py` — `scan` / `set` / `note` / `evidence` / `followup` / `next` / `summary`，顺序与检查点的唯一实现。
+- `scripts/loop_state.py` — `scan` / `set` / `note` / `evidence` / `followup` / `next` / `summary` / `route`，顺序与检查点的唯一实现。`route` 是**链上的位置**：按磁盘事实算出「现在该加载谁」，越序直接报错。
 - `scripts/test_loop_state.py` — 自测：`python3 <SKILL_DIR>/scripts/test_loop_state.py`。
 
 ## 与其他 skill 的关系

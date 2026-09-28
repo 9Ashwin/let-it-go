@@ -12,6 +12,7 @@ import importlib.util
 import io
 import json
 import os
+import subprocess
 import sys
 import tempfile
 
@@ -71,6 +72,68 @@ def write_issues(tmp: str, specs: list[tuple[int, str, str]]) -> str:
 def read_state(path: str) -> dict:
     with open(path, encoding="utf-8") as handle:
         return json.load(handle)
+
+
+def test_route_derives_the_next_hop_from_disk():
+    """接力失败过一次：`prd` 落盘后直接开写实现，整条链没走。这条守的是「链上到哪一段」
+    变成**可查的事实**，而不是正文里的一句嘱咐。"""
+    with tempfile.TemporaryDirectory() as tmp:
+        # 空作用域 → 入口是 prd
+        code, out, _ = run("route", "--scope", tmp)
+        check("route：空作用域 → plan/prd", code == 0 and "stage: plan" in out and "加载 prd" in out, out)
+
+        # 只有文档 → 下一步 to-issues
+        os.makedirs(os.path.join(tmp, "documents"))
+        with open(os.path.join(tmp, "documents", "prd-admin.md"), "w", encoding="utf-8") as handle:
+            handle.write("# PRD\n")
+        code, out, _ = run("route", "--scope", tmp)
+        check("route：有 PRD 无卡 → plan/to-issues", code == 0 and "加载 to-issues" in out, out)
+
+        # 有卡、没有检查点 → 下一步 loop-it
+        os.makedirs(os.path.join(tmp, "issues"))
+        with open(os.path.join(tmp, "issues", "01-backend.md"), "w", encoding="utf-8") as handle:
+            handle.write("# 01\n")
+        code, out, _ = run("route", "--scope", tmp)
+        check("route：有卡无检查点 → implement/loop-it", code == 0 and "stage: implement" in out and "加载 loop-it" in out, out)
+
+
+def test_route_reads_the_checkpoint_for_the_batch_end():
+    with tempfile.TemporaryDirectory() as tmp:
+        os.makedirs(os.path.join(tmp, "issues"))
+        with open(os.path.join(tmp, "issues", "01-a.md"), "w", encoding="utf-8") as handle:
+            handle.write("# 01\n")
+        state_path = os.path.join(tmp, "issues", ".loop-state.json")
+        with open(state_path, "w", encoding="utf-8") as handle:
+            json.dump({"version": 1, "issues": {"1": {"status": "in_progress"}}}, handle)
+        code, out, _ = run("route", "--scope", tmp)
+        check("route：检查点里有未决 → implement", code == 0 and "stage: implement" in out, out)
+
+        with open(state_path, "w", encoding="utf-8") as handle:
+            json.dump({"version": 1, "issues": {"1": {"status": "shipped"}, "2": {"status": "skipped"}}}, handle)
+        code, out, _ = run("route", "--scope", tmp)
+        check("route：全部结清 → batch-end/review-it", code == 0 and "stage: batch-end" in out and "加载 review-it" in out, out)
+
+
+def test_route_refuses_to_walk_past_the_planning_half():
+    """踩过的那次：规划阶段就开始改实现文件。git 可用时以非零退出报出来。"""
+    with tempfile.TemporaryDirectory() as tmp:
+        os.makedirs(os.path.join(tmp, "documents"))
+        with open(os.path.join(tmp, "documents", "prd-x.md"), "w", encoding="utf-8") as handle:
+            handle.write("# PRD\n")
+        subprocess.run(["git", "init", "-q"], cwd=tmp, check=True)
+        subprocess.run(["git", "add", "documents"], cwd=tmp, check=True)
+        subprocess.run(
+            ["git", "-c", "user.email=e@x", "-c", "user.name=n", "commit", "-qm", "docs"],
+            cwd=tmp,
+            check=True,
+        )
+        code, out, _ = run("route", "--scope", tmp)
+        check("route：规划阶段、工作树干净 → 不报越序", code == 0, out)
+
+        with open(os.path.join(tmp, "main.go"), "w", encoding="utf-8") as handle:
+            handle.write("package main\n")
+        code, out, err = run("route", "--scope", tmp)
+        check("route：规划阶段却动了实现 → 非零退出并点名", code == 1 and "越序" in err and "main.go" in err, err)
 
 
 def test_parse_dependencies_variants():
@@ -521,6 +584,9 @@ def main() -> int:
         test_evidence_is_recorded_structured,
         test_evidence_batch_appends_in_one_write,
         test_followups_are_a_queue_not_a_note,
+        test_route_derives_the_next_hop_from_disk,
+        test_route_reads_the_checkpoint_for_the_batch_end,
+        test_route_refuses_to_walk_past_the_planning_half,
     ):
         print(f"- {test.__name__}")
         test()
