@@ -168,8 +168,12 @@ func cmdRun(args []string) int {
 	}
 
 	// 原始事件流落盘：超时或半途失败时，这是唯一能看出「它卡在哪一步」的东西。
+	// 同时写一份到私有临时根——**打分发生在工作树被搬回 results/ 之前**，而
+	// `tool_absent` 这类断言读的就是工作树旁边那份事件流（见 assertToolAbsent）；
+	// 只写 results/ 那份的话，实时打分时它读不到，断言会静默变成「不适用」。
 	if rawEvents != "" {
 		os.WriteFile(filepath.Join(out, "events.jsonl"), []byte(rawEvents), 0o644)
+		os.WriteFile(filepath.Join(root, "events.jsonl"), []byte(rawEvents), 0o644)
 	}
 
 	timing := Timing{
@@ -185,6 +189,10 @@ func cmdRun(args []string) int {
 		return 1
 	}
 	g := grade(caseID, work, c)
+	// 打分用完就删掉临时根里那份事件流：root 是臂 TMPDIR 的上一级，被 SIGKILL 的运行
+	// 不会清理它（run.md 记过 iteration-9 臂读到残留根的实例），而完整 transcript
+	// （thinking + 工具入参）没必要在长期那份之外多留一份。
+	os.Remove(filepath.Join(root, "events.jsonl"))
 	if err := os.WriteFile(filepath.Join(out, "grading.json"), mustJSON(g), 0o644); err != nil {
 		fmt.Fprintln(os.Stderr, "run:", err)
 		return 1
