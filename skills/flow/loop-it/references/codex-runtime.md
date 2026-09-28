@@ -1,6 +1,6 @@
 # loop-it 的 Codex 运行时说明
 
-这份说明把 `/loop-it` 的中性动作映射到 Codex。单单元 / 串行批次的判据、检查点 schema、状态转换与 evidence 规则仍以 [`../SKILL.md`](../SKILL.md)、[`../../CONTRACT.md`](../../CONTRACT.md) 和 `scripts/loop_state.py` 为准；DSH 映射见 [`dsh-runtime.md`](dsh-runtime.md)。
+这份说明把 `/loop-it` 的中性动作映射到 Codex。单单元 / 串行批次的判据、检查点 schema、状态转换与 evidence 规则仍以 [`../SKILL.md`](../SKILL.md)、[`../CONTRACT.md`](../CONTRACT.md) 和 `scripts/loop_state.py` 为准；DSH 映射见 [`dsh-runtime.md`](dsh-runtime.md)。
 
 ## 单单元
 

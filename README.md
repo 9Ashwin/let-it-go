@@ -28,7 +28,7 @@
 
 let-it-go 的核心是 [`skills/flow`](skills/flow) 中的 8 个研发工作流技能。你描述目标，Agent 按任务需要澄清需求、拆解 Issue、实现、验证并交付。
 
-**一个工作状态，三个 profile，零人工闸门。** 要做什么、什么算做完，写在一处——GitHub issue 正文（`goal` / `acceptance` / `invariants` / `unknowns` / `human_checkpoint`）；走到哪了写在检查点里。其余文档（PRD、走查件、PR 描述）都是它的**投影**。契约全文见 [`skills/flow/CONTRACT.md`](skills/flow/CONTRACT.md)。
+**一个工作状态，三个 profile，零人工闸门。** 要做什么、什么算做完，写在一处——GitHub issue 正文（`goal` / `acceptance` / `invariants` / `unknowns` / `human_checkpoint`）；走到哪了写在检查点里。其余文档（PRD、走查件、PR 描述）都是它的**投影**。契约全文见 [`skills/flow/loop-it/CONTRACT.md`](skills/flow/loop-it/CONTRACT.md)。
 
 **拿不准走哪条，先看形态：**
 
@@ -58,22 +58,18 @@ npx skills add 9Ashwin/let-it-go
 
 `npx skills` 递归扫描、安装时把 `skills/<桶>/<技能>` 拍平成 `~/.agents/skills/<技能>`——技能根只扫一层，所以必须拍平。
 
-**拍平会漏掉一份不是技能的文件：`CONTRACT.md`。** 八份 flow `SKILL.md` 都写着「工作状态、证据层、profile 边界、产物落点见 `../CONTRACT.md`」，而拍平之后那个相对路径指向 `~/.agents/skills/CONTRACT.md`——它不在任何技能目录里，`npx skills` 不会复制它。装完补一条：
-
-```bash
-cp skills/flow/CONTRACT.md ~/.agents/skills/CONTRACT.md
-```
-
-漏掉的症状很安静：技能照常加载，agent 只是读不到唯一真相源，然后花好几个工具调用到处找它（T1 eval 就是这么发现的）。
-技能根下多一份 `CONTRACT.md` 不会被当成技能——它没有 frontmatter，DSH 直接忽略。
+**契约跟着 `loop-it` 一起装。** 八份 flow `SKILL.md` 都写着「工作状态、证据层、profile 边界、产物落点见
+`../loop-it/CONTRACT.md`」。它住在 `skills/flow/loop-it/` 里，不是因为它属于 `loop-it`，而是因为
+`npx skills` 拍平只复制 `<root>/<name>/` 这一层——放在技能根下、**不是技能**的文件不会被带走。
+放进技能目录之后，那个相对路径在仓库里和安装目录里同时成立，**不需要任何额外步骤**。
 
 ### 在本仓库里维护时：软链，不拷贝
 
 上面那条是给外人的分发路径。**自己改这套技能时用 `make link`**（`scripts/link_skills.py`）——把每个技能
-软链进 `~/.agents/skills`，连同 `CONTRACT.md` 一起：
+软链进 `~/.agents/skills`：
 
 ```bash
-make link          # 软链全部技能 + 共享文档；替换掉旧的拷贝，清掉悬空链接
+make link          # 软链全部技能；替换掉旧的拷贝，清掉悬空链接
 make link-check    # 只报告漂移（仓库与安装目录不一致时退出码 1）
 ```
 
@@ -81,8 +77,6 @@ make link-check    # 只报告漂移（仓库与安装目录不一致时退出�
 
 - **删技能不留尸体。** `npx skills add` 只加不删，技能从仓库删掉之后 `~/.agents/skills/<name>` 还留着；
   软链会变成悬空链接，`make link` 直接清掉。
-- **`CONTRACT.md` 不再漏。** 软链之后 `<技能目录>/../CONTRACT.md` 按 OS 的路径解析会走回仓库里那份；
-  脚本同时在技能根软链一份，两种解析方式都成立。
 - 顺带：`git pull` 就是更新，不需要重跑安装。
 
 别的来源的技能（`~/.agents/skills` 下不是本仓库的条目）**不动**，只列出来给人看。

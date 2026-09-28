@@ -64,7 +64,10 @@
 T1 顺带抓出两件事，都不是断言写错：
 
 - **安装目录里没有 `CONTRACT.md`**——拍平不会复制不是技能的文件，臂 `read` 它得到 `not found` 后
-  花好几个工具调用到处找。已改成软链安装（`make link`），证据留在 `results/t1-0-missing-contract/`。
+  花好几个工具调用到处找。当时改成软链安装（`make link`）并给外人补了一条 `cp`；**后来发现那条 `cp`
+  对外人根本跑不通**（`cp skills/flow/CONTRACT.md` 是仓库相对路径，而外人是从 GitHub 装的），于是
+  根治：把它挪进 `skills/flow/loop-it/`，跟着技能一起被复制，`cp` 与脚本特判都删掉。
+  证据留在 `results/t1-0-missing-contract/`。
 - **`tamper_guard` 保护了臂本来就会改的测试文件**——卡片写着「补上对应的测试」，臂改 `greet_test.go`
   是照做。改成在 fixture 的 `AGENTS.md` 里声明**冻结基线**，测试写新文件。
 

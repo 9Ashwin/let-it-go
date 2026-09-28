@@ -30,4 +30,4 @@ GitHub CLI 发布这条路不需要映射：`gh` 在任何宿主上跑法都一�
 
 **长跑目标不是"人自己敲 `/goal`"。** 面向模型的那一半是 `create_goal` / `update_goal`：它的门禁是
 「当前打开的回合里有人类消息」+「调用者是顶层 agent」——**模型自己就能开**，子代理开不了。
-一批活开工时创建它，会话就会跨回合自动续跑；批末 `update_goal complete`。见 `skills/flow/CONTRACT.md` 第 6 节。
+一批活开工时创建它，会话就会跨回合自动续跑；批末 `update_goal complete`。见 `skills/flow/loop-it/CONTRACT.md` 第 6 节。

@@ -28,7 +28,7 @@
 
 The core of let-it-go is the 8 development-workflow skills in [`skills/flow`](skills/flow). Describe your goal, and the agent clarifies requirements, breaks down Issues, implements, verifies, and ships as the task requires.
 
-**One work state, three profiles, no human gates.** What to change and what counts as done live in one place — the GitHub issue body (`goal` / `acceptance` / `invariants` / `unknowns` / `human_checkpoint`); how far the batch has got lives in the checkpoint. Every other document (PRD, walkthrough, PR body) is a **projection** of it. The full contract is [`skills/flow/CONTRACT.md`](skills/flow/CONTRACT.md).
+**One work state, three profiles, no human gates.** What to change and what counts as done live in one place — the GitHub issue body (`goal` / `acceptance` / `invariants` / `unknowns` / `human_checkpoint`); how far the batch has got lives in the checkpoint. Every other document (PRD, walkthrough, PR body) is a **projection** of it. The full contract is [`skills/flow/loop-it/CONTRACT.md`](skills/flow/loop-it/CONTRACT.md).
 
 **Not sure which entry to take? Go by shape:**
 

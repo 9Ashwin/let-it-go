@@ -7,7 +7,7 @@ description: "只在有真岔口要留档时才写设计提案：碰了公开 AP
 
 **只在有真岔口要留档时才用。** 产出的是「为什么这么选」，不是长 SPEC。
 
-**工作状态、证据层、三个 profile 的边界、产物落点见 [`../CONTRACT.md`](../CONTRACT.md)——本文件不复述。**
+**工作状态、证据层、三个 profile 的边界、产物落点见 [`../loop-it/CONTRACT.md`](../loop-it/CONTRACT.md)——本文件不复述。**
 
 **设计文档不是契约。** 契约在 issue 正文（CONTRACT 第 1 节）。被实现证伪或已经过时，就直接重写或删掉，不要供着。
 

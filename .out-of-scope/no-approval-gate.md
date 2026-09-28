@@ -2,7 +2,7 @@
 
 `/prd`、`/to-design`、`/to-issues`、`/loop-it` 都**不等「回复 OK」**：产物落盘即视为可用，反馈当修订。
 人只在两个地方被叫：`human_checkpoint`（判据是**危险面**，不是阶段）与**合入**（不可逆，归 `/merge-it`，
-只有人能敲）——见 [CONTRACT §5](../skills/flow/CONTRACT.md)。
+只有人能敲）——见 [CONTRACT §5](../skills/flow/loop-it/CONTRACT.md)。
 
 ## 为什么不
 
@@ -11,13 +11,13 @@
 因为每个人都知道只有这一次机会。
 
 它还奖励错误的行为：等批准意味着**在拿到任何观测之前**就把方案定死，而
-[CONTRACT §4](../skills/flow/CONTRACT.md) 的立场正好相反——判据落在已经拿到的观测上，
+[CONTRACT §4](../skills/flow/loop-it/CONTRACT.md) 的立场正好相反——判据落在已经拿到的观测上，
 不落在事前信心上。
 
 ## 逃生通道
 
 危险面本来就有停点，只是判据不是阶段：碰公开 API / 兼容性、数据迁移 / 破坏性变更、
-权限 / 认证边界、不可逆 / 对外承诺时停一次等人（[CONTRACT §5](../skills/flow/CONTRACT.md) 的固定清单）。
+权限 / 认证边界、不可逆 / 对外承诺时停一次等人（[CONTRACT §5](../skills/flow/loop-it/CONTRACT.md) 的固定清单）。
 
 **只允许两类例外，且要在技能里写明属于哪一类**：**真歧义**（探测到多个 PRD 该用哪个、`failed`
 节点重试还是跳过）、**只能人拍板的事**（谁来评审；含破坏性操作的选项）。

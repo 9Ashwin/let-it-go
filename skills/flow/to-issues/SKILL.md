@@ -7,7 +7,7 @@ description: "把 PRD/SPEC 拆成垂直切片、写清真实阻塞边的 issue�
 
 把输入拆成小的、**可独立演示**的 issue，每条都装得进一个全新上下文窗口，然后创建到 GitHub 或本地。可以单独使用，不必先跑 `/prd`。
 
-**工作状态、证据层、三个 profile、零人工闸门、产物落点见 [`../CONTRACT.md`](../CONTRACT.md)——本文件不复述。** 这里只写：何时调用、输入、输出、边界、失败怎么办。
+**工作状态、证据层、三个 profile、零人工闸门、产物落点见 [`../loop-it/CONTRACT.md`](../loop-it/CONTRACT.md)——本文件不复述。** 这里只写：何时调用、输入、输出、边界、失败怎么办。
 
 `/prd`（需求）→ `/to-design`（为什么这么选）→ **`/to-issues`**（拆卡）→ `/loop-it` 或 `/graph`（实现）→ `/review-it` → `/ship-it`。
 
@@ -34,7 +34,7 @@ E. 直接粘贴需求
 
 - 自动探测时把可用文件列出来选。
 - PRD + SPEC → 以 SPEC 的 Issue Mapping 为主要依据，用 PRD 的验收条件补充；只有 PRD → 从契约五字段（`goal` / `acceptance` / `invariants` / `unknowns` / `human_checkpoint`）推导，**`acceptance` 是切片的主要依据**。
-- **全新子代理看不到这段对话**（[`../CONTRACT.md`](../CONTRACT.md) §1）：issue 正文必须自包含。这是硬契约，不是风格建议。
+- **全新子代理看不到这段对话**（[`../loop-it/CONTRACT.md`](../loop-it/CONTRACT.md) §1）：issue 正文必须自包含。这是硬契约，不是风格建议。
 
 ## 输出
 

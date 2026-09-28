@@ -1,6 +1,6 @@
 # /graph 的 Codex 运行时说明
 
-这份说明只把 `/graph` 的中性动作映射到 Codex 工具。节点划分、隔离、检查点、fan-in 与放行规则仍以 [`../SKILL.md`](../SKILL.md) 和 [`../../CONTRACT.md`](../../CONTRACT.md) 为准；DSH 映射见 [`dsh-runtime.md`](dsh-runtime.md)。
+这份说明只把 `/graph` 的中性动作映射到 Codex 工具。节点划分、隔离、检查点、fan-in 与放行规则仍以 [`../SKILL.md`](../SKILL.md) 和 [`../../loop-it/CONTRACT.md`](../../loop-it/CONTRACT.md) 为准；DSH 映射见 [`dsh-runtime.md`](dsh-runtime.md)。
 
 ## 委派
 

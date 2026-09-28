@@ -57,4 +57,4 @@ cwd 或 worktree 参数，每次 bash 调用都是全新 shell，所以要给子
 `/goal` 是 DSH 的**命令**，不是技能；模型侧是 `create_goal` / `update_goal`，门禁是**回合的来源，不是措辞**：
 `create_goal` 要求「当前打开的回合里有人类消息」+「调用者是顶层 agent」——**模型自己就能开，不需要人敲 `/goal`**；
 子代理开不了（非 root 的调用直接被拒），只能在顶层开。批末 `update_goal complete`，不显式关掉续跑会烧到轮数上限；
-完整边界见 [`../../CONTRACT.md`](../../CONTRACT.md) 第 6 节。
+完整边界见 [`../../loop-it/CONTRACT.md`](../../loop-it/CONTRACT.md) 第 6 节。

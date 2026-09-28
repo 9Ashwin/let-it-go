@@ -7,7 +7,7 @@ description: "两轴评审收尾：派一个不共享上下文的子代理，按
 
 commit 或交付之前的一次评审：由一个**不共享上下文的子代理**拿同一套标准、在独立上下文里逐条判，给出结论。
 
-**工作状态、证据层、三个 profile 的边界、零人工闸门见 [`../CONTRACT.md`](../CONTRACT.md)——本文件不复述。** 这里只写四件事：何时调用、评审什么、怎么判、判不过怎么办。
+**工作状态、证据层、三个 profile 的边界、零人工闸门见 [`../loop-it/CONTRACT.md`](../loop-it/CONTRACT.md)——本文件不复述。** 这里只写四件事：何时调用、评审什么、怎么判、判不过怎么办。
 
 下文中的 `subagent`、`run_in_background` 与 `job_*` 是 DSH 工具名；在 Codex 下执行时，委派与等待方式见 [`references/codex-runtime.md`](references/codex-runtime.md)，评审判据不变。
 

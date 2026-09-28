@@ -1,7 +1,7 @@
 # 单单元不产生检查点
 
 单单元 profile **不碰 `.loop-state.json`**：不建检查点、不建 worktree、不开 graph 波次。这是
-[CONTRACT §3](../skills/flow/CONTRACT.md) 的硬契约，不是「小任务可以省一点」的优化。
+[CONTRACT §3](../skills/flow/loop-it/CONTRACT.md) 的硬契约，不是「小任务可以省一点」的优化。
 
 ## 为什么不
 
@@ -11,7 +11,7 @@
 
 - **第二份真相**：`.loop-state.json` 里会出现一份与当前上下文并行的状态，两者不一致时没人知道该信谁。
   这正是 issue #3 的病根（同一件事在多处各记一份）。
-- **仪式量倒挂**：[CONTRACT §3](../skills/flow/CONTRACT.md) 写的是「三个 profile 的仪式量差一个数量级」，
+- **仪式量倒挂**：[CONTRACT §3](../skills/flow/loop-it/CONTRACT.md) 写的是「三个 profile 的仪式量差一个数量级」，
   单单元加上检查点之后，最简单的路径反而先落一次盘、再读一次盘。
 
 判据是**形态**，不是规模感：一条 issue、一张卡、spec 里的一项，装得进一个上下文就是单单元。

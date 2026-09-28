@@ -1,6 +1,6 @@
 # /review-it 的 Codex 运行时说明
 
-这份说明只映射 Codex 下的独立评审调用；Spec / Standards 两轴、八个评审维度、证据要求与放行判据仍以 [`../SKILL.md`](../SKILL.md) 和 [`../../CONTRACT.md`](../../CONTRACT.md) 为准。DSH 映射见 [`dsh-runtime.md`](dsh-runtime.md)。
+这份说明只映射 Codex 下的独立评审调用；Spec / Standards 两轴、八个评审维度、证据要求与放行判据仍以 [`../SKILL.md`](../SKILL.md) 和 [`../../loop-it/CONTRACT.md`](../../loop-it/CONTRACT.md) 为准。DSH 映射见 [`dsh-runtime.md`](dsh-runtime.md)。
 
 ## 派发独立评审者
 

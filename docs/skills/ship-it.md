@@ -6,7 +6,7 @@
 
 它到**「PR 就绪」**就停，合入不在这里。合入不可逆，在开源项目里本来就是维护者的动作，归 [`/merge-it`](../../skills/flow/merge-it/SKILL.md)，那一份只有人能敲；开 PR 可逆、也是给人看的，所以留在这一份。交付形态也不由技能决定，而由仓库决定：有 `origin` 且 `gh` 已登录走远端模式，否则走本地模式——只准备交付资料、不落默认分支，**不为走通 PR 流程去新建一个远端**。
 
-工作状态、证据层、产物落点与放行判据见 [flow 契约](../../skills/flow/CONTRACT.md)；走查件的写法见 [走查件说明](../../skills/flow/ship-it/references/walkthrough.md)。
+工作状态、证据层、产物落点与放行判据见 [flow 契约](../../skills/flow/loop-it/CONTRACT.md)；走查件的写法见 [走查件说明](../../skills/flow/ship-it/references/walkthrough.md)。
 
 ## When to reach for it
 

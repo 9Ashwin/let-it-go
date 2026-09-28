@@ -8,7 +8,7 @@ description: "把一句诉求变成可验证的契约五字段（goal / acceptan
 
 `/prd` 把一句诉求变成**工作状态的契约五个字段**：`goal` / `acceptance` / `invariants` / `unknowns` / `human_checkpoint`。
 
-**工作状态、证据层、三个 profile 的边界、产物落点见 [`../CONTRACT.md`](../CONTRACT.md)——本文件不复述。** 这里只写三件事：何时调用、产物长什么样、失败怎么办。
+**工作状态、证据层、三个 profile 的边界、产物落点见 [`../loop-it/CONTRACT.md`](../loop-it/CONTRACT.md)——本文件不复述。** 这里只写三件事：何时调用、产物长什么样、失败怎么办。
 
 ## 何时调用
 

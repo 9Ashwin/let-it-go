@@ -9,7 +9,7 @@
 它和「先写一份完整 PRD 再等人批准」的默认做法分道扬镳：只问那些**不回答就写不出可验证
 `acceptance`** 的问题，其余自己定并标 `[Assumption]`；落盘即视为可用，反馈当修订。所以它产出的
 是一份短文档，不是一份要通读的模板——长度由未知量决定，九节结构不进默认路径。契约住在哪、证据
-分几层、产物落在哪，见 [`CONTRACT.md`](../../skills/flow/CONTRACT.md)。
+分几层、产物落在哪，见 [`../../skills/flow/loop-it/CONTRACT.md`](../../skills/flow/loop-it/CONTRACT.md)。
 
 ## When to reach for it
 

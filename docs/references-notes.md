@@ -1,7 +1,7 @@
 # 参考材料的结论：采纳了什么、没采纳什么
 
 不是读书笔记。这里只记**每条材料最终落到哪、以及为什么没落**，给下一轮调优技能时当输入用。
-已经写进 `skills/flow/CONTRACT.md` 或 `dsh-runtime.md` 的，只留指针。
+已经写进 `skills/flow/loop-it/CONTRACT.md` 或 `dsh-runtime.md` 的，只留指针。
 
 ## 1. OpenAI — Harness Engineering
 

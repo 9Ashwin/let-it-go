@@ -8,7 +8,7 @@ description: "并行实现：**只在节点互不共享文件、彼此也没有�
 
 把一个任务（或 PRD / SPEC / issue 集合）变成一张有向无环的工作单元图，分层成波，然后让每个波里互相独立的节点并发实现：每个节点派一个全新子代理，各自一个 git worktree。波与波之间由 fan-in 屏障集成、评审并**只交付一次**。
 
-**工作状态、证据层、三个 profile 的边界、产物落点见 [`../CONTRACT.md`](../CONTRACT.md)——本文件不复述。** 这里只写三件事：怎么拆节点、怎么跑波、fan-in 怎么收。
+**工作状态、证据层、三个 profile 的边界、产物落点见 [`../loop-it/CONTRACT.md`](../loop-it/CONTRACT.md)——本文件不复述。** 这里只写三件事：怎么拆节点、怎么跑波、fan-in 怎么收。
 
 下文中的工具名与 `workflow` 脚本写法是 DSH 侧用法；在 Codex 下执行时，工具映射见 [`references/codex-runtime.md`](references/codex-runtime.md)，节点边界、检查点与 fan-in 契约不变。
 

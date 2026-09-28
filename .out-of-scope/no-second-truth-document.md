@@ -2,7 +2,7 @@
 
 工作状态只有一个对象、契约只有一个载体、规则只有一个维护层级。PRD 长文、SPEC 长文、走查件、
 批末评论都是它的**投影**——只引用，不复制第二份真相；能只从状态 + issue 正文 + 代码重新推出来的
-文档，删掉不损失信息（[CONTRACT §1](../skills/flow/CONTRACT.md)）。
+文档，删掉不损失信息（[CONTRACT §1](../skills/flow/loop-it/CONTRACT.md)）。
 
 ## 为什么不
 
@@ -12,7 +12,7 @@ issue #3 的病根就是**同一条规则五处各写一遍**：计划散在 PRD
 
 ## 逃生通道
 
-- **要复述 → 指向唯一说明，不抄。** [`skills/flow/CONTRACT.md`](../skills/flow/CONTRACT.md) 的
+- **要复述 → 指向唯一说明，不抄。** [`../skills/flow/loop-it/CONTRACT.md`](../skills/flow/loop-it/CONTRACT.md) 的
   「维护层级」写清了每一层该写什么、不写什么：`scripts/` 是机器行为真相、`SKILL.md` 只写何时调用
   与边界、`references/` 放解释与排障、`README`/`docs` 是项目地图、`evals/` 验证契约。
 - **要摘要 → 不做「摘要的摘要」。** 如果需要再生成一份更短的版本才能读，那说明该写的不是文档，
@@ -21,7 +21,7 @@ issue #3 的病根就是**同一条规则五处各写一遍**：计划散在 PRD
 
 ## 历史上谁提过
 
-- **issue #3 第一刀**：`skills/flow/CONTRACT.md` 成为 flow 的唯一真相源，七份 `SKILL.md` 只写
+- **issue #3 第一刀**：`skills/flow/loop-it/CONTRACT.md` 成为 flow 的唯一真相源，七份 `SKILL.md` 只写
   「何时调用、边界、失败怎么办」。
 - **loop-it / graph 收尾那轮**：两份 416 / 303 行的 `SKILL.md` 缩到 211 / 199 行，长表搬进
   `references/batch-model.md` 与 `references/planning.md`，正文只留判断 + 指针。

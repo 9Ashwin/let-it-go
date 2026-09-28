@@ -253,12 +253,21 @@ def strip_code_fences(body: str) -> str:
 
 
 def check_reference_links(repo_root: str, skills: list[tuple[str, str, str]]) -> list[str]:
-    """Every `references/x.md` a skill links to must exist.
+    """Every `references/x.md` a skill links to must exist — **in the repo and after install**.
 
     A rename leaves these behind, and the failure is quiet in the worst way: the model follows a
     link into nothing, then improvises around the missing guidance. `check_skill_references`
     covers `/skill-name` routes; this covers the files beside the skill.
+
+    The second half is the one that bit us: `npx skills` installs a skill by copying
+    `<bucket>/<name>/` to `<dest>/<name>/` — **only that one directory**. So a link that stays
+    inside the skill dir survives, and a link that escapes it survives only if it lands in a
+    *sibling skill* (`../<other-skill>/…`), because siblings are installed side by side. Anything
+    else — notably a file at the bucket root, which is not a skill — is present in the repo and
+    missing after install. That is exactly how `CONTRACT.md` went missing for a whole eval round:
+    every link resolved in the repo, so nothing mechanical complained.
     """
+    by_name = {name: os.path.dirname(path) for _, name, path in skills}
     problems = []
     for _, name, path in skills:
         directory = os.path.dirname(path)
@@ -268,13 +277,48 @@ def check_reference_links(repo_root: str, skills: list[tuple[str, str, str]]) ->
                     continue
                 source = os.path.join(root, entry)
                 body = strip_code_fences(open(source, encoding="utf-8").read())
+                rel = os.path.relpath(source, repo_root)
+                sub = os.path.relpath(root, directory)
+                sub = "" if sub == "." else sub
                 for target in re.findall(r"\]\(([^)#:]+\.md)\)", body):
                     if target.startswith(("http://", "https://")):
                         continue
                     if not os.path.exists(os.path.normpath(os.path.join(root, target))):
-                        rel = os.path.relpath(source, repo_root)
                         problems.append(f"{rel} links to {target}, which does not exist")
+                        continue
+                    problems.extend(
+                        _flatten_problem(rel, name, sub, target, by_name)
+                    )
     return problems
+
+
+def _flatten_problem(
+    label: str, name: str, sub: str, target: str, by_name: dict[str, str]
+) -> list[str]:
+    """这个链接在拍平之后的安装目录里还成立吗（见 check_reference_links 的说明）。"""
+    inside = os.path.normpath(os.path.join(sub, target))
+    if not inside.startswith(".." + os.sep) and inside != "..":
+        return []  # 没逃出技能目录，拍平之后原样成立
+    parts = inside.split(os.sep)
+    ups = 0
+    while ups < len(parts) and parts[ups] == "..":
+        ups += 1
+    rest = parts[ups:]
+    if ups != 1 or not rest:
+        return [
+            f"{label} links to {target}, which escapes the install root — "
+            f"`npx skills` copies only `<bucket>/<skill>/`, so it will not resolve after install"
+        ]
+    sibling = rest[0]
+    if sibling not in by_name:
+        return [
+            f"{label} links to {target}, which escapes the skill directory but does not land in "
+            f"another skill — `npx skills` copies only `<bucket>/<skill>/`, so it will not exist "
+            f"after install. Move the file into the skill that owns it"
+        ]
+    if not os.path.exists(os.path.join(by_name[sibling], *rest[1:])):
+        return [f"{label} links to {target}, which does not exist under the skill `{sibling}`"]
+    return []
 
 
 def check_script_references(repo_root: str, skills: list[tuple[str, str, str]]) -> list[str]:

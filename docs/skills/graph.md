@@ -6,7 +6,7 @@
 
 它和「把任务拆开、每个都派个 agent」的默认做法差在**收口的位置**：节点止于 commit——push、开 PR、merge、自审都不在节点里；泄漏检查、evidence 检查、集成、在集成后的树上跑门禁、评审一次、交付一次，全部收在波级。逐节点的 `/review-it` 是对一份可能活不过集成的 diff 的自审，逐节点的 `/ship-it` 意味着 N 个 PR、N 次 CI、N 次卡在 merge 冲突上的机会。节点只在自己的 worktree 与分支上工作，编排器持有波屏障，这是隔离与合并顺序能成立的前提。
 
-工作状态、证据层与产物落点见 [flow 契约](../../skills/flow/CONTRACT.md)；本页只讲选它时要判的事。
+工作状态、证据层与产物落点见 [flow 契约](../../skills/flow/loop-it/CONTRACT.md)；本页只讲选它时要判的事。
 
 ## When to reach for it
 

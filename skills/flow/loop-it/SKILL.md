@@ -8,7 +8,7 @@ description: "实现入口：一个单元就内联做完，一批有依赖的 is
 
 这是**实现**这一步的入口。进来先判规模，别默认开循环。
 
-**工作状态、证据层、三个 profile 的边界、产物落点见 [`../CONTRACT.md`](../CONTRACT.md)——本文件不复述。** 这里只写三件事：怎么选模式、单个 issue 的边界、批末怎么收。
+**工作状态、证据层、三个 profile 的边界、产物落点见 [`CONTRACT.md`](CONTRACT.md)——本文件不复述。** 这里只写三件事：怎么选模式、单个 issue 的边界、批末怎么收。
 
 本文件里的 `create_goal`、`run_in_background` 等工具名描述 DSH 用法；在 Codex 下执行时，委派、等待、长命令和跨回合恢复见 [`references/codex-runtime.md`](references/codex-runtime.md)，流程边界与检查点规则不变。
 

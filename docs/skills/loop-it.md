@@ -9,7 +9,7 @@
 （一条需求分支 + 每卡一个 commit + 每卡门禁，批末一次评审、一次交付）。判据是形态，不是规模感；
 而且「装得进一个上下文」不等于「定义好了」：只有一句诉求、落地方案还要自己定时，先走
 [`/prd`](../../skills/flow/prd/SKILL.md) → [`/to-issues`](../../skills/flow/to-issues/SKILL.md)。
-工作状态、三个 profile、证据层的完整定义见 [`CONTRACT.md`](../../skills/flow/CONTRACT.md)。
+工作状态、三个 profile、证据层的完整定义见 [`../../skills/flow/loop-it/CONTRACT.md`](../../skills/flow/loop-it/CONTRACT.md)。
 
 ## When to reach for it
 

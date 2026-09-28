@@ -131,21 +131,24 @@ $PY ~/.agents/skills/skill-creator/eval-viewer/generate_review.py \
 ⚠️ 要用 **Python 3.10+**：系统 `python3` 是 3.9，viewer 直接挂在 `dict | None` 上。
 bundled runtime（3.12）在 `~/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/bin/python3`。
 
-### 前提：技能装齐（含 `CONTRACT.md`）
+### 前提：技能装齐
 
 臂从 `~/.agents/skills/` 发现技能，所以**跑之前先确认安装目录与仓库一致**——改了 `SKILL.md` 或
 `references/` 就要重新同步，否则量的是上一版：
 
 ```bash
-make link          # 软链全部技能 + CONTRACT.md；替换旧的拷贝、清悬空链接
+make link          # 软链全部技能；替换旧的拷贝、清悬空链接
 make link-check    # 只报告漂移
 ```
 
-**软链是刻意的**（`scripts/link_skills.py`）：拷贝式安装漏掉过 `CONTRACT.md`——八份 flow `SKILL.md`
-都写着「见 `../CONTRACT.md`」，而拍平之后那个相对路径指向 `~/.agents/skills/CONTRACT.md`。
-**T1 第一轮就是这么发现它的**：臂 `read` 它得到 `not found`，然后花好几个工具调用到处找；
-那不是技能的问题，是安装不齐。软链之后那个相对路径按 OS 解析会走回仓库里那份，脚本再在技能根
-软链一份，两种解析方式都成立。
+**软链是刻意的**（`scripts/link_skills.py`）：拷贝式安装咬过两次，其中一次是 `CONTRACT.md`——
+它当时放在 `skills/flow/` 下（不是技能），拍平不复制它，八份 flow `SKILL.md` 那句
+「见 `../CONTRACT.md`」在安装目录里指向一个空文件。**T1 第一轮就是这么发现它的**：臂 `read` 它得到
+`not found`，然后花好几个工具调用到处找——那不是技能的问题，是安装不齐。
+
+**根治的办法不是补一条 `cp`，是把它放进技能目录**：它现在住在 `skills/flow/loop-it/CONTRACT.md`，
+跟着 `loop-it` 一起被复制，而八份技能那句「见 `../loop-it/CONTRACT.md`」在仓库里和安装目录里同时成立。
+`link_skills.py` 里那个共享文档特判因此删掉了。
 
 ### 前提：一个 dsh 可执行文件
 

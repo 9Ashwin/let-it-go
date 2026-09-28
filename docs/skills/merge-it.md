@@ -6,7 +6,7 @@
 
 它不靠叮嘱，靠**模型碰不到它**：frontmatter 里 `disable-model-invocation: true`，只有人能敲。合入不可逆，在开源项目里合入本来就是维护者的动作；所以这条边界落在机制上——一个模型看不见的技能——而不是 [`/ship-it`](../../skills/flow/ship-it/SKILL.md) 里的一句叮嘱。**写在提示里的保证不是保证**，这也是整套 flow 里唯一由调用轴而不是由判据守住的闸门。
 
-放行判据仍是「门禁绿 + 每条验收条件有它那一层的证据」，见 [flow 契约](../../skills/flow/CONTRACT.md)。
+放行判据仍是「门禁绿 + 每条验收条件有它那一层的证据」，见 [flow 契约](../../skills/flow/loop-it/CONTRACT.md)。
 
 ## When to reach for it
 

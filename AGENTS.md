@@ -44,7 +44,7 @@ make test    # 再跑各技能自带脚本的自测
   `references` = 解释、例子与故障排查；`README` / `docs` = 项目地图，不写细节规则；
   `evals` = 验证契约，不反向定义流程。**同一条规则不要在多层各写一份**——
   要复述就在那一层指向唯一说明，别把脚本已经实现的 schema 或算法抄进 SKILL。
-- **flow 的唯一真相源是 [`skills/flow/CONTRACT.md`](skills/flow/CONTRACT.md)。** 工作状态、
+- **flow 的唯一真相源是 [`skills/flow/loop-it/CONTRACT.md`](skills/flow/loop-it/CONTRACT.md)。** 工作状态、
   证据层、三个 profile 的边界、产物落点、goal 燃料都在那里；八份 `SKILL.md` 只写「何时调用、
   边界、失败怎么办」，开头一句链接过去。**别把契约抄回 SKILL，也别在 README 里复述细节规则。**
 - **每个技能都要落在调用轴上：`user-invoked` 还是 `model-invoked`。** 判据一句话——**模型能不能

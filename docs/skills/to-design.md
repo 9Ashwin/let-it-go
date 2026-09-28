@@ -24,7 +24,7 @@ Implementation 只写方向与过渡，不写细粒度步骤，因为 planner �
 | 兼容性 | 旧调用方、旧数据、旧配置 |
 | 不可逆操作 | 发布、删除、对外承诺 |
 
-（与 [`CONTRACT.md`](../../skills/flow/CONTRACT.md) 第 5 节的危险面同源：那里是**停点**判据，这里是**留档**判据。）
+（与 [`../../skills/flow/loop-it/CONTRACT.md`](../../skills/flow/loop-it/CONTRACT.md) 第 5 节的危险面同源：那里是**停点**判据，这里是**留档**判据。）
 
 与近邻的分界：
 
