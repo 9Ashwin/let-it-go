@@ -10,13 +10,18 @@
 skills/flow/     流水线本身：prd to-design to-issues loop-it graph review-it ship-it merge-it
 skills/bonus/    中途伸手拿的：conflict diagnose modern-go refactor test-first triage understand
 skills/vendor/   第三方技能的逐字副本，由 vendor.json 钉住 commit
-scripts/         维护脚本（check_skills.py、sync_vendor.py、strip_scroll_reveal.py）
+scripts/         维护脚本（check_skills.py、link_skills.py、sync_vendor.py、strip_scroll_reveal.py）
 evals/           评测工作区：用真实代码示例跑一遍 flow，再机械核对（见 evals/AGENTS.md）
 docs/            使用指南（index.html 语言路由页 + 中英两份 index_*.html）
+.out-of-scope/   「决定不做」的留档：什么不做、为什么不、逃生通道、谁提过
 ```
 
 技能发现是**根目录下一层**扫描（`<root>/<name>/SKILL.md`），所以三个桶在
 `cordis.patch.yml` 里各列为一个 root，安装时拍平到 `~/.agents/skills/<name>`。
+
+**本机安装用软链，不用拷贝：`make link`**（`scripts/link_skills.py`）。`npx skills add` 是给外人的
+分发路径，它只加不删、也不复制不是技能的文件（`CONTRACT.md` 就是被它漏掉的那份）；维护本机时用
+软链——`git pull` 就更新，技能删掉之后链接变悬空，下次 `make link` 清掉，不留尸体。
 
 ## 门禁
 
@@ -42,6 +47,16 @@ make test    # 再跑各技能自带脚本的自测
 - **flow 的唯一真相源是 [`skills/flow/CONTRACT.md`](skills/flow/CONTRACT.md)。** 工作状态、
   证据层、三个 profile 的边界、产物落点、goal 燃料都在那里；七份 `SKILL.md` 只写「何时调用、
   边界、失败怎么办」，开头一句链接过去。**别把契约抄回 SKILL，也别在 README 里复述细节规则。**
+- **每个技能都要落在调用轴上：`user-invoked` 还是 `model-invoked`。** 判据一句话——**模型能不能
+  自己判断该不该用它**。能，就是 `model-invoked`（默认，什么都不用写）；不能（不可逆、只该由人
+  在合适的时刻敲），就在 frontmatter 写 `disable-model-invocation: true`，它就变成 `user-invoked`。
+  描述跟着分两套写法：`model-invoked` 带触发词（那是路由信号），`user-invoked` 只写一行**给人看的
+  摘要**——模型根本读不到它的目录，触发词写在那里等于给一个不存在的读者配路由。
+  `scripts/check_skills.py` 会拦 `user-invoked` 却带 `Triggers:` 的描述。现状：25 个技能里只有
+  `vendor/teach`（上游的选择）与 `flow/merge-it`（合入不可逆）是 `user-invoked`。
+- **「决定不做」有地方记：`.out-of-scope/`。** 一条决定做过一次就该留档——什么不做、为什么不、
+  逃生通道在哪、历史上谁提过（带 issue 号）。没有它，同一个请求下次还会被提一遍、再被补一遍。
+  判据不是「这个功能有没有道理」，而是「它有没有推翻 `.out-of-scope/` 里那条理由」。
 - **提交与推送**：分支只留 `master`，做完就提交并推 `origin/master`；临时分支用完就删（远端一起删）。
 - **并发用 `subagent` / `workflow`，不用 Agent Teams。** 要并行就派普通子代理，或写一个 workflow
   脚本 fan-out；不要建 teammates。

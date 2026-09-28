@@ -42,7 +42,7 @@ let-it-go 的核心是 [`skills/flow`](skills/flow) 中的 8 个研发工作流�
 | 一个难复现的 bug / 偶发 flake / 性能回归 | `/diagnose` | 先拿到一条已经变红的命令 |
 | 别人提来的原始 issue | `/triage` | 先复现，再补成 agent 可执行的卡片 |
 
-**一批活不靠人推。** 开工时开一个持久目标（`create_goal`），跑到批末；**不逐条等人说"继续"**，也**不需要人工评审才放行**——评审由 `/review-it` 派一个不共享上下文的子代理做，**门禁绿 + 每条验收条件有它那一层的证据**就是放行条件。人只在一个地方被叫一次：危险面（公开 API / 数据迁移 / 权限 / 不可逆操作）。
+**一批活不靠人推。** 开工时开一个持久目标（`create_goal`），跑到批末；**不逐条等人说"继续"**，也**不需要人工评审才放行**——评审由 `/review-it` 派一个不共享上下文的子代理做，**门禁绿 + 每条验收条件有它那一层的证据**就是放行条件。人只在两个地方被叫：危险面（公开 API / 数据迁移 / 权限 / 不可逆操作），以及**合入**——它不可逆，所以归 `/merge-it`，只有人能敲。
 
 技能负责判断步骤与边界；排序、分层、环检测和检查点读写交给自带测试的 Python 脚本。
 
@@ -58,7 +58,7 @@ npx skills add 9Ashwin/let-it-go
 
 `npx skills` 递归扫描、安装时把 `skills/<桶>/<技能>` 拍平成 `~/.agents/skills/<技能>`——技能根只扫一层，所以必须拍平。
 
-**拍平会漏掉一份不是技能的文件：`CONTRACT.md`。** 七份 flow `SKILL.md` 都写着「工作状态、证据层、profile 边界、产物落点见 `../CONTRACT.md`」，而拍平之后那个相对路径指向 `~/.agents/skills/CONTRACT.md`——它不在任何技能目录里，`npx skills` 不会复制它。装完补一条：
+**拍平会漏掉一份不是技能的文件：`CONTRACT.md`。** 八份 flow `SKILL.md` 都写着「工作状态、证据层、profile 边界、产物落点见 `../CONTRACT.md`」，而拍平之后那个相对路径指向 `~/.agents/skills/CONTRACT.md`——它不在任何技能目录里，`npx skills` 不会复制它。装完补一条：
 
 ```bash
 cp skills/flow/CONTRACT.md ~/.agents/skills/CONTRACT.md
@@ -66,6 +66,26 @@ cp skills/flow/CONTRACT.md ~/.agents/skills/CONTRACT.md
 
 漏掉的症状很安静：技能照常加载，agent 只是读不到唯一真相源，然后花好几个工具调用到处找它（T1 eval 就是这么发现的）。
 技能根下多一份 `CONTRACT.md` 不会被当成技能——它没有 frontmatter，DSH 直接忽略。
+
+### 在本仓库里维护时：软链，不拷贝
+
+上面那条是给外人的分发路径。**自己改这套技能时用 `make link`**（`scripts/link_skills.py`）——把每个技能
+软链进 `~/.agents/skills`，连同 `CONTRACT.md` 一起：
+
+```bash
+make link          # 软链全部技能 + 共享文档；替换掉旧的拷贝，清掉悬空链接
+make link-check    # 只报告漂移（仓库与安装目录不一致时退出码 1）
+```
+
+拷贝式安装咬过两次，软链一次解决两个：
+
+- **删技能不留尸体。** `npx skills add` 只加不删，技能从仓库删掉之后 `~/.agents/skills/<name>` 还留着；
+  软链会变成悬空链接，`make link` 直接清掉。
+- **`CONTRACT.md` 不再漏。** 软链之后 `<技能目录>/../CONTRACT.md` 按 OS 的路径解析会走回仓库里那份；
+  脚本同时在技能根软链一份，两种解析方式都成立。
+- 顺带：`git pull` 就是更新，不需要重跑安装。
+
+别的来源的技能（`~/.agents/skills` 下不是本仓库的条目）**不动**，只列出来给人看。
 
 > [!TIP]
 > 安装后，直接描述你要做的事。Agent 会按技能描述选择入口；想指定某一步时，也可以直接写技能名。

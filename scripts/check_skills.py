@@ -493,6 +493,14 @@ def main() -> int:
                 f"{bucket}/{name}: description is {len(description)} chars, over the "
                 f"{DESCRIPTION_CAP} catalog cap — DSH truncates the tail in the model catalog"
             )
+        # 调用轴（见 AGENTS.md「调用轴」）：`disable-model-invocation: true` 的技能只有人能敲，
+        # 所以它的 description 是**给人看的一行摘要**。触发词是给模型的路由信号——写在这里等于
+        # 给一个模型永远读不到的目录配路由，还把「我该不该自动用它」这件事说反了。
+        if fm.get("disable-model-invocation") and re.search(r"Triggers?\s*[:：]", description):
+            report(
+                f"{bucket}/{name}: user-invoked 技能的 description 带了触发词（`Triggers:` 那句）"
+                f"——它只有人能敲，描述是给人看的一行摘要"
+            )
 
     if warnings:
         print(f"{len(warnings)} warning(s) — vendored skills are upstream's to shape:")

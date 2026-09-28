@@ -1,6 +1,6 @@
 ---
 name: merge-it
-description: "把已经开好的 PR 合入：先摆出要合的东西与 checks 状态，再合入、关 issue、回默认分支同步。本地模式没有 PR 时做本地 --no-ff 合入。**这一份只有人能敲**——合入不可逆，模型不该自己决定。Triggers: 合入, 合并PR, merge, 合入这个PR, 落地这个PR."
+description: "把已经开好的 PR 合入：先摆出要合的东西与 checks 状态，再合入、关 issue、回默认分支同步；本地模式没有 PR 时做本地 --no-ff 合入。只有人能敲它——合入不可逆，模型不该自己决定。"
 disable-model-invocation: true
 ---
 
