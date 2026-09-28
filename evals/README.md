@@ -125,28 +125,30 @@ go -C harness run . bench results/t1-N
 故意做错的观测（没加载技能、没开 goal、结尾在等人、证据缺层、调了不该调的工具），确认它真的判红。
 `make check` 会连它一起跑。
 
-### 第一次结果（3 用例 × 2 臂 × 3 次，6 路并发，2026-09-28）
+### 结果（3 用例 × 2 臂 × 3 次 × 2 轮，6 路并发，2026-09-28）
 
-原始表在 [`results/t1-1/benchmark.md`](results/t1-1/benchmark.md)。
+原始表在 [`results/t1-1/benchmark.md`](results/t1-1/benchmark.md) 与
+[`results/t1-2/benchmark.md`](results/t1-2/benchmark.md)。两轮是**独立采样**：第一轮装在拷贝式安装上，
+第二轮在换成软链安装、且技能正文含 `/merge-it` 之后——**逐用例结果完全一致**。
 
-| 用例 | 配置 | 每次 | 判定 |
-|---|---|---|---|
-| t1-single-unit | with_skill | 6/6 · 6/6 · 6/6 | 通过 |
-| t1-single-unit | without_skill | 5/6 · 5/6 · 5/6 | 不通过 |
-| t1-serial-batch | with_skill | 8/8 · 8/8 · 8/8 | 通过 |
-| t1-serial-batch | without_skill | 5/8 · 5/8 · 5/8 | 不通过 |
-| t1-vague-request | with_skill | 6/6 · 6/6 · 6/6 | 通过 |
-| t1-vague-request | without_skill | 4/6 · 4/6 · 4/6 | 不通过 |
+| 用例 | 配置 | 第一轮 | 第二轮 | 判定 |
+|---|---|---|---|---|
+| t1-single-unit | with_skill | 6/6 · 6/6 · 6/6 | 6/6 · 6/6 · 6/6 | 通过 |
+| t1-single-unit | without_skill | 5/6 · 5/6 · 5/6 | 5/6 · 5/6 · 5/6 | 不通过 |
+| t1-serial-batch | with_skill | 8/8 · 8/8 · 8/8 | 8/8 · 8/8 · 8/8 | 通过 |
+| t1-serial-batch | without_skill | 5/8 · 5/8 · 5/8 | 5/8 · 5/8 · 5/8 | 不通过 |
+| t1-vague-request | with_skill | 6/6 · 6/6 · 6/6 | 6/6 · 6/6 · 6/6 | 通过 |
+| t1-vague-request | without_skill | 4/6 · 4/6 · 4/6 | 4/6 · 4/6 · 4/6 | 不通过 |
 
 | 断言 | with_skill | without_skill | 判定 | 动作 |
 |---|---|---|---|---|
-| `skill_loaded`（3 个用例） | 3/3 | 0/3 | 区分 | 留 |
-| `goal_opened`（batch） | 3/3 | 0/3 | 区分 | 留 |
-| `evidence_layer`（batch） | 3/3 | 0/3 | 区分 | 留 |
-| `path_glob` PRD（vague） | 3/3 | 0/3 | 区分 | 留 |
-| `checkpoint_absent`（single） | 3/3 | 3/3 | 两边满分 | **留**（回归守卫，见下） |
-| `checkpoint_location`（batch） | 3/3 | 3/3 | 两边满分 | **留**（回归守卫） |
-| `no_human_wait`（3 个用例） | 3/3 | 3/3 | 两边满分 | **留**（回归守卫） |
+| `skill_loaded`（3 个用例） | 6/6 | 0/6 | 区分 | 留 |
+| `goal_opened`（batch） | 6/6 | 0/6 | 区分 | 留 |
+| `evidence_layer`（batch） | 6/6 | 0/6 | 区分 | 留 |
+| `path_glob` PRD（vague） | 6/6 | 0/6 | 区分 | 留 |
+| `checkpoint_absent`（single） | 6/6 | 6/6 | 两边满分 | **留**（回归守卫，见下） |
+| `checkpoint_location`（batch） | 6/6 | 6/6 | 两边满分 | **留**（回归守卫） |
+| `no_human_wait`（3 个用例） | 6/6 | 6/6 | 两边满分 | **留**（回归守卫） |
 | `tool_absent[workflow]`（single） | 3/3 | 3/3 | 两边满分 | **删**（与 `checkpoint_absent` 同一契约） |
 | `path_absent[.git/worktrees]`（single） | 3/3 | 3/3 | 两边满分 | **删**（同上） |
 | `path_absent[tasks]`（batch / vague） | 3/3 | 3/3 | 两边满分 | **删**（被 `checkpoint_location` / `path_glob` 覆盖） |
@@ -154,26 +156,29 @@ go -C harness run . bench results/t1-N
 
 **删留口径**（NEXT.md 第一刀的第二选项）：两边满分的断言逐条问一句——**它在 T1 里有没有一个说得通的
 失败模式，而且负例证明它真能判红？** 有 → 留成回归守卫（`events_test.go` 里有它的负例）；没有，或者
-与已留下的断言是同一个契约 → 删掉。这样删掉 7 条、留下 4 条。
+与已留下的断言是同一个契约 → 删掉。这样删掉 7 条、留下 4 条。删掉的那几条第一轮测完之后就从
+`case.json` 里移除了，所以第一轮的表里还看得到它们、第二轮的没有了。
 
-**flaky：无。** 18 次运行里同一条臂的三次结果完全一致——T1 这三条用例现在不掷硬币。已知的两条
-flaky 用例（`06-exception-path`、`07-parallel-waves`）留在 T2。
+**flaky：无。** 36 次运行里，同一条臂同一用例的结果一次没变过——T1 这三条用例现在不掷硬币。已知的
+两条 flaky 用例（`06-exception-path`、`07-parallel-waves`）留在 T2。
 
 **成本**（这才是 T1 存在的理由）：
 
 | 配置 | 平均用时 | 平均 token |
 |---|---|---|
-| with_skill | 266 s | 930 k |
-| without_skill | 48 s | 133 k |
+| with_skill | 270 s | 950 k |
+| without_skill | 41 s | 116 k |
 
-一轮 18 次臂 ≈ 8–10 分钟墙上时间（6 路并发），对比 T2 一轮 84 分钟 / 20 M token。**贵的是臂跑，不是断言**
-——所以判断言时不必省，该省的是任务本身的大小。
+一轮 18 次臂合计约 **47 分钟**臂时间（两轮都是 2.8k s）、**9.6 M token**，6 路并发实际约 **10 分钟**
+墙上时间（对比 T2 一轮 84 分钟 / 20 M token）。**贵的是臂跑，不是断言**——所以判断言时不必省，
+该省的是任务本身的大小。
 
 两条顺带量出来的事实：
 
-- **仪式成本占大头。** `t1-single-unit` 的改动是十几行，`with_skill` 要 133–184 s / 400–480 k token，
-  `without_skill` 只要 19–25 s / 50–76 k——差额几乎全是 `/review-it` 的子代理与 `/ship-it` 的交付流程。
-  这是这套技能的**设计**（生成者与评判者分离），不是缺陷；但它解释了 T1 为什么必须把小任务选得这么小。
+- **仪式成本占大头。** `t1-single-unit` 的改动是十几行，`with_skill` 两轮下来要 133–343 s / 400–940 k
+  token，`without_skill` 只要 19–29 s / 50–89 k——差额几乎全是 `/review-it` 的子代理与 `/ship-it` 的
+  交付流程。这是这套技能的**设计**（生成者与评判者分离），不是缺陷；但它解释了 T1 为什么必须把小任务
+  选得这么小。
 - **`checkpoint_location` 不区分**：`without_skill` 也会照仓库的 `AGENTS.md` 建检查点，而且落点正确。
   真正区分的是**检查点里有没有带层的证据**（`evidence_layer` 3/3 vs 0/3）与**开没开 goal**。
 

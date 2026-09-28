@@ -1,0 +1,13 @@
+{
+ "assertions": [
+  "改动之后 fixture 自己的门禁 make check 仍然绿",
+  "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
+  "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+  "先加载了实现入口 loop-it（这一层量的是技能契约本身，不是结果）",
+  "没有以「等你回复」结束回合（CONTRACT §5）",
+  "单单元零仪式：不产生 loop 检查点（CONTRACT §3 的硬契约）"
+ ],
+ "eval_id": 0,
+ "eval_name": "t1-single-unit",
+ "prompt": "requirements/01_REQ-greeting/issues/issue-001-slug.md 里有一张卡片，做掉它。做完跑一遍门禁确认没弄坏。"
+}

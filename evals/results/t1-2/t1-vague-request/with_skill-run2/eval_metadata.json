@@ -1,0 +1,13 @@
+{
+ "assertions": [
+  "改动之后 fixture 自己的门禁 make check 仍然绿",
+  "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
+  "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+  "先加载了规划入口 prd（一句诉求 + 落地方式自己定 → 不是单单元）",
+  "规划半边真的走了：scope 下产出了 PRD",
+  "没有以「等你回复」结束回合（CONTRACT §5：问不到人就自己定并标 [Assumption]）"
+ ],
+ "eval_id": 0,
+ "eval_name": "t1-vague-request",
+ "prompt": "我们的 greeter 模块要把名字转成 URL 友好的 slug，用来做页面锚点：大小写不敏感、空白折成连字符、首尾不留。怎么落地你定，做完让我知道。"
+}

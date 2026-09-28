@@ -1,0 +1,46 @@
+{
+ "case_id": "t1-single-unit",
+ "case_name": "t1-single-unit",
+ "workdir": "/var/folders/04/xwb43jfd0952ljqlmp08skhr0000gn/T/cache-2887226886/work",
+ "expectations": [
+  {
+   "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+   "kind": "gate",
+   "passed": true,
+   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.005s"
+  },
+  {
+   "text": "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
+   "kind": "probe",
+   "passed": true,
+   "evidence": "  ok   null → {\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+  },
+  {
+   "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+   "kind": "tamper_guard",
+   "passed": true,
+   "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+  },
+  {
+   "text": "先加载了实现入口 loop-it（这一层量的是技能契约本身，不是结果）",
+   "kind": "skill_loaded",
+   "passed": false,
+   "evidence": "没有加载任何技能，期望先加载 loop-it"
+  },
+  {
+   "text": "没有以「等你回复」结束回合（CONTRACT §5）",
+   "kind": "no_human_wait",
+   "passed": true,
+   "evidence": "结尾没有等待人类的信号（最后一句：卡片做完了。）"
+  },
+  {
+   "text": "单单元零仪式：不产生 loop 检查点（CONTRACT §3 的硬契约）",
+   "kind": "checkpoint_absent",
+   "passed": true,
+   "evidence": "没有产生 loop 检查点（单单元模式：零仪式）"
+  }
+ ],
+ "passed": 5,
+ "total": 6,
+ "pass_rate": 0.8333333333333334
+}

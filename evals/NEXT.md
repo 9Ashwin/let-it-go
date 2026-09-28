@@ -43,3 +43,35 @@
 - 不加只为了"更全"的断言。**每条断言都要能失败**——从不失败的传感器说明它不必要。
 - 不为了让用例变绿而放宽门禁。改测试就是改契约。
 - 不用 Agent Teams；并发用 `subagent` / `workflow`。
+
+---
+
+## 第一刀的结果（2026-09-28）
+
+1、2、3、5 做完了。
+
+- **T1 落地**：三条小任务用例（`t1-single-unit` / `t1-serial-batch` / `t1-vague-request`），四个只读
+  过程断言（`skill_loaded` / `goal_opened` / `no_human_wait` / `evidence_layer`），**每条断言一条
+  负例自测**（`evals/harness/events_test.go`，挂在 `make check` 上）。用例写 `"tier": "t1"`，
+  现有八条缺省是 `t2`。
+- **区分度**：3 用例 × 2 臂 × 3 次，**跑了两轮独立采样**（第一轮拷贝式安装、第二轮软链安装且技能正文
+  含 `/merge-it`），逐用例结果完全一致：with_skill 1.00、without_skill 0.71，**36 次运行里没有 flaky**。
+  按第 2 条删掉 7 条两边满分的断言（`workspace_clean` ×3、`path_absent` ×3、`tool_absent` ×1），
+  留下 4 条有独立失败模式的作回归守卫。表在 `results/t1-1/benchmark.md` 与 `results/t1-2/benchmark.md`。
+- **成本**：一轮 18 次臂合计约 47 分钟臂时间 / 9.6 M token，6 路并发约 10 分钟墙上时间，对比 T2 的
+  84 分钟低一个数量级；单条 with_skill 270 s / 950 k token、without_skill 41 s / 116 k。
+
+T1 顺带抓出两件事，都不是断言写错：
+
+- **安装目录里没有 `CONTRACT.md`**——拍平不会复制不是技能的文件，臂 `read` 它得到 `not found` 后
+  花好几个工具调用到处找。已改成软链安装（`make link`），证据留在 `results/t1-0-missing-contract/`。
+- **`tamper_guard` 保护了臂本来就会改的测试文件**——卡片写着「补上对应的测试」，臂改 `greet_test.go`
+  是照做。改成在 fixture 的 `AGENTS.md` 里声明**冻结基线**，测试写新文件。
+
+**还没做**：
+
+- 第 4 条（触发用例扩到每个技能至少两条，含近邻）——那是 T0，量在秒级，还没动。
+- T2 那八条重跑一轮，确认这次 SKILL 重写（loop-it 416→211、graph 303→199）没弄坏结果层。
+- `06-exception-path` / `07-parallel-waves` 两条 flaky 用例的方差要单独量：它们不在 T1，也不该
+  按「通过」记。
+
