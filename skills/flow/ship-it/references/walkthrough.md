@@ -8,6 +8,11 @@
 重点在 evidence，不在断言。diff 说的是代码长什么样；走查件说的是你跑了什么、它打印出什么、
 你看到了什么。
 
+**每条验收条件的机器真相在检查点**——loop 是 `<scope>/issues/.loop-state.json` 的 `evidence`
+（含 `--layer`）；graph 那边没有 per-criterion 的 `evidence`（节点报告不是证据，靠 fan-in
+人工核 `gates`/`files` 与集成后的门禁）。走查件是它的投影，写给没跑过那些命令的人看，
+不另存一份机器记录。
+
 ## 什么时候要写
 
 **范围：每批或每波一份走查件——与评审、交付同一个范围，绝不逐 issue 一份。** 逐 issue 的走查

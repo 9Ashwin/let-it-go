@@ -105,7 +105,7 @@ The project centers on [`skills/flow`](skills/flow). Names below use the `/` pre
 | [`/loop-it`](skills/flow/loop-it/SKILL.md) | The implementation entry point: finish single tasks inline or run dependent batches serially, with resumable checkpoints and review intensity matched to batch size |
 | [`/graph`](skills/flow/graph/SKILL.md) | Run genuinely parallel tasks in dependency waves, with a worktree per node, evidence checks at fan-in, and review and delivery once per wave |
 | [`/review-it`](skills/flow/review-it/SKILL.md) | Assess requirement compliance (Spec) and code standards (8 dimensions), reporting the two axes separately |
-| [`/ship-it`](skills/flow/ship-it/SKILL.md) | Write the walkthrough with verification evidence, then produce the PR body and handle commit, push, PR, merge, Issue closure, and the implementation summary; merge locally when there is no remote |
+| [`/ship-it`](skills/flow/ship-it/SKILL.md) | Write the walkthrough (the human-readable projection of the recorded observations), then produce the PR body and handle commit, push, PR, merge, Issue closure, and the implementation summary; merge locally when there is no remote |
 
 <details>
 <summary>Supplementary skills collected for personal use</summary>

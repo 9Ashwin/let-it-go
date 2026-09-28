@@ -126,11 +126,11 @@ DSH 是这套技能唯一面向的宿主。[`references/dsh-runtime.md`](referen
 
 ## 先查一件事：shipped 的那些，观测落在哪
 
-**检查点是 evidence 的机器真相**（`shipped` 的闸门读它），**scope README 的验收表是给人看的投影**，
+**检查点是 evidence 的机器真相**（loop 的 `shipped` 闸门读 `evidence` 的 `layer`；`/graph` 那边没有 per-criterion 的 `evidence`——节点报告不是证据，机器记录是 `files`/`gates`/`summary`，证据靠 fan-in 时人工核），**scope README 的验收表是给人看的投影**，
 两者必须对得上。评审是**唯一还会核对这件事**的地方——逐条对一遍：
 
 - scope README 里那张表，**每条验收条件都有对应的行**吗？
-- 有行的那些，检查点里有对应的 `evidence`（含 `--layer`）吗？命令**真的跑过**吗（不是「看起来该能跑」）？
+- 有行的那些，**loop 的**检查点里有对应的 `evidence`（含 `--layer`）吗（`/graph` 看节点报告的 `gates`/`files` 与集成后的门禁）？命令**真的跑过**吗（不是「看起来该能跑」）？
 - 层数够吗——**只到 L1/L2 而验收要真实链路（L3/L4）的，就是没做完**。
 - 缺的、或写了 `deferred` 的，回到 issue 上——**没观测过就是没做完**，不是评审的备注。
 

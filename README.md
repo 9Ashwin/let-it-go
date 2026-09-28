@@ -36,7 +36,7 @@ let-it-go 的核心是 [`skills/flow`](skills/flow) 中的 7 个研发工作流�
 | 任务拆解 | `/to-issues` | 拆成带实现契约、验收条件和依赖关系的 Issue |
 | 实现 | `/loop-it` 或 `/graph` | 完成代码与验证；按任务依赖选择单项、串行或并行 |
 | 审查 | `/review-it` | 检查是否满足需求 |
-| 交付 | `/ship-it` | 先写走查件（记录改动与验证证据），再提交、开 PR、合入并关闭已满足的 Issue；无远端时本地合入 |
+| 交付 | `/ship-it` | 先写走查件（把观测整理成给人看的交付证据），再提交、开 PR、合入并关闭已满足的 Issue；无远端时本地合入 |
 
 从任务当前所处的阶段进入即可。已有明确验收条件的单项任务可以直接交给 `/loop-it`；独立任务能在各自 worktree 中实现时，再用 `/graph` 并行推进。
 
@@ -105,7 +105,7 @@ npx skills add 9Ashwin/let-it-go
 | [`/loop-it`](skills/flow/loop-it/SKILL.md) | 实现入口：单项内联完成，有依赖的批次串行推进；检查点支持恢复，评审强度按批次大小选择 |
 | [`/graph`](skills/flow/graph/SKILL.md) | 有真实并行度时按依赖图分波执行，每个节点独立 worktree，汇合时检查证据，波末统一评审与交付 |
 | [`/review-it`](skills/flow/review-it/SKILL.md) | 分别检查需求符合度（Spec）和代码标准（8 个维度），两轴独立报告 |
-| [`/ship-it`](skills/flow/ship-it/SKILL.md) | 先写走查件、整理验证证据，再生成 PR body，完成提交、推送、PR、合入、关闭 Issue 与实现总结；无远端时本地合入 |
+| [`/ship-it`](skills/flow/ship-it/SKILL.md) | 先写走查件、整理交付证据，再生成 PR body，完成提交、推送、PR、合入、关闭 Issue 与实现总结；无远端时本地合入 |
 
 <details>
 <summary>随仓库收录的自用补充技能</summary>

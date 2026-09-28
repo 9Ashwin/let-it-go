@@ -30,9 +30,12 @@
 
   evidence add --issue N --kind <test|runtime|database|external|human>
                --command TEXT --result <pass|fail|deferred>
-               [--artifact PATH] [--observed-at TIME]
+               [--layer L1..L4] [--artifact PATH] [--observed-at TIME]
+  evidence add --issue N --batch -          # 从 stdin 读 JSON 行，一次写入多条
   evidence list --issue N
       验证的结构化那一半：每条验收标准一条观察，只追加、永不改写。
+      `--layer` 标的是这条观察验到哪一层（L1 单元/静态、L2 组件/集成、L3 本地真实链路、
+      L4 真实外部系统）；`shipped` 的闸门读它——一条都没标、或只到 L1/L2，都会告警。
       `note --verification` 说的是整次运行证明了什么；这里说的是哪条观察支撑哪个论断，
       连同产生它的命令，好让读者能重跑一遍。`--observed-at` 默认是当前时间。
 
@@ -62,10 +65,15 @@
                      "updated_at": ..., "completed_at": ..., "last_error": ...
                      "title": ..., "deps": [1, 5],
                      "notes": {"decisions": [{"at": ..., "text": ...}], ...},
-                     "evidence": [{"kind": "test", "command": ...,
+                     "evidence": [{"kind": "test", "layer": "L3", "command": ...,
                                    "result": "pass", "artifact": ...,
-                                   "observed_at": ...}]}}
+                                   "observed_at": ...}],
+                     "evidence_waiver": {"reason": ..., "at": ...}}}
   }
+
+`evidence_waiver` 只在「拿不到观察」时由 `set --status shipped --waive "原因"` 写入：
+它是自愿声明，不是豁免（`shipped` 的闸门读 `evidence` 的 `layer`，不读它），
+`summary` 会把它标出来。
 
 `title` 与 `deps` 是 `scan` 写入的按 issue 追加字段，好让 `next` 和 `summary` 不必重读
 GitHub 就能说明在等什么。`notes`、`evidence` 与 `followups` 同样是追加的——由 `note`、
@@ -586,13 +594,22 @@ def cmd_set(args: argparse.Namespace) -> int:
             f"--kind <test|runtime|database|external|human> --command '…' --result <pass|fail|deferred>`\n"
             f"  确实拿不到观察时写明原因：`set --issue {args.issue} --status shipped --waive \"…\"`"
         )
-    if args.status == "shipped" and highest_layer(entry) in SHALLOW_LAYERS:
+    if args.status == "shipped" and not highest_layer(entry):
+        # 有 evidence 但一条都没标 layer：这比只到 L1 还弱（读者无从判断它验到哪一层），
+        # 所以不能因为"有记录"就放过——闸门判的是层次，不是条数。
+        warn(
+            f"{ref(args.issue)} 的 evidence 一条都没标 `--layer` —— 无从判断验到哪一层，"
+            f"真实链路（L3）是不是验过也看不出来。补上层次再 shipped。"
+        )
+    elif args.status == "shipped" and highest_layer(entry) in SHALLOW_LAYERS:
         # 「状态与最高层次是否矛盾」——脚本判这个，不判"这条证据是否真的证明了该条验收"（那是人判的）。
         warn(
             f"{ref(args.issue)} 的最高证据只到 {highest_layer(entry)} —— 真实链路（L3）还没验过。"
             f" 跑一遍再 shipped，或者把原因写清楚。"
         )
-    if args.status == "shipped" and args.waive:
+    if args.status == "shipped" and args.waive and missing_evidence(entry):
+        # waiver 是"拿不到观察"的声明，只在真的没有 evidence 时才记：有观察还记一条豁免，
+        # 会让 summary 与后来的人以为这条 shipped 背后什么都没有。
         entry["evidence_waiver"] = {"reason": args.waive, "at": stamp}
 
     if args.status == "in_progress":
@@ -629,8 +646,9 @@ def cmd_set(args: argparse.Namespace) -> int:
                 f"`note --issue {args.issue} …` 记录。",
                 file=sys.stderr,
             )
-        if args.waive:
-            print(f"  ℹ️  {ref(args.issue)} 已声明拿不到观察：{args.waive}", file=sys.stderr)
+        if entry.get("evidence_waiver"):
+            print(f"  ℹ️  {ref(args.issue)} 已声明拿不到观察：{entry['evidence_waiver']['reason']}",
+                  file=sys.stderr)
     print(render_next(state))
     if not any(issues[str(n)].get("status") not in DONE for n in order_of(state)):
         print("\n🎉 全部 issue 处理完毕 — 现在做批末收尾：/review-it 审整批 diff，然后 /ship-it 一次 PR。")
