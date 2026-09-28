@@ -145,6 +145,11 @@ make link-check    # 只报告漂移（仓库与安装目录不一致时退出�
 | [`/ship-it`](skills/flow/ship-it/SKILL.md) | 把做完的工作交付到「PR 就绪」：先写走查件、整理交付证据，再提交、推分支、开 PR、补实现总结；**到这里停**，合入交给人 |
 | [`/merge-it`](skills/flow/merge-it/SKILL.md) | 合入已经开好的 PR：摆出要合的东西与 checks 状态、合入、关 Issue、回默认分支同步。**只有人能敲它**——合入不可逆 |
 
+每个核心技能还有一页**给人看**的文档（[`docs/skills/`](docs/skills/)），四个固定小节：`What it does`
+（它一句话做什么，以及它和显而易见的默认做法差在哪）、`When to reach for it`（你敲它还是模型自己
+伸手、什么时候该伸手）、`Common questions`（真被问过的问题）、`It's working if`（**不打开 `SKILL.md`
+就能自己核对**的信号）。`make check` 会检查每个 flow 技能都有这一页。
+
 <details>
 <summary>随仓库收录的自用补充技能</summary>
 

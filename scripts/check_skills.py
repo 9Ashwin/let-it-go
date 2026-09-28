@@ -38,6 +38,9 @@ import sys
 DESCRIPTION_CAP = 500
 KEBAB = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 BUCKETS = ("flow", "bonus", "vendor")
+# 只有这个桶要有人类文档页（README 把 flow 定位成项目核心）；bonus / vendor 是补充工具。
+PROMOTED_BUCKET = "flow"
+DOCS_DIR = os.path.join("docs", "skills")
 # Third-party copies live in this bucket. Upstream is theirs to shape, so this repo's own
 # conventions (name matching the directory, description inside the catalog cap) only warn.
 VENDOR_BUCKET = "vendor"
@@ -453,6 +456,26 @@ def check_installer_manifest(repo_root: str, skills: list[tuple[str, str, str]])
     return problems
 
 
+def check_docs_pages(repo_root: str, skills: list[tuple[str, str, str]]) -> list[str]:
+    """`skills/flow/` 的每个技能都要有一页给人看的文档。
+
+    这一页不是 `SKILL.md` 的副本，也不给模型看：它回答的是**人**选工具时的四个问题
+    （`What it does` / `When to reach for it` / `Common questions` / `It's working if`），
+    最后一节要求读者不打开 `SKILL.md` 就能自己核对。README 把 `skills/flow` 定位成项目核心，
+    `bonus` / `vendor` 是随仓库收录的补充工具，所以只有核心桶要写。
+    """
+    problems: list[str] = []
+    for bucket, name, _ in skills:
+        if bucket != PROMOTED_BUCKET:
+            continue
+        if not os.path.isfile(os.path.join(repo_root, DOCS_DIR, f"{name}.md")):
+            problems.append(
+                f"skills/{bucket}/{name} 没有人类文档页 {DOCS_DIR}/{name}.md —— 加了技能就要补上"
+                f"（What it does / When to reach for it / Common questions / It's working if）"
+            )
+    return problems
+
+
 def main() -> int:
     root = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "skills"
@@ -468,6 +491,7 @@ def main() -> int:
     failures.extend(check_script_references(repo_root, skills))
     failures.extend(check_installer_manifest(repo_root, skills))
     failures.extend(check_stated_counts(repo_root, skills))
+    failures.extend(check_docs_pages(repo_root, skills))
 
     warnings: list[str] = []
     for bucket, name, path in skills:
@@ -519,7 +543,7 @@ def main() -> int:
     print(f"ok: {len(skills)} skills valid ({per_bucket}; frontmatter parses, names match, "
           f"descriptions <= {DESCRIPTION_CAP} chars, every /reference resolves, "
           f"every bucket served by the bundle patch and listed in the installer manifest, "
-          f"stated counts match)")
+          f"every {PROMOTED_BUCKET} skill has a human docs page, stated counts match)")
     return 0
 
 
