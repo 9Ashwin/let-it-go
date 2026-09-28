@@ -1,0 +1,70 @@
+{
+ "case_id": "t1-parallel",
+ "case_name": "t1-parallel",
+ "workdir": "/var/folders/04/xwb43jfd0952ljqlmp08skhr0000gn/T/cache-2781892262/work",
+ "expectations": [
+  {
+   "text": "改动之后 fixture 自己的门禁 make check 仍然绿（在集成态上）",
+   "kind": "gate",
+   "passed": true,
+   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/twounits/counter\t(cached)\nok  \texample.com/twounits/greeter\t(cached)"
+  },
+  {
+   "text": "两个单元的行为都真的实现了（Upper / Max，各两条验收条件）",
+   "kind": "probe",
+   "passed": false,
+   "evidence": "  null → 探针没有输出可解析的 JSON（exit 1）…ample.com/twounits/greeter.test]\ngreeter/zz_eval_probe_test.go:16:25: undefined: Upper\ngreeter/zz_eval_probe_test.go:17:33: undefined: counter.Max\nFAIL\texample.com/twounits/greeter [build failed]\nFAIL"
+  },
+  {
+   "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+   "kind": "tamper_guard",
+   "passed": true,
+   "evidence": "受保护文件逐字节未变：Makefile、counter/count_test.go、greeter/greet_test.go"
+  },
+  {
+   "text": "先加载了并行入口 graph（这一层量的是技能契约本身，不是结果）",
+   "kind": "skill_loaded",
+   "passed": false,
+   "evidence": "没有加载任何技能，期望先加载 graph"
+  },
+  {
+   "text": "波用 worktree 隔离：主仓库里有 worktree 登记（`.git/worktrees/*`）",
+   "kind": "path_glob",
+   "passed": false,
+   "evidence": ".git/worktrees/* → 命中 0 个（需要 ≥1）"
+  },
+  {
+   "text": "图检查点落在作用域根（`requirements/<scope>/.graph_state.json`）",
+   "kind": "path_glob",
+   "passed": false,
+   "evidence": "requirements/*/.graph_state.json → 命中 0 个（需要 ≥1）"
+  },
+  {
+   "text": "波边界更新了看板（`requirements/<scope>/graph.html`）",
+   "kind": "path_glob",
+   "passed": false,
+   "evidence": "requirements/*/graph.html → 命中 0 个（需要 ≥1）"
+  },
+  {
+   "text": "没有 loop 检查点——这是 graph，不是 loop-it（两个 profile 不许混）",
+   "kind": "checkpoint_absent",
+   "passed": true,
+   "evidence": "没有产生 loop 检查点（单单元模式：零仪式）"
+  },
+  {
+   "text": "没有合入：默认分支 main 还停在种子 commit 上（合入归 /merge-it，只有人能敲）",
+   "kind": "gate",
+   "passed": true,
+   "evidence": "bash -c test \"$(git rev-parse main)\" = \"$(git rev-list --max-parents=0 main)\" → exit 0\n"
+  },
+  {
+   "text": "没有以「等你回复」结束回合（CONTRACT §5）",
+   "kind": "no_human_wait",
+   "passed": true,
+   "evidence": "结尾没有等待人类的信号（最后一句：两张卡片已分别派给两个互不共享上下文的子代理并行实现（`Upper` 走 greeter，`Max` 走 counter，各自只写自己的包与新测试文件）。冻结基线的 sha256 已记录，待两个单元收敛后我会跑一次 `make check` 并逐字节核对基线。）"
+  }
+ ],
+ "passed": 5,
+ "total": 10,
+ "pass_rate": 0.5
+}

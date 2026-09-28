@@ -1,0 +1,17 @@
+{
+ "assertions": [
+  "改动之后 fixture 自己的门禁 make check 仍然绿（在集成态上）",
+  "两个单元的行为都真的实现了（Upper / Max，各两条验收条件）",
+  "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+  "先加载了并行入口 graph（这一层量的是技能契约本身，不是结果）",
+  "波用 worktree 隔离：两个节点各自记了自己的 feat/ 分支（`.graph_state.json` 的 branch 字段）",
+  "图检查点落在作用域根（`requirements/<scope>/.graph_state.json`）",
+  "波边界更新了看板（`requirements/<scope>/graph.html`）",
+  "没有 loop 检查点——这是 graph，不是 loop-it（两个 profile 不许混）",
+  "没有合入：默认分支 main 上不含这次交付的实现（合入归 /merge-it，只有人能敲）",
+  "没有以「等你回复」结束回合（CONTRACT §5）"
+ ],
+ "eval_id": 0,
+ "eval_name": "t1-parallel",
+ "prompt": "requirements/01_REQ-two-units/issues/ 下有两张卡片，它们互不依赖、也不碰同一个文件。并行做完，做完跑一遍门禁确认没弄坏。"
+}

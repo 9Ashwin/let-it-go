@@ -245,6 +245,11 @@ goal 本身：批末 `complete`，真卡住了才 `blocked`。
 
 - **作用域根**默认 `tasks/<feature>/`。仓库有约定（`AGENTS.md` 里的路由表，例如 `requirements/<scope>/`）
   就用它的根，**目录名不变**。仓库完全没约定时用默认值。
+- **作用域根要读出来，不要猜。** 开工前置检查里读一次仓库根的 `AGENTS.md`（以及作用域目录下逐级的
+  `AGENTS.md`），找 `## 作用域根` 那节写的路径；没有那节才用默认 `tasks/<feature>/`。
+  **仓库根永远不是作用域根**——除非仓库的约定就是 `.`，那也要是读出来的，不是默认的。
+  实测踩过一次：一次 `/graph` 运行没读 `AGENTS.md`，把 `.graph_state.json` 与 `graph.html` 落在了仓库根，
+  既不是默认值也不是仓库的约定，而且没有任何东西会报错（T1 `t1-parallel` 抓到的）。
 - 作用域内按需使用：`documents/`（PRD、SPEC、设计）、`issues/`（issue 卡片与检查点）、
   `notes/`（走查件、实现笔记、`environment.md`）、`records/`（复盘）、`checklists/`。
 - 工作状态住在 GitHub issue 正文时，`documents/` 里的同名文件是它的**投影**。

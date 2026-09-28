@@ -61,10 +61,13 @@
    ]
   },
   {
-   "kind": "path_glob",
-   "text": "波用 worktree 隔离：主仓库里有 worktree 登记（`.git/worktrees/*`）",
-   "glob": ".git/worktrees/*",
-   "min": 1
+   "kind": "gate",
+   "text": "波用 worktree 隔离：两个节点各自记了自己的 feat/ 分支（`.graph_state.json` 的 branch 字段）",
+   "command": [
+    "bash",
+    "-c",
+    "python3 -c '\nimport json,glob,sys\nps=[p for p in glob.glob(\"requirements/*/.graph_state*\") if not p.endswith(\".tmp\")]\nif not ps: sys.exit(1)\nd=json.load(open(ps[0]))\nbs={n.get(\"branch\",\"\") for n in d[\"nodes\"].values()}\nsys.exit(0 if len({b for b in bs if b.startswith(\"feat/\")})>=2 else 1)\n'"
+   ]
   },
   {
    "kind": "path_glob",
@@ -84,11 +87,11 @@
   },
   {
    "kind": "gate",
-   "text": "没有合入：默认分支 main 还停在种子 commit 上（合入归 /merge-it，只有人能敲）",
+   "text": "没有合入：默认分支 main 上不含这次交付的实现（合入归 /merge-it，只有人能敲）",
    "command": [
     "bash",
     "-c",
-    "test \"$(git rev-parse main)\" = \"$(git rev-list --max-parents=0 main)\""
+    "git grep -q 'func Upper' main -- greeter/ 2>/dev/null && exit 1; git grep -q 'func Max' main -- counter/ 2>/dev/null && exit 1; exit 0"
    ]
   },
   {

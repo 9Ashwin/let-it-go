@@ -1,0 +1,70 @@
+{
+ "case_id": "t1-parallel",
+ "case_name": "t1-parallel",
+ "workdir": "/var/folders/04/xwb43jfd0952ljqlmp08skhr0000gn/T/cache-788038889/work",
+ "expectations": [
+  {
+   "text": "改动之后 fixture 自己的门禁 make check 仍然绿（在集成态上）",
+   "kind": "gate",
+   "passed": true,
+   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/twounits/counter\t0.005s\nok  \texample.com/twounits/greeter\t0.005s"
+  },
+  {
+   "text": "两个单元的行为都真的实现了（Upper / Max，各两条验收条件）",
+   "kind": "probe",
+   "passed": true,
+   "evidence": "  ok   null → {\"max_ok\":1,\"upper_ok\":1}"
+  },
+  {
+   "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+   "kind": "tamper_guard",
+   "passed": true,
+   "evidence": "受保护文件逐字节未变：Makefile、counter/count_test.go、greeter/greet_test.go"
+  },
+  {
+   "text": "先加载了并行入口 graph（这一层量的是技能契约本身，不是结果）",
+   "kind": "skill_loaded",
+   "passed": true,
+   "evidence": "先加载了 graph（链：graph）"
+  },
+  {
+   "text": "波用 worktree 隔离：两个节点各自记了自己的 feat/ 分支（`.graph_state.json` 的 branch 字段）",
+   "kind": "gate",
+   "passed": false,
+   "evidence": "bash -c python3 -c '\nimport json,glob,sys\nps=[p for p in glob.glob(\"requirements/*/.graph_state*\") if not p.endswith(\".tmp\")]\nif not ps: sys.exit(1)\nd=json.load(open(ps[0]))\nbs={n.get(\"branch\",\"\") for n in d[\"nodes\"].values()}\nsys.exit(0 if len({b for b in bs if b.startswith(\"feat/\")})>=2 else 1)\n' → exit 1\n"
+  },
+  {
+   "text": "图检查点落在作用域根（`requirements/<scope>/.graph_state.json`）",
+   "kind": "path_glob",
+   "passed": false,
+   "evidence": "requirements/*/.graph_state.json → 命中 0 个（需要 ≥1）"
+  },
+  {
+   "text": "波边界更新了看板（`requirements/<scope>/graph.html`）",
+   "kind": "path_glob",
+   "passed": false,
+   "evidence": "requirements/*/graph.html → 命中 0 个（需要 ≥1）"
+  },
+  {
+   "text": "没有 loop 检查点——这是 graph，不是 loop-it（两个 profile 不许混）",
+   "kind": "checkpoint_absent",
+   "passed": true,
+   "evidence": "没有产生 loop 检查点（单单元模式：零仪式）"
+  },
+  {
+   "text": "没有合入：默认分支 main 上不含这次交付的实现（合入归 /merge-it，只有人能敲）",
+   "kind": "gate",
+   "passed": true,
+   "evidence": "bash -c git grep -q 'func Upper' main -- greeter/ 2>/dev/null && exit 1; git grep -q 'func Max' main -- counter/ 2>/dev/null && exit 1; exit 0 → exit 0\n"
+  },
+  {
+   "text": "没有以「等你回复」结束回合（CONTRACT §5）",
+   "kind": "no_human_wait",
+   "passed": true,
+   "evidence": "结尾没有等待人类的信号（最后一句：完成。按 `graph`（let-it-go 里对应\"并行实现\"的那一个）的流程跑完了一个波。）"
+  }
+ ],
+ "passed": 7,
+ "total": 10,
+ "pass_rate": 0.7
+}

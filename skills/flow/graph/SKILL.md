@@ -12,7 +12,7 @@ description: "并行实现：**只在节点互不共享文件、彼此也没有�
 
 下文中的工具名与 `workflow` 脚本写法是 DSH 侧用法；在 Codex 下执行时，工具映射见 [`references/codex-runtime.md`](references/codex-runtime.md)，节点边界、检查点与 fan-in 契约不变。
 
-本技能的两个产物——`.graph_state.json`（检查点）与 `graph.html`（看板）——落在**作用域根**；`.graph-worktrees/` 留在仓库根。下面命令里的相对路径都相对作用域根理解。
+本技能的两个产物——`.graph_state.json`（检查点）与 `graph.html`（看板）——落在**作用域根**；`.graph-worktrees/` 与 `nodes-*.json` 留在**仓库根**。**两者不是一回事**：作用域根怎么算出来见 [`../loop-it/CONTRACT.md`](../loop-it/CONTRACT.md) §8（读 `AGENTS.md`，没有约定才用默认 `tasks/<feature>/`；**仓库根不是作用域根**）。下面命令里的相对路径都相对作用域根理解，`$ROOT` 指仓库根。
 
 **这是指导，不是脚本。** 排序的算术——环检测、作用域冲突、波分层、检查点状态转换——属于 `scripts/graph_state.py`，它有测试。跑它、读它的输出；不要用散文重推分层。
 
