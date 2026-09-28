@@ -6,15 +6,12 @@ __pycache__/
 
 # eval：结果就是证据，进库（每轮的 grading.json / benchmark / notes 都留着）
 evals/harness/evalctl
-evals/harness/evals
 
-# 臂的工作副本是 scratch（整个仓库副本 + .git + 本地 origin），不进库。
-# 留在原处是为了复核：分数在 grading.json 里，产物在 work/ 里。
-evals/results/**/work
-evals/results/**/work.origin.git
-evals/results/**/work.seed.json
+# 臂的工作副本是 scratch（整个仓库副本 + 自己的 .git + 本地 origin），跑完即弃、不进库。
+**/results/**/work
+**/results/**/work.origin.git
+**/results/**/work.seed.json
 
-# eval 跑出来的产物：work/ 里是 fixture 的 git 仓库，不进版本库
-**/results/**/work/
-**/results/iteration-*/**/work/
+# --out 的相对路径以 evals/ 为基准（见 harness/run.go 的 repoPath）。传成 evals/... 就会多落
+# 一层，这条只兜手滑。
 evals/evals/
