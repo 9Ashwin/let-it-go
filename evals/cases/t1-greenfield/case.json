@@ -1,0 +1,56 @@
+{
+ "id": "t1-greenfield",
+ "tier": "t1",
+ "name": "t1-greenfield",
+ "what_it_tests": "**T1（形态层）**：一个**刚起步的空仓库** + 一句没有边界的大诉求（原文来自一次真实会话）。判的是**过程**：大诉求有没有先走规划半边（`prd` → `to-issues`），还是直接开写。\n\n这条补的是 zzx 那次事故的形状：模型加载 `prd`、写完 PRD 就直接派子代理 + `go mod init` 开写代码，整条链一步没走，直到用户当面追问「为什么不建 issue 不开 loop」才回头。有边界的任务上接力是稳的（t1-vague-request 六次全过），**没有边界的大诉求**才是缺口。\n\n**为什么没有探针**：开放任务没有公平的探针——任何探针都要塞进一条任务与技能都没写明的 API，那正是 README 记过的坑（探针带进隐含假设，会把正确实现判成错的）。这条只量过程，结果对不对不在这一层。",
+ "prompt": "写个 go 后台管理系统",
+ "expected_output": "先走规划半边：documents/ 下有 PRD、issues/ 下有卡片，链上 `prd` 之后接上了 `to-issues`；开工先开 goal；结尾没有等待人类的信号。",
+ "fixture": "fixture",
+ "probe_waiver": "开放任务没有公平的探针：任何探针都要塞进一条任务与技能都没写明的 API，那正是 README 记过的坑（探针带进隐含假设，会把正确实现判成错的）。这条用例只量过程——大诉求有没有先走规划半边，结果对不对不在这一层。",
+ "tamper_guard": [
+  "Makefile",
+  "internal/version/version_test.go"
+ ],
+ "assertions": [
+  {
+   "kind": "gate",
+   "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+   "command": [
+    "make",
+    "check"
+   ]
+  },
+  {
+   "kind": "tamper_guard",
+   "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）"
+  },
+  {
+   "kind": "skill_loaded",
+   "text": "先加载了规划入口 prd（大诉求不是单单元）",
+   "expect": [
+    "prd"
+   ]
+  },
+  {
+   "kind": "skill_chain",
+   "text": "接力没断：`prd` 落盘后接上了 `to-issues`，不是自己开写",
+   "chain": [
+    "prd",
+    "to-issues"
+   ]
+  },
+  {
+   "kind": "goal_opened",
+   "text": "开工先开了 goal（事件流里有 create_goal，CONTRACT §6）"
+  },
+  {
+   "kind": "path_glob",
+   "text": "PRD 落在仓库声明的作用域根下（documents/prd-*.md）",
+   "glob": "documents/prd-*.md"
+  },
+  {
+   "kind": "no_human_wait",
+   "text": "没有以「等你回复」结束回合（CONTRACT §5）"
+  }
+ ]
+}

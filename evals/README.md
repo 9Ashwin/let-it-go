@@ -134,10 +134,24 @@ go -C harness run . bench results/t1-N
 |---|---|---|---|
 | [t1-1](results/t1-1/benchmark.md) / [t1-2](results/t1-2/benchmark.md) | 1.00 | 0.71 | 拷贝安装 / 软链安装两轮，逐用例一致 |
 | [t1-3](results/t1-3/benchmark.md) | **1.00** | **0.65** | 干净契约 + `route` 接线 + 装回两条断言 + `skill_chain` |
+| [t1-greenfield](results/t1-greenfield/with_skill/notes.md) | 1.00（含 1 条不可判） | 0.43 | 空仓库 + 一句大诉求：链完整（`prd → to-issues → loop-it → review-it`）；with_skill **撞满 30 分钟上限**（152 次工具调用、13.4M token） |
 
 **t1-1 / t1-2 的 with_skill 数字不能再用**：它们的事件流里含旧 `CONTRACT.md` 的字面量
 `evals/cases/01-single-unit`，按现行污染规则整批排除（那批运行本身没问题，是文档里的字面量
 让检测器失效）。第三轮是干净契约下的重跑。
+
+### 两条新规矩（都是被真实失败逼出来的）
+
+**开放任务可以豁免探针，但要写理由。** 三样（gate / probe / tamper_guard）是硬规则，因为它们守
+**结果**。可 `t1-greenfield` 这种开放任务没有公平的探针——任何探针都要塞进一条任务与技能都没写明的
+API，那正是本文档记过的坑（探针带进隐含假设，会把正确实现判成错的）。所以 `probe_waiver` 允许豁免，
+但**必须写出至少 30 字的理由，且过程断言不能少于三条**：豁免的是「结果」那一半，不是整条用例的
+区分度。`gate` 与 `tamper_guard` 照旧必须有。
+
+**撞上运行上限的运行，尾部断言判不了，记「不可判」。** `t1-greenfield/with_skill` 跑满 30 分钟被砍，
+没有 final 文本，`no_human_wait` 无从核实。判红就是**假红**——它没等谁，是没跑完；照着假红去修会
+修一个不存在的问题（这一轮我已经这样错过两次）。`run` 会把上限写进 `timed_out.json`，断言照实说
+「不可判」并进 pass 计数——**读结果时看 evidence，别只看分**。
 
 **第三轮抓到一次真越界**：`t1-vague-request/with_skill-run3` 走出 fixture，`ls -R` 了评测仓库并
 读了 `evals/harness/events.go`（评分代码），标记 `evals/cases`、`evals/harness`、`arms.json`。
@@ -206,6 +220,7 @@ go -C harness run . bench results/t1-N
 |---|---|---|
 | [t1-single-unit](cases/t1-single-unit/case.json) | **单单元**：一条卡片、一个纯函数，`loop-it` 该判成单单元内联做完 | `skill_loaded`、`checkpoint_absent`、`tool_absent[workflow]`、`path_absent[worktrees]`、`no_human_wait` |
 | [t1-serial-batch](cases/t1-serial-batch/case.json) | **串行批次**：两张有依赖边的小卡片，该开 goal、建检查点、把证据带上层 | `skill_loaded`、`goal_opened`、`checkpoint_location`、`evidence_layer`、`no_human_wait` |
+| [t1-greenfield](cases/t1-greenfield/case.json) | **没有边界的大诉求**：刚起步的空仓库 +「写个 go 后台管理系统」（真事故原文） | `skill_loaded`、**`skill_chain`**、`goal_opened`、`path_glob`、`no_human_wait`、`gate`、`tamper_guard`（**无探针**，见下） |
 | [t1-vague-request](cases/t1-vague-request/case.json) | **规划半边**：一句诉求 + 「怎么落地你定」，该先走 `prd` 而不是直接开写 | `skill_loaded`、**`skill_chain`（`prd` → `to-issues`）**、`path_glob`（PRD 落点）、`no_human_wait` |
 
 三条用例都有完整的 `gate` / `probe` / `tamper_guard`，起点都是红的（探针在 seed commit 上编译不过）。

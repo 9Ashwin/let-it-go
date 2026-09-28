@@ -109,10 +109,17 @@ type Case struct {
 	// 默认每个 fixture 都要有地图，因为流程的产物落点靠它；但「没声明时会怎样」也是一条
 	// 真实路径（技能写着「仓库完全没约定时用默认值 tasks/<feature>/」），测它就必须没有地图。
 	// 做成显式字段而不是删掉那条检查：误删地图仍然要在自检里报出来。
-	UndeclaredWorkspace bool            `json:"undeclared_workspace"`
-	TamperGuard         []string        `json:"tamper_guard"`
-	Assertions          []AssertionSpec `json:"assertions"`
-	unknownFields       []string
+	UndeclaredWorkspace bool     `json:"undeclared_workspace"`
+	TamperGuard         []string `json:"tamper_guard"`
+
+	// ProbeWaiver 让一条用例**不带探针**，但必须写出理由。
+	//
+	// 三样（gate / probe / tamper_guard）是硬规则，因为它们守的是**结果**。可开放任务没有公平的
+	// 探针：任何探针都要塞进一条任务与技能都没写明的 API——那正是 README 记过的坑（探针带进隐含
+	// 假设，会把正确实现判成错的）。这类用例只量过程，理由必须写出来、且长到不能当借口用。
+	ProbeWaiver   string          `json:"probe_waiver"`
+	Assertions    []AssertionSpec `json:"assertions"`
+	unknownFields []string
 }
 
 // AssertionSpec 是声明式断言。同一种 kind 在不同用例里的附加字段不同，
@@ -1196,7 +1203,7 @@ func cmdSelfcheck(_ []string) int {
 		}
 		return 1
 	}
-	fmt.Printf("ok: %d 个用例结构完好（fixture 无 .git、探针齐、tamper_guard 指得到、两条臂的后缀都在）；触发用例集完好；技能正文不含评测目录字面量\n",
+	fmt.Printf("ok: %d 个用例结构完好（fixture 无 .git、探针齐或带理由豁免、tamper_guard 指得到、两条臂的后缀都在）；触发用例集完好；技能正文不含评测目录字面量\n",
 		len(dirs))
 	return 0
 }
@@ -1287,18 +1294,49 @@ func selfcheckCase(name string) []string {
 		problems = append(problems, name+": 缺少 `gate` 断言")
 	}
 	if !kinds["probe"] {
-		problems = append(problems, name+": 缺少 `probe` 断言（没有探针的用例只有文件树断言，区分度弱）")
+		if len([]rune(c.ProbeWaiver)) < 30 {
+			problems = append(problems, name+": 缺少 `probe` 断言（没有探针的用例只有文件树断言，区分度弱）；真要豁免就写 `probe_waiver` 说明理由（至少 30 字）")
+		} else {
+			problems = append(problems, selfcheckProbeWaiver(name)...)
+		}
 	}
 	if !kinds["tamper_guard"] {
 		problems = append(problems, name+": 缺少 `tamper_guard` —— 没有它，把门禁改弱换绿是能通过的")
 	}
 
 	probeDir := filepath.Join(caseDir, "probe")
-	entries, err := os.ReadDir(probeDir)
-	if err != nil || len(entries) == 0 {
-		problems = append(problems, name+": 没有 probe/ 目录（探针文件放这里）")
+	if _, err := os.ReadDir(probeDir); err == nil {
+		entries, _ := os.ReadDir(probeDir)
+		if len(entries) == 0 {
+			problems = append(problems, name+": 没有 probe/ 目录（探针文件放这里）")
+		}
 	}
 	return problems
+}
+
+// selfcheckProbeWaiver 允许豁免探针，但要求这条用例**仍然带够过程断言**——豁免的是「结果」那一半，
+// 不是整条用例的区分度。少于三条过程断言就说明它其实什么都没量。
+func selfcheckProbeWaiver(name string) []string {
+	raw, err := os.ReadFile(filepath.Join(evalsDir, "cases", name, "case.json"))
+	if err != nil {
+		return nil
+	}
+	var c Case
+	if json.Unmarshal(raw, &c) != nil {
+		return nil
+	}
+	process := 0
+	for _, a := range c.Assertions {
+		switch a.str("kind") {
+		case "skill_loaded", "skill_chain", "goal_opened", "no_human_wait",
+			"evidence_layer", "checkpoint_location", "checkpoint_absent", "path_glob", "path_absent", "tool_absent":
+			process++
+		}
+	}
+	if process < 3 {
+		return []string{fmt.Sprintf("%s: 豁免了探针，却只有 %d 条过程断言——豁免的是「结果」那一半，不是整条用例的区分度", name, process)}
+	}
+	return nil
 }
 
 func cmdList(_ []string) int {

@@ -225,6 +225,11 @@ func cmdRun(args []string) int {
 
 	fmt.Printf("%s/%s  %.2f（%d/%d）  %.1fs  %d tokens  %d 次工具调用\n",
 		caseID, arm, g.PassRate, g.Passed, g.Total, elapsed, events.totalTokens, events.toolCalls)
+	if errors.Is(runErr, errTimedOut) {
+		// 撞上运行上限的运行，**尾部断言判不了**：没有 final 文本，`no_human_wait` 这类读结尾的
+		// 断言无从核实。把它记成「等了人」是假红，会把人推去修一个不存在的问题——踩过两次。
+		os.WriteFile(filepath.Join(out, "timed_out.json"), mustJSON(map[string]any{"reason": runErr.Error()}), 0o644)
+	}
 	if runErr != nil {
 		fmt.Fprintf(os.Stderr, "  dsh 退出异常：%v\n", runErr)
 		return 1

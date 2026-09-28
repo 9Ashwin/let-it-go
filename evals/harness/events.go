@@ -166,6 +166,30 @@ var humanWaitPatterns = []*regexp.Regexp{
 //
 // 两个信号：最后一次工具调用是 `ask_user_question`（回合就停在问题上），或者结尾那段话命中
 // humanWaitPatterns（在等一个还没回来的结果）。
+// timedOut 读运行目录里的上限标记（`run` 写的）。
+func timedOut(workdir string) bool {
+	return exists(filepath.Join(filepath.Dir(workdir), "timed_out.json"))
+}
+
+// finalTextOf 取事件流里最后一段 final 文本。
+func finalTextOf(raw string) string {
+	last := ""
+	for _, line := range strings.Split(raw, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		var event struct {
+			Type string `json:"type"`
+			Text string `json:"text"`
+		}
+		if json.Unmarshal([]byte(line), &event) == nil && event.Type == "final" {
+			last = event.Text
+		}
+	}
+	return last
+}
+
 func assertNoHumanWait(caseID, workdir string, spec AssertionSpec) (bool, string) {
 	raw, applicable, err := runEventsIn(workdir)
 	if !applicable {
@@ -180,6 +204,11 @@ func assertNoHumanWait(caseID, workdir string, spec AssertionSpec) (bool, string
 	}
 	if last := lastToolCall(raw); last == "ask_user_question" {
 		return false, "回合停在 ask_user_question 上 —— headless 里没人可答（CONTRACT §5）"
+	}
+	// 撞上运行上限的运行没有 final 文本，这条读结尾的断言**判不了**。判红就是假红——它没等谁，
+	// 是没跑完。`run` 会把上限写进 `timed_out.json`，这里照实说「不可判」。
+	if timedOut(workdir) && finalTextOf(raw) == "" {
+		return true, "不可判：这一轮撞上了运行上限（没有 final 文本）——不是「等了人」，是没跑完"
 	}
 	_, finalText := parseEvents(raw)
 	for _, pattern := range humanWaitPatterns {
