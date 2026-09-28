@@ -536,13 +536,13 @@
         <h3>1. 概述</h3>
       </div>
       <p>
-        <strong>let-it-go</strong> 是一套研发工作流技能集：24 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。
+        <strong>let-it-go</strong> 是一套研发工作流技能集：25 个技能，把「想法 → 交付」拆成标准步骤——需求、设计、拆解、实现、审查、交付——每一步由一个技能负责。
       </p>
       <p>
         它让 AI Agent 能够像一个有经验的工程师一样——从理解需求、拆解任务、编写代码、审查质量，到最终提交合入——全流程自主完成。你只需描述功能想法，剩下的交给工作流。
       </p>
       <div class="tip">
-        <strong>入口：</strong>不用先问该用哪个。<strong>24 个技能的 description 就是路由表</strong>——它写清了各自管什么、什么时候该用，模型命中就自己加载并<strong>直接开始</strong>那一步，不需要你手敲。想强制走某一条时才敲它的名字。
+        <strong>入口：</strong>不用先问该用哪个。<strong>25 个技能的 description 就是路由表</strong>——它写清了各自管什么、什么时候该用，模型命中就自己加载并<strong>直接开始</strong>那一步，不需要你手敲。想强制走某一条时才敲它的名字。
       </div>
 
       <div class="cards">
@@ -850,7 +850,7 @@
       </div>
 
       <div class="note">
-        <strong>技能分组：</strong>24 个技能按「在流程里扮演什么角色」分三个桶——<code class="inline-code">flow</code>（流水线本身，7 个）、<code class="inline-code">bonus</code>（中途伸手拿的：出事了、要保证质量、需要一个非代码产物，7 个）、<code class="inline-code">vendor</code>（第三方技能的逐字副本，由 manifest 钉住 commit，10 个）。
+        <strong>技能分组：</strong>25 个技能按「在流程里扮演什么角色」分三个桶——<code class="inline-code">flow</code>（流水线本身，8 个）、<code class="inline-code">bonus</code>（中途伸手拿的：出事了、要保证质量、需要一个非代码产物，7 个）、<code class="inline-code">vendor</code>（第三方技能的逐字副本，由 manifest 钉住 commit，10 个）。
       </div>
     </div>
 
@@ -876,11 +876,11 @@
       </table>
 
       <div class="tip">
-        <strong>Tip：</strong>安装后输入 <code class="inline-code">/prd</code>、<code class="inline-code">/to-design</code>、<code class="inline-code">/to-issues</code>、<code class="inline-code">/loop-it</code>、<code class="inline-code">/graph</code>、<code class="inline-code">/review-it</code>、<code class="inline-code">/ship-it</code>（flow 7 个）、<code class="inline-code">/test-first</code>、<code class="inline-code">/triage</code>、<code class="inline-code">/diagnose</code>、<code class="inline-code">/conflict</code>、<code class="inline-code">/refactor</code>、<code class="inline-code">/modern-go</code>、<code class="inline-code">/understand</code>（bonus 7 个）、<code class="inline-code">/svg-diagram</code>、<code class="inline-code">/find-skills</code>、<code class="inline-code">/frontend-design</code>、<code class="inline-code">/humanizer-zh</code>、<code class="inline-code">/pptx</code>、<code class="inline-code">/resume-optimizer</code>、<code class="inline-code">/skill-creator</code>、<code class="inline-code">/teach</code>、<code class="inline-code">/ui-ux-pro-max</code>、<code class="inline-code">/web-design-guidelines</code>（vendor 10 个）即可直接调用对应技能。其中 <code class="inline-code">/goal</code> 是 DSH 的命令（不是 skill）：模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但一批活开工时模型自己就能开（要求顶层回合里有人类消息），子代理开不了。
+        <strong>Tip：</strong>安装后输入 <code class="inline-code">/prd</code>、<code class="inline-code">/to-design</code>、<code class="inline-code">/to-issues</code>、<code class="inline-code">/loop-it</code>、<code class="inline-code">/graph</code>、<code class="inline-code">/review-it</code>、<code class="inline-code">/ship-it</code>、<code class="inline-code">/merge-it</code>（flow 8 个）、<code class="inline-code">/test-first</code>、<code class="inline-code">/triage</code>、<code class="inline-code">/diagnose</code>、<code class="inline-code">/conflict</code>、<code class="inline-code">/refactor</code>、<code class="inline-code">/modern-go</code>、<code class="inline-code">/understand</code>（bonus 7 个）、<code class="inline-code">/svg-diagram</code>、<code class="inline-code">/find-skills</code>、<code class="inline-code">/frontend-design</code>、<code class="inline-code">/humanizer-zh</code>、<code class="inline-code">/pptx</code>、<code class="inline-code">/resume-optimizer</code>、<code class="inline-code">/skill-creator</code>、<code class="inline-code">/teach</code>、<code class="inline-code">/ui-ux-pro-max</code>、<code class="inline-code">/web-design-guidelines</code>（vendor 10 个）即可直接调用对应技能。其中 <code class="inline-code">/goal</code> 是 DSH 的命令（不是 skill）：模型侧是 <code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>，但一批活开工时模型自己就能开（要求顶层回合里有人类消息），子代理开不了。
       </div>
 
       <div class="note">
-        <strong>模型目录：</strong>24 个技能的 description 合计 5426 字符，模型实际看到 <strong>5365 字符</strong>（DSH 会把每条 description 归一化空白并截到 500 字符）。唯一带 <code class="inline-code">disable-model-invocation</code> 的是 vendor 的 <code class="inline-code">/teach</code>（上游的选择，不进模型目录），要用手敲名字；省下每个会话与<strong>每个子代理</strong>都要付的那份固定成本。
+        <strong>模型目录：</strong>25 个技能的 description 合计 5592 字符，模型实际看到 <strong>5381 字符</strong>（DSH 会把每条 description 归一化空白并截到 500 字符）。带 <code class="inline-code">disable-model-invocation</code> 的是 vendor 的 <code class="inline-code">/teach</code>（上游的选择）与 <code class="inline-code">/merge-it</code>（合入不可逆，只有人能敲），两条都不进模型目录，要用手敲名字。
       </div>
 
       <h3>接入到你的仓库</h3>

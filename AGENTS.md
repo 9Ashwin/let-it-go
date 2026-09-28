@@ -1,13 +1,13 @@
 # let-it-go 协作入口
 
-这是一套研发工作流技能集（24 个技能，三桶）。本文件是维护这个仓库时的入口：
+这是一套研发工作流技能集（25 个技能，三桶）。本文件是维护这个仓库时的入口：
 **常驻的核心规则**。使用技能（而不是维护技能）时读 [README.md](README.md) 与
 [docs/index_cn.html](docs/index_cn.html)，不需要本文件。
 
 ## 结构
 
 ```
-skills/flow/     流水线本身：prd to-design to-issues loop-it graph review-it ship-it
+skills/flow/     流水线本身：prd to-design to-issues loop-it graph review-it ship-it merge-it
 skills/bonus/    中途伸手拿的：conflict diagnose modern-go refactor test-first triage understand
 skills/vendor/   第三方技能的逐字副本，由 vendor.json 钉住 commit
 scripts/         维护脚本（check_skills.py、sync_vendor.py、strip_scroll_reveal.py）

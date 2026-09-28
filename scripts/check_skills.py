@@ -67,7 +67,9 @@ COUNT_PATTERNS = (
     ("核心个数", r"(\d[\d,]*)\s+core\b", "flow"),
     ("补充个数", r"补充\s*(\d[\d,]*)\s*个", "supplementary"),
     ("补充个数", r"(\d[\d,]*)\s+supplementary\b", "supplementary"),
-    ("flow 个数", r"\bflow\b[^\n]{0,90}?(\d[\d,]*)\s*(?:个|[),，])", "flow"),
+    # `(?<![\w-])` 而不是 `\b`：`mid-flow` 里那个 flow 也是词边界，于是「flow (…, 8), bonus (what you
+    # reach for mid-flow: …, 7)」这句会把 bonus 的 7 记成 flow 的个数——门禁自己抓出来的假警。
+    ("flow 个数", r"(?<![\w-])flow\b[^\n]{0,90}?(\d[\d,]*)\s*(?:个|[),，])", "flow"),
     ("bonus 个数", r"\bbonus\b[^\n]{0,90}?(\d[\d,]*)\s*(?:个|[),，])", "bonus"),
     ("vendor 个数", r"\bvendor\b[^\n]{0,90}?(\d[\d,]*)\s*(?:个|[),，])", "vendor"),
     ("description 合计", r"合计\s*(\d[\d,]*)\s*字符", "chars_total"),

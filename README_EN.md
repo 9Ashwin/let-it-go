@@ -26,7 +26,7 @@
 
 ## What is let-it-go?
 
-The core of let-it-go is the 7 development-workflow skills in [`skills/flow`](skills/flow). Describe your goal, and the agent clarifies requirements, breaks down Issues, implements, verifies, and ships as the task requires.
+The core of let-it-go is the 8 development-workflow skills in [`skills/flow`](skills/flow). Describe your goal, and the agent clarifies requirements, breaks down Issues, implements, verifies, and ships as the task requires.
 
 **One work state, three profiles, no human gates.** What to change and what counts as done live in one place — the GitHub issue body (`goal` / `acceptance` / `invariants` / `unknowns` / `human_checkpoint`); how far the batch has got lives in the checkpoint. Every other document (PRD, walkthrough, PR body) is a **projection** of it. The full contract is [`skills/flow/CONTRACT.md`](skills/flow/CONTRACT.md).
 
@@ -113,7 +113,8 @@ The project centers on [`skills/flow`](skills/flow). Names below use the `/` pre
 | [`/loop-it`](skills/flow/loop-it/SKILL.md) | The implementation entry point: finish single tasks inline or run dependent batches serially, with resumable checkpoints and review intensity matched to batch size |
 | [`/graph`](skills/flow/graph/SKILL.md) | Run genuinely parallel tasks in dependency waves, with a worktree per node, evidence checks at fan-in, and review and delivery once per wave |
 | [`/review-it`](skills/flow/review-it/SKILL.md) | Assess requirement compliance (Spec) and code standards (8 dimensions), reporting the two axes separately |
-| [`/ship-it`](skills/flow/ship-it/SKILL.md) | Write the walkthrough (the human-readable projection of the recorded observations), then produce the PR body and handle commit, push, PR, merge, Issue closure, and the implementation summary; merge locally when there is no remote |
+| [`/ship-it`](skills/flow/ship-it/SKILL.md) | Take finished work to "PR ready": write the walkthrough (the human-readable projection of the recorded observations), then commit, push, open the PR and post the implementation summary. **Stops there** - merging goes to a human |
+| [`/merge-it`](skills/flow/merge-it/SKILL.md) | Merge a PR that is already open: lay out what is being merged and the check status, merge, close the Issue, sync the default branch. **Only a human can invoke it** - merging is irreversible |
 
 <details>
 <summary>Supplementary skills collected for personal use</summary>
@@ -125,7 +126,7 @@ The project centers on [`skills/flow`](skills/flow). Names below use the `/` pre
 | [`skills/bonus`](skills/bonus) | `/conflict`, `/diagnose`, `/modern-go`, `/refactor`, `/test-first`, `/triage`, `/understand`: conflict resolution, diagnosis, code quality, testing, triage, and change explanations |
 | [`skills/vendor`](skills/vendor) | `/find-skills`, `/frontend-design`, `/humanizer-zh`, `/pptx`, `/resume-optimizer`, `/skill-creator`, `/svg-diagram`, `/teach`, `/ui-ux-pro-max`, `/web-design-guidelines`: tools for skill management, design, writing, presentations, resumes, and diagrams |
 
-The repository contains 24 skills in total: 7 core and 17 supplementary. Of these, 23 support automatic selection by description; `/teach` retains upstream's `disable-model-invocation` setting and requires manual invocation. Skills in `vendor` are verbatim upstream copies; see each directory's `NOTICE.md` for source, version, and license.
+The repository contains 25 skills in total: 8 core and 17 supplementary. Of these, 23 support automatic selection by description; `/teach` and `/merge-it` retain `disable-model-invocation` and require manual invocation. Skills in `vendor` are verbatim upstream copies; see each directory's `NOTICE.md` for source, version, and license.
 
 </details>
 
@@ -133,7 +134,7 @@ The repository contains 24 skills in total: 7 core and 17 supplementary. Of thes
 
 ```
 skills/
-├── flow/          # the PRD → ship workflow, used as the task requires (7)
+├── flow/          # the PRD → ship workflow, used as the task requires (8)
 ├── bonus/         # supplementary engineering tools collected for personal use (7)
 └── vendor/        # personal collection of upstream copies, pinned by the manifest (10)
 scripts/           # check_skills.py (layout / frontmatter / cross-refs / patch)

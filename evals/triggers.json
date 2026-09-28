@@ -92,11 +92,17 @@
   },
   {
    "id": "ship-it",
-   "prompt": "做完了，提交、开 PR、合入，然后把对应的 issue 关掉。",
+   "prompt": "做完了，提交、推分支、开个 PR，再补一条实现总结。",
    "expect": [
     "ship-it"
    ],
-   "why": "ship-it 的触发词：提交代码、创建PR、合入、关闭issue"
+   "why": "ship-it 的触发词：提交代码、创建PR。合入不归它"
+  },
+  {
+   "id": "merge-it-stays-out-of-reach",
+   "prompt": "PR 已经开好了，checks 也绿了，合入吧。",
+   "expect": [],
+   "why": "merge-it 是 user-invoked（disable-model-invocation）：合入不可逆，模型碰不到它，只有人能敲。所以这句不该加载任何技能——这条就是那个闸门的回归"
   },
   {
    "id": "near-trivial-function",

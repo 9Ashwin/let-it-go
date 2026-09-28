@@ -13,6 +13,7 @@
       "skills": [
         "./graph",
         "./loop-it",
+        "./merge-it",
         "./prd",
         "./review-it",
         "./ship-it",

@@ -1,11 +1,13 @@
 ---
 name: ship-it
-description: "交付已完成的工作：提交、推送、开 PR、合入、关闭 issue，再补一条实现总结评论。有远端走 GitHub CLI；仓库没有远端或 gh 没登录时走本地合入。Triggers: 提交代码, 创建PR, 合入, 关闭issue, ship-it, commit and merge."
+description: "把做完的工作交付到「PR 就绪」：提交、推分支、开 PR、补一条实现总结评论，然后停下把合入交给人（/merge-it）。有远端走 GitHub CLI；没有远端或 gh 没登录时走本地模式，只准备好交付资料、不落默认分支。Triggers: 提交代码, 创建PR, ship-it, commit and pr."
 ---
 
-# ship-it — 把做完的东西交付出去
+# ship-it — 把做完的东西交付到「PR 就绪」
 
-提交 → 推送分支 → 开 PR → 合入 → 关 issue → 补一条实现总结评论。
+提交 → 推送分支 → 开 PR → 补一条实现总结评论。**到这里停。**
+
+**合入不在这里。** 合入是不可逆的对外动作，归 [`/merge-it`](../merge-it/SKILL.md)——那一份只有人能敲。开 PR 是可逆的、也是给人看的，所以留在这里。
 
 工作状态、证据层、产物落点、放行判据都在 [`../CONTRACT.md`](../CONTRACT.md)——本文件只写**何时调用、边界、失败怎么办**，不复述它。
 
@@ -13,9 +15,9 @@ description: "交付已完成的工作：提交、推送、开 PR、合入、关
 
 - 实现跑完、项目门禁是绿的，且**每条验收条件都拿到了它那一层**的证据。
 - 单单元路径在 `/loop-it` 里内联收尾；串行批次在**批末**调一次；并行图在 **fan-in** 调一次。
-- 用户说「提交代码 / 创建 PR / 合入 / 关闭 issue / ship-it」。
+- 用户说「提交代码 / 创建 PR / ship-it」。
 
-**放行判据是「门禁绿 + 每条验收条件有它那一层的证据」，不是任何人的批准。** 缺证据就回去补观测，不要先合了再补。唯一有副作用、要先把清单摆出来让人当场接住的是**真往远端合 PR / 关 issue** 那一步。
+**放行判据是「门禁绿 + 每条验收条件有它那一层的证据」，不是任何人的批准。** 缺证据就回去补观测，不要先把 PR 开了再补。
 
 ## 两条路：先解析，再动手
 
@@ -28,9 +30,8 @@ git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|origin/||
 | | **远端模式**（有 origin 且 `gh` 已登录） | **本地模式**（无远端 / gh 不可用） |
 | --- | --- | --- |
 | 推分支 | `git push -u origin` | **不推**——没有远端 |
-| 交付落点 | PR | **本地合入默认分支** |
-| 关闭 issue | `Closes #N` 自动关 / `gh issue close` | **改需求资料**：卡片或检查点里对应条目的状态 + commit + 验收证据 |
-| 实现总结 | Issue 评论 | **写进需求资料**（检查点 `note`，或卡片本身） |
+| 交付落点 | PR | 需求资料里的交付记录（检查点 `note` 或卡片） |
+| 关 issue / 合入 | 见 [`/merge-it`](../merge-it/SKILL.md) | 见 [`/merge-it`](../merge-it/SKILL.md) |
 
 **不要因为「技能写的是 PR」就去建一个远端。** 实测过一次：仓库本来没有 remote，编排者照 PR 流程走不通，最后自己用本地 `git merge` 收了尾——那正是本地模式该做的事，但技能没写，于是它成了没人维护的临场发挥。
 
@@ -62,7 +63,7 @@ git checkout -b feat/<scope-slug>      # 已在需求分支上就跳过
 git push -u origin feat/<scope-slug>
 ```
 
-**一个需求一条分支**（`/loop-it` 的整批、`/graph` 的一波都落在这一条上）；只有单个 issue 的独立小改动才用 `feat/issue-42-short-desc`。本地模式**跳过这一步**——没有远端可推，分支留到 Step 4 合入。
+**一个需求一条分支**（`/loop-it` 的整批、`/graph` 的一波都落在这一条上）；只有单个 issue 的独立小改动才用 `feat/issue-42-short-desc`。本地模式**跳过这一步**，直接去 Step 4。
 
 ### Step 3：开 PR（仅远端模式）
 
@@ -78,35 +79,11 @@ EOF
 )"
 ```
 
-PR body 写 `Closes #N` 或 `Fixes #N`（合入后自动关 issue），title ≤ 70 字符。**它是投影**：不重抄契约字段，也不重抄走查件——引用它们（契约 §1）。本地模式**跳过这一步**，直接去 Step 4。
+PR body 写 `Closes #N` 或 `Fixes #N`（**合入后**自动关 issue），title ≤ 70 字符。**它是投影**：不重抄契约字段，也不重抄走查件——引用它们（契约 §1）。本地模式**跳过这一步**。
 
-### Step 4：合入
+### Step 4：补一条实现总结评论
 
-**远端模式**：先 `gh pr checks` 确认门禁绿，再合入。
-
-```bash
-gh pr checks
-gh pr merge --squash --delete-branch      # 或 --merge / --rebase
-```
-
-**本地模式**：
-
-```bash
-git checkout <默认分支>                    # 用上面解析出来的，别假设是 main
-git merge --no-ff feat/<scope-slug>
-```
-
-用 `--no-ff` 留一个合并点：批末要按 commit 追溯与回滚单个 issue，快进合入会把那串 commit 抹平成「看起来像直接在默认分支上写的」。合并后**不要删分支**——它是这批工作的唯一留档。
-
-### Step 5：关闭 issue
-
-**远端模式**：PR body 里写了 `Closes #N` 就自动关了，跳过；否则 `gh issue close {issue-number} --reason completed`。
-
-**本地模式**：issue 是仓库里的 md 卡片，没有 `gh` 可走——把 `<scope>/issues/` 里对应条目的状态改成已交付，并把 commit 与验收证据写进去。**别去 `gh issue close` 关一个不存在的 issue。**
-
-### Step 6：补一条实现总结评论
-
-**远端模式**：无论自动关还是手动关，都在 issue 上补一条实现总结，方便后续直接从 issue 回溯；**本地模式**没有 issue 可评论，同样四类写进**需求资料**——检查点里对应条目的 `note`，或卡片本身，别在两处各写一份。
+远端模式在 issue 上补；**本地模式**没有 issue 可评论，同样四类写进**需求资料**——检查点里对应条目的 `note`，或卡片本身，别在两处各写一份。
 
 ```bash
 gh issue comment {issue-number} --body "$(cat <<'EOF'
@@ -124,11 +101,17 @@ EOF
 - 四类固定：**进度 / 关键决策 / 验证记录 / 未决事项**；某类无内容写 `None` 并简要说明。**批级的**设计决策 / 偏离 / 权衡 / 待确认就在这里承载一次（逐 issue 的那份在检查点 `note`），只产出一次——用户明确要了 `docs/issue#NNNN.md` 那种文件时附链接，不重抄。
 - **验证记录是投影**：指向检查点与走查件，不复制第二份真相（契约 §1）。
 
-### Step 7：回到默认分支
+### Step 5：停在这里，把合入交给人
 
-```bash
-git checkout <默认分支> && git pull    # 本地模式没有远端，pull 跳过
+**不要自己合。** 报告一句，把命令打给人：
+
 ```
+✅ PR #43 已开：{url}
+   证据：{n} 条验收条件全部有它那一层的观测
+   合入 → /merge-it（或：gh pr merge --squash --delete-branch）
+```
+
+本地模式同理：交付资料写完就停，**`git merge` 那一步归 [`/merge-it`](../merge-it/SKILL.md)**。
 
 ## 多个 issue 共用一个 PR（批 / 波末）
 
@@ -148,12 +131,10 @@ git checkout <默认分支> && git pull    # 本地模式没有远端，pull 跳
 
 | 场景 | 处理方式 |
 |------|---------|
-| `gh pr checks` 有失败项 | 看失败原因，修复后追加 commit 推送 |
-| PR 有 merge conflict | `git fetch origin <默认分支> && git rebase origin/<默认分支>`，解冲突后 force push（这条分支只有你在推） |
-| `gh pr merge` 被 branch protection 阻止 | 先看它要什么（required checks / reviews），满足后重试；**不要用 `--admin` 绕门禁** |
-| issue 合入后没自动关 | 确认 PR body 含 `Closes #N`，或按 Step 5 手动 `gh issue close` |
-| `gh` 未装 / 未登录 / 没有 origin | **本地模式**，不是错误——按上面本地一列走，**不要为此新建远端** |
-| 本地合入后想撤销整批 | `git revert -m 1 <merge-commit>`；撤销单项按证据表里的 commit 逐个 revert |
+| `gh pr create` 失败（无权限 / 分支没推） | 先确认分支推上去了、`gh auth status` 通；权限不够就按本地模式收尾，**不要新建远端** |
+| `gh` 未装 / 未登录 / 没有 origin | **本地模式**，不是错误——按上面本地一列走 |
+| 提交时混进了不相关的变更 | `git reset HEAD <file>` 撤出暂存，别把无关改动带进这个 commit |
+| 用户要的是一次性 PR，不是批末交付 | 按单项 PR 走：一张卡一条分支一个 PR，仍然**不合入** |
 
 ## 示例（远端模式）
 
@@ -167,7 +148,6 @@ Closes #42
 - 读写往返：L2，`go test ./cases/ -run TestWriteReadCase` → ok
 EOF
 )"
-gh pr checks && gh pr merge --squash --delete-branch
 gh issue comment 42 --body "$(cat <<'EOF'
 ## 实现总结
 **进度** — Case 数据模型 + 读写函数（PR #43 / abc1234）
@@ -176,5 +156,5 @@ gh issue comment 42 --body "$(cat <<'EOF'
 **未决事项** — None
 EOF
 )"
-git checkout main && git pull
+# 停。合入 → /merge-it
 ```

@@ -536,7 +536,7 @@
         <h3>1. Overview</h3>
       </div>
       <p>
-        <strong>let-it-go</strong> is a set of development-workflow skills: 24 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill.
+        <strong>let-it-go</strong> is a set of development-workflow skills: 25 skills that take a change from "an idea" to "shipped code" through standard steps — requirements, design, breakdown, implementation, review, shipping — each owned by one skill.
       </p>
       <p>
         It enables AI agents to act like experienced engineers — from understanding requirements, breaking down tasks, writing code, reviewing quality, to final submission and merge — autonomously completing the entire process. You just describe the feature idea, and the workflow handles the rest.
@@ -850,7 +850,7 @@
       </div>
 
       <div class="note">
-        <strong>Skill groups:</strong> the 24 skills split into three buckets by the role they play — <code class="inline-code">flow</code> (the pipeline itself, 7), <code class="inline-code">bonus</code> (what you reach for mid-flow: something broke, quality is at stake, or you need a non-code artifact, 7), and <code class="inline-code">vendor</code> (verbatim third-party copies pinned to a commit by the manifest, 10).
+        <strong>Skill groups:</strong> the 25 skills split into three buckets by the role they play — <code class="inline-code">flow</code> (the pipeline itself, 8), <code class="inline-code">bonus</code> (what you reach for mid-flow: something broke, quality is at stake, or you need a non-code artifact, 7), and <code class="inline-code">vendor</code> (verbatim third-party copies pinned to a commit by the manifest, 10).
       </div>
     </div>
 
@@ -864,7 +864,7 @@
       <pre><code><span class="comment"># Recommended — install all skills into ~/.agents/skills</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span>
 
-<span class="comment"># Or install specific skills — flow (7)</span>
+<span class="comment"># Or install specific skills — flow (8)</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">prd</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">to-design</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">to-issues</span>
@@ -901,7 +901,7 @@
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">-g</span> <span class="flag">-a</span> <span class="value">universal</span></code></pre>
       <p>Skills land in <code class="inline-code">~/.agents/skills</code>. This is the least-effort route: nothing to change in a profile, and it applies to every profile.</p>
 
-      <p><code class="inline-code">npx skills</code> scans recursively and flattens <code class="inline-code">skills/&lt;bucket&gt;/&lt;skill&gt;</code> into <code class="inline-code">~/.agents/skills/&lt;skill&gt;</code> on install — a skill root is scanned only one level deep, so the flattening is required. The picker groups the <strong>24 entries into Let It Go Flow / Bonus / Vendor</strong> using the root <code class="inline-code">.claude-plugin/marketplace.json</code>; what lands in <code class="inline-code">~/.agents/skills</code> is still flat, so the bucket exists in the repo only.</p>
+      <p><code class="inline-code">npx skills</code> scans recursively and flattens <code class="inline-code">skills/&lt;bucket&gt;/&lt;skill&gt;</code> into <code class="inline-code">~/.agents/skills/&lt;skill&gt;</code> on install — a skill root is scanned only one level deep, so the flattening is required. The picker groups the <strong>25 entries into Let It Go Flow / Bonus / Vendor</strong> using the root <code class="inline-code">.claude-plugin/marketplace.json</code>; what lands in <code class="inline-code">~/.agents/skills</code> is still flat, so the bucket exists in the repo only.</p>
       <h3>Prerequisites</h3>
       <table>
         <tr><th>Tool</th><th>Purpose</th><th>Install</th></tr>
@@ -910,11 +910,11 @@
       </table>
 
       <div class="tip">
-        <strong>Tip:</strong> After installation, type <code class="inline-code">/prd</code>, <code class="inline-code">/to-design</code>, <code class="inline-code">/to-issues</code>, <code class="inline-code">/loop-it</code>, <code class="inline-code">/graph</code>, <code class="inline-code">/review-it</code>, <code class="inline-code">/ship-it</code> (flow, 7), <code class="inline-code">/test-first</code>, <code class="inline-code">/triage</code>, <code class="inline-code">/diagnose</code>, <code class="inline-code">/conflict</code>, <code class="inline-code">/refactor</code>, <code class="inline-code">/modern-go</code>, <code class="inline-code">/understand</code> (bonus, 7), <code class="inline-code">/svg-diagram</code>, <code class="inline-code">/find-skills</code>, <code class="inline-code">/frontend-design</code>, <code class="inline-code">/humanizer-zh</code>, <code class="inline-code">/pptx</code>, <code class="inline-code">/resume-optimizer</code>, <code class="inline-code">/skill-creator</code>, <code class="inline-code">/teach</code>, <code class="inline-code">/ui-ux-pro-max</code>, <code class="inline-code">/web-design-guidelines</code> (vendor, 10) to directly invoke the corresponding skill. <code class="inline-code">/goal</code> is a DSH command, not a skill; its model side (<code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>) needs a human message in the open turn plus a top-level caller, so the model opens it itself when a batch is handed over — subagents cannot.
+        <strong>Tip:</strong> After installation, type <code class="inline-code">/prd</code>, <code class="inline-code">/to-design</code>, <code class="inline-code">/to-issues</code>, <code class="inline-code">/loop-it</code>, <code class="inline-code">/graph</code>, <code class="inline-code">/review-it</code>, <code class="inline-code">/ship-it</code>, <code class="inline-code">/merge-it</code> (flow, 8), <code class="inline-code">/test-first</code>, <code class="inline-code">/triage</code>, <code class="inline-code">/diagnose</code>, <code class="inline-code">/conflict</code>, <code class="inline-code">/refactor</code>, <code class="inline-code">/modern-go</code>, <code class="inline-code">/understand</code> (bonus, 7), <code class="inline-code">/svg-diagram</code>, <code class="inline-code">/find-skills</code>, <code class="inline-code">/frontend-design</code>, <code class="inline-code">/humanizer-zh</code>, <code class="inline-code">/pptx</code>, <code class="inline-code">/resume-optimizer</code>, <code class="inline-code">/skill-creator</code>, <code class="inline-code">/teach</code>, <code class="inline-code">/ui-ux-pro-max</code>, <code class="inline-code">/web-design-guidelines</code> (vendor, 10) to directly invoke the corresponding skill. <code class="inline-code">/goal</code> is a DSH command, not a skill; its model side (<code class="inline-code">create_goal</code> / <code class="inline-code">update_goal</code>) needs a human message in the open turn plus a top-level caller, so the model opens it itself when a batch is handed over — subagents cannot.
       </div>
 
       <div class="note">
-        <strong>The model catalog:</strong> across the 24 skills the descriptions total 5,426 characters, of which the model actually sees <strong>5,365</strong> (DSH normalises whitespace and truncates each description at 500). The only skill carrying <code class="inline-code">disable-model-invocation</code> is the vendored <code class="inline-code">/teach</code> (upstream's choice, so it stays out of the model catalog and you must type its name), which saves the fixed cost every session and <strong>every subagent</strong> would otherwise pay.
+        <strong>The model catalog:</strong> across the 25 skills the descriptions total 5,592 characters, of which the model actually sees <strong>5,381</strong> (DSH normalises whitespace and truncates each description at 500). The skills carrying <code class="inline-code">disable-model-invocation</code> are the vendored <code class="inline-code">/teach</code> (upstream's choice) and <code class="inline-code">/merge-it</code> (merging is irreversible, so only a human fires it); neither enters the model catalog, so you type their names.
       </div>
 
       <h3>Set Up Your Repository</h3>

@@ -26,7 +26,7 @@
 
 ## let-it-go 是什么
 
-let-it-go 的核心是 [`skills/flow`](skills/flow) 中的 7 个研发工作流技能。你描述目标，Agent 按任务需要澄清需求、拆解 Issue、实现、验证并交付。
+let-it-go 的核心是 [`skills/flow`](skills/flow) 中的 8 个研发工作流技能。你描述目标，Agent 按任务需要澄清需求、拆解 Issue、实现、验证并交付。
 
 **一个工作状态，三个 profile，零人工闸门。** 要做什么、什么算做完，写在一处——GitHub issue 正文（`goal` / `acceptance` / `invariants` / `unknowns` / `human_checkpoint`）；走到哪了写在检查点里。其余文档（PRD、走查件、PR 描述）都是它的**投影**。契约全文见 [`skills/flow/CONTRACT.md`](skills/flow/CONTRACT.md)。
 
@@ -57,6 +57,15 @@ npx skills add 9Ashwin/let-it-go
 技能会落到 `~/.agents/skills`，这条装法不必动任何 profile 依赖。
 
 `npx skills` 递归扫描、安装时把 `skills/<桶>/<技能>` 拍平成 `~/.agents/skills/<技能>`——技能根只扫一层，所以必须拍平。
+
+**拍平会漏掉一份不是技能的文件：`CONTRACT.md`。** 七份 flow `SKILL.md` 都写着「工作状态、证据层、profile 边界、产物落点见 `../CONTRACT.md`」，而拍平之后那个相对路径指向 `~/.agents/skills/CONTRACT.md`——它不在任何技能目录里，`npx skills` 不会复制它。装完补一条：
+
+```bash
+cp skills/flow/CONTRACT.md ~/.agents/skills/CONTRACT.md
+```
+
+漏掉的症状很安静：技能照常加载，agent 只是读不到唯一真相源，然后花好几个工具调用到处找它（T1 eval 就是这么发现的）。
+技能根下多一份 `CONTRACT.md` 不会被当成技能——它没有 frontmatter，DSH 直接忽略。
 
 > [!TIP]
 > 安装后，直接描述你要做的事。Agent 会按技能描述选择入口；想指定某一步时，也可以直接写技能名。
@@ -113,7 +122,8 @@ npx skills add 9Ashwin/let-it-go
 | [`/loop-it`](skills/flow/loop-it/SKILL.md) | 实现入口：单项内联完成，有依赖的批次串行推进；检查点支持恢复，评审强度按批次大小选择 |
 | [`/graph`](skills/flow/graph/SKILL.md) | 有真实并行度时按依赖图分波执行，每个节点独立 worktree，汇合时检查证据，波末统一评审与交付 |
 | [`/review-it`](skills/flow/review-it/SKILL.md) | 分别检查需求符合度（Spec）和代码标准（8 个维度），两轴独立报告 |
-| [`/ship-it`](skills/flow/ship-it/SKILL.md) | 先写走查件、整理交付证据，再生成 PR body，完成提交、推送、PR、合入、关闭 Issue 与实现总结；无远端时本地合入 |
+| [`/ship-it`](skills/flow/ship-it/SKILL.md) | 把做完的工作交付到「PR 就绪」：先写走查件、整理交付证据，再提交、推分支、开 PR、补实现总结；**到这里停**，合入交给人 |
+| [`/merge-it`](skills/flow/merge-it/SKILL.md) | 合入已经开好的 PR：摆出要合的东西与 checks 状态、合入、关 Issue、回默认分支同步。**只有人能敲它**——合入不可逆 |
 
 <details>
 <summary>随仓库收录的自用补充技能</summary>
@@ -125,7 +135,7 @@ npx skills add 9Ashwin/let-it-go
 | [`skills/bonus`](skills/bonus) | `/conflict`、`/diagnose`、`/modern-go`、`/refactor`、`/test-first`、`/triage`、`/understand`：冲突处理、排障、代码质量、测试、分诊与变更解释 |
 | [`skills/vendor`](skills/vendor) | `/find-skills`、`/frontend-design`、`/humanizer-zh`、`/pptx`、`/resume-optimizer`、`/skill-creator`、`/svg-diagram`、`/teach`、`/ui-ux-pro-max`、`/web-design-guidelines`：技能管理、设计、写作、演示文稿、简历与制图等工具 |
 
-仓库合计收录 24 个技能（核心 7 个，补充 17 个）。其中 23 个支持模型按 description 自动选择；`/teach` 按上游设置保留 `disable-model-invocation`，需要手动调用。`vendor` 中的技能为上游逐字副本，来源、版本与许可见各目录的 `NOTICE.md`。
+仓库合计收录 25 个技能（核心 8 个，补充 17 个）。其中 23 个支持模型按 description 自动选择；`/teach` 与 `/merge-it` 保留 `disable-model-invocation`，需要手动调用。`vendor` 中的技能为上游逐字副本，来源、版本与许可见各目录的 `NOTICE.md`。
 
 </details>
 
@@ -133,7 +143,7 @@ npx skills add 9Ashwin/let-it-go
 
 ```
 skills/
-├── flow/          # PRD → 交付的主流程，按任务需要选用（7 个）
+├── flow/          # PRD → 交付的主流程，按任务需要选用（8 个）
 ├── bonus/         # 收集自用的工程补充工具（7 个）
 └── vendor/        # 收集自用的上游逐字副本，由 manifest 钉住 commit（10 个）
 scripts/           # check_skills.py（布局 / frontmatter / 交叉引用 / patch 校验）
