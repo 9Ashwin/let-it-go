@@ -103,7 +103,7 @@ python3 $S next --state $ST
 
 - **一个需求一条分支，整批共用**：`feat/<scope-slug>`（仓库有分支命名约定就用它的）。**正常路径不逐 issue 开分支**——N 条分支要 N 次汇总、N 套上下文，换来的只是「单个 issue 能单独回滚」，而那个用一个 commit 就拿到了。
 - **例外才开 issue 分支**：某个 issue 要打回、重做、或需要单独给人看时，把它切到 `feat/issue-N-<slug>` 上留档（见下面「打回或重做」）。这样它不污染需求分支，也还被人翻得出来——**分支数是按需的，不是固定的 N**。
-- **每个 issue 一个 commit**，message 带 issue 编号与标题：单个 issue 的追溯与回滚靠 **commit**（`git revert <那个 commit>`），不靠分支。**整批不 push、不开 PR**——push 与 PR 在批末做一次。
+- **每个 issue 一个 commit**，message 用 Conventional Commits 概括这次改动，**不要把 issue 编号写进 message**（需求/问题编号由分支名承载；逐 issue 的追溯靠 commit 顺序、检查点与批末 PR 描述）：单个 issue 的回滚靠 **commit**（`git revert <那个 commit>`），不靠分支。**整批不 push、不开 PR**——push 与 PR 在批末做一次。
 - **每个 issue 怎么实现：内联，还是派一个实现者子代理。**
   - **内联**：issue 少、或者每个都小，自己写最省事。
   - **派子代理**：一批 issue 多、或者每个都大——因为**编排者的上下文要活到批末**（它得一直盯着
@@ -219,7 +219,7 @@ else
 fi
 ```
 
-然后**内联实现**：读 issue 标题与正文，提取全部验收条件；正文引用的 PRD/SPEC（如 `<scope>/documents/prd-*.md`）一并读；按目标仓库既有风格改代码；跑该项目的门禁自证；长时间构建/测试作为**后台任务**运行。持续到验收条件全部满足、门禁通过，然后**在这条需求分支上 commit 一个 issue**——一个 issue 一个 commit，message 带编号与标题。
+然后**内联实现**：读 issue 标题与正文，提取全部验收条件；正文引用的 PRD/SPEC（如 `<scope>/documents/prd-*.md`）一并读；按目标仓库既有风格改代码；跑该项目的门禁自证；长时间构建/测试作为**后台任务**运行。持续到验收条件全部满足、门禁通过，然后**在这条需求分支上 commit 一个 issue**——一个 issue 一个 commit，message 概括改动、**不带 issue 编号**（分支名承载需求/问题编号，逐 issue 追溯看检查点与批末 PR 描述）。
 
 **验收条件满足一条就记一条**——记在 **scope README 的一张表**里（验收条件 / 怎么验的 / 命令），而不是事后回忆。这张表是给人看的，也是 `/ship-it` 走查件的原料：
 
