@@ -84,9 +84,55 @@ Worktree（绝对路径——原样使用）：{WT}
 
 ## 怎么读报告
 
-节点报告是 evidence，不是判决。合并之前：它点名的门禁命令应该是项目真正的门禁，
-泄漏检查应该是干净的，而 `new_work` 驱动重规划。如果一个节点报告 `"shipped"` 而集成
-后的门禁失败，以集成为准——该节点测的是它的 worktree，不是组合。
+节点报告是**它自己的声明**——既不是判决，也不是 evidence。合并之前：它点名的门禁命令应该是项目真正的门禁，
+泄漏检查应该是干净的，`files` 要与它自己的 diffstat 对得上，而 `new_work` 驱动重规划。如果一个节点报告
+`"shipped"` 而集成后的门禁失败，以集成为准——该节点测的是它的 worktree，不是组合。
 
 以 `null` 回来的节点根本没有产出有效对象：它失败了，或者没调用 `structured_output`
 就结束了。两者需要同样的处理——原地重试，或标成 `failed` 并阻塞它的依赖者。
+
+## 怎么派发：每个波一次 `workflow` 调用
+
+把每份渲染好的提示词交给**一个波一次 `workflow` 调用**，而不是打出一把裸 `subagent` 调用。
+`agent({ schema })` 是 DSH 里唯一能从子代理返回**校验过的**对象的路径，并发上限由引擎——不是模型——持有。
+
+```js
+// args: { wave: 1, nodes: [{ id: "3", label: "node 3 — add the parser", prompt: "<rendered>" }] }
+const NODE_REPORT = {
+  type: "object",
+  properties: {
+    node:     { type: "string" },
+    status:   { type: "string", enum: ["shipped", "failed", "blocked"] },
+    commit:   { type: "string" },
+    files:    { type: "array", items: { type: "string" } },
+    gates:    { type: "string" },
+    new_work: { type: "string" },
+    summary:  { type: "string" },
+  },
+  required: ["node", "status", "commit", "files", "gates", "new_work", "summary"],
+  additionalProperties: false,
+};
+
+phase(`wave ${args.wave}`);
+return await parallel(args.nodes.map((n) => () =>
+  agent(n.prompt, { label: n.label, phase: `wave ${args.wave}`, schema: NODE_REPORT })));
+```
+
+两个 schema 细节是承重的，都要花一个波才能艰难发现：`enum` 旁边需要一个显式的 `type`
+（裸的 `{ enum: [...] }` 会被当作超出受支持子集而拒绝，整个脚本随之死掉），以及 **`summary` 是放散文的地方**
+——结构化子代理会被运行时要求以工具调用收尾，而*不是*以纯文本回答收尾，所以六个机械键承载不了的东西
+必须有自己的键，否则就丢了。
+
+那次调用的三个性质决定了这个波剩下的部分怎么写：
+
+- **失败的节点以 `null` 回来。** `parallel` 把逐项失败降级为 `null` 并保住其余结果，所以返回值每个节点总有
+  一个槽位；`null` 槽位是一个要重试或标记 `failed` 的节点。钩子误用——坏选项、触顶的上限——则会抛出并杀死
+  脚本，这正是你要的：它说明派发本身错了，不是节点错了。
+- **schema 不匹配也是 `null`**：一个没产出对象就结束的子代理，与一个失败的子代理无法区分。
+- **没有整体超时。** 卡住的波不会过期：把 workflow 放到后台跑，它不动了就 `job_kill` 它。这是引擎级并发上限
+  的代价，也是检查点仍然归编排器所有的原因。
+
+不要轮询正在跑的波。`workflow` 调用在整个波完成时返回；你自己起的裸 `subagent` 则以一条通知结算，
+**而那条通知只在交互式会话里会来**——headless 里回合结束就是运行结束，所以凡是「要拿到它的结果才能继续」的
+裸 `subagent` 都要传 `run_in_background: false`。波级派发用 `workflow` 就是为了避开这件事：它自己 await
+全部 thunk。
