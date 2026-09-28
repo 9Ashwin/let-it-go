@@ -1,13 +1,13 @@
 {
  "case_id": "t1-serial-batch",
  "case_name": "t1-serial-batch",
- "workdir": "/var/folders/04/xwb43jfd0952ljqlmp08skhr0000gn/T/cache-1138225512/work",
+ "workdir": "/Users/mervyn/workspaces/github/let-it-go/evals/results/t1-2/t1-serial-batch/without_skill-run3/work",
  "expectations": [
   {
    "text": "改动之后 fixture 自己的门禁 make check 仍然绿（在集成态上）",
    "kind": "gate",
    "passed": true,
-   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.005s"
+   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t(cached)"
   },
   {
    "text": "两张卡的行为都真的实现了（Slug 与 JoinSlug）",
@@ -34,10 +34,10 @@
    "evidence": "事件流里没有 create_goal —— 这一轮没有开 goal（CONTRACT §6：人交来的活开工先开 goal）"
   },
   {
-   "text": "串行批次产生了检查点，且落在 requirements/<scope>/issues/ 下",
+   "text": "串行批次必须产生检查点，且落在 requirements/<scope>/issues/ 下",
    "kind": "checkpoint_location",
-   "passed": true,
-   "evidence": "没有产生 loop 检查点（单单元模式不该产生，允许）"
+   "passed": false,
+   "evidence": "没有产生 loop 检查点，但这个用例要求必须有"
   },
   {
    "text": "检查点里的证据带了层（每条 evidence 都标了 L1–L4，CONTRACT §4）",
@@ -52,7 +52,7 @@
    "evidence": "结尾没有等待人类的信号（最后一句：两张卡片已按依赖顺序做完，门禁绿。）"
   }
  ],
- "passed": 5,
+ "passed": 4,
  "total": 8,
- "pass_rate": 0.625
+ "pass_rate": 0.5
 }

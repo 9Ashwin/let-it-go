@@ -125,6 +125,12 @@ func (s AssertionSpec) str(key string) string {
 	return value
 }
 
+// flag 读一个布尔开关。缺省即 false——断言默认保持它原本的语义。
+func (s AssertionSpec) flag(key string) bool {
+	value, _ := s[key].(bool)
+	return value
+}
+
 func (s AssertionSpec) strs(key string) []string {
 	raw, ok := s[key].([]any)
 	if !ok {
@@ -446,6 +452,14 @@ func assertProbe(caseID, workdir string, spec AssertionSpec) (bool, string) {
 			ok = false
 			continue
 		}
+		// 打出 JSON 不等于这条命令成了：测试后半段挂掉时，前半段可能已经把正确的观察值
+		// 打了出来。退出码非 0 就说明这一次探针本身是红的，不能拿它的数字当成绩。
+		if code != 0 {
+			lines = append(lines, fmt.Sprintf("  %s → 探针退出码非 0（exit %d），即使打出了 JSON 也不算过%s",
+				label, code, tail(out, 200)))
+			ok = false
+			continue
+		}
 		same := true
 		for key, want := range scenario.Expect {
 			// 按数值比较，且**缺键不算通过**——把观察值收成 int 时缺键会被当成 0，
@@ -541,6 +555,12 @@ func assertCheckpointAbsent(caseID, workdir string, spec AssertionSpec) (bool, s
 func assertCheckpointLocation(caseID, workdir string, spec AssertionSpec) (bool, string) {
 	found := findCheckpoints(workdir)
 	if len(found) == 0 {
+		// 这条断言默认是**条件式**的：单单元模式本来就不该产生检查点，所以「没有」也算过。
+		// 但串行批次反过来——它必须有。用例写 `"required": true` 把话说死，断言文字与
+		// 行为才不会各说各话（曾经批次用例的文案写着「产生了检查点」，实现却把缺失当通过）。
+		if spec.flag("required") {
+			return false, "没有产生 loop 检查点，但这个用例要求必须有"
+		}
 		return true, "没有产生 loop 检查点（单单元模式不该产生，允许）"
 	}
 	// 作用域根是**仓库的事实**，不是通用事实：技能说「仓库有约定就用它的根，没约定才用
@@ -695,6 +715,7 @@ var assertKinds = map[string]assertFunc{
 	"tamper_guard":        assertTamperGuard,
 	// T1 的只读过程断言（见 events.go）：量的是契约本身，不是结果。
 	"skill_loaded":   assertSkillLoaded,
+	"skill_chain":    assertSkillChain,
 	"goal_opened":    assertGoalOpened,
 	"no_human_wait":  assertNoHumanWait,
 	"evidence_layer": assertEvidenceLayer,
@@ -1166,6 +1187,7 @@ func cmdSelfcheck(_ []string) int {
 	}
 
 	problems = append(problems, selfcheckTriggers()...)
+	problems = append(problems, selfcheckSkillText()...)
 
 	if len(problems) > 0 {
 		fmt.Fprintf(os.Stderr, "eval 工作区有 %d 处问题：\n", len(problems))
@@ -1174,9 +1196,40 @@ func cmdSelfcheck(_ []string) int {
 		}
 		return 1
 	}
-	fmt.Printf("ok: %d 个用例结构完好（fixture 无 .git、探针齐、tamper_guard 指得到、两条臂的后缀都在）；触发用例集完好\n",
+	fmt.Printf("ok: %d 个用例结构完好（fixture 无 .git、探针齐、tamper_guard 指得到、两条臂的后缀都在）；触发用例集完好；技能正文不含评测目录字面量\n",
 		len(dirs))
 	return 0
+}
+
+// selfcheckSkillText 守一条**耦合**：技能正文里不许出现 `contaminationMarkers` 的字面量。
+//
+// 臂会照技能要求读技能正文与 CONTRACT，读了就会进事件流。曾经 `CONTRACT.md` 里引用了一个
+// 用例路径字面量，于是「事件流里出现这个标记」对每一条 with_skill 运行都成立——污染检测器
+// 再也测不出真越界，而 `bench` 照收。检测器要做的是「臂够到评测目录了吗」，所以那些字面量
+// 只能出现在臂不该够到的地方。
+func selfcheckSkillText() []string {
+	root := filepath.Join(filepath.Dir(evalsDir), "skills")
+	if !exists(root) {
+		return nil
+	}
+	var problems []string
+	filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
+		if err != nil || entry.IsDir() || !strings.HasSuffix(path, ".md") {
+			return nil
+		}
+		raw, readErr := os.ReadFile(path)
+		if readErr != nil {
+			return nil
+		}
+		rel, _ := filepath.Rel(filepath.Dir(evalsDir), path)
+		for _, marker := range contaminationMarkers {
+			if strings.Contains(string(raw), marker) {
+				problems = append(problems, fmt.Sprintf("%s 里写了 `%s`——技能正文会进事件流，污染检测器就再也测不出真越界（换个说法，别写这个字面量）", rel, marker))
+			}
+		}
+		return nil
+	})
+	return problems
 }
 
 func selfcheckCase(name string) []string {

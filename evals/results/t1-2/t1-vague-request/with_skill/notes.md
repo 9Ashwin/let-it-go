@@ -1,6 +1,6 @@
 # t1-vague-request / with_skill
 
-- dsh：`/tmp/bin/dsh`
+- dsh：`（--regrade：没重跑 dsh，只重新打分）`
 - 耗时：165.5s
 - token：715770
 - 步数：22，工具调用：32
@@ -61,5 +61,3 @@ git checkout main && git merge --no-ff feat/slug
 3. **空 / 纯空白输入返回 `""`**，不做 `"world"` 兜底（那是 `Greet` 的职责）。
 
 另外「大小写不敏感」我落成了**输出统一小写**，所以 `"Ada"` 与 `"ada"` 得到同一个 slug。
-
-- ⚠️ **这一轮污染了**：臂碰到了 evals/cases——分数不可信，别用它下结论。

@@ -201,6 +201,46 @@ func assertNoHumanWait(caseID, workdir string, spec AssertionSpec) (bool, string
 // 所以这条断言守的是那个告警管不住的部分：检查点里到底有没有层。
 //
 // 判定：至少一条 evidence 记录，且**每条**都带合法的 L1–L4。
+// assertSkillChain 断言这些技能**按顺序**出现在加载链里（不要求相邻）。
+//
+// 它跟 `skill_loaded` 的分工：后者只看第一段（T0 与 T1 都用），前者守**接力**——「第一个
+// 加载对了、第二个没接上」从它下面溜过去。踩过一次真事故：空仓库 + 一句大诉求，模型加载
+// `prd`、写完 PRD 就直接开写代码，整条链一步没走，直到用户当面追问才回头。
+//
+// **它只能在 T1 这一层测**，别放回 T0：T0 的 prompt 只有「用户话 + 先加载对应技能」，模型
+// 会把它当路由题来答（实测三次里两次只调了 1–2 次工具，交一段「该加载谁」的说明就结束回合，
+// PRD 没写、第二跳根本没机会出现）。T1 有 fixture 和真任务，才看得到链。
+func assertSkillChain(caseID, workdir string, spec AssertionSpec) (bool, string) {
+	chain := spec.strs("chain")
+	if len(chain) == 0 {
+		return false, "skill_chain 断言缺 `chain`（要按顺序出现的技能名）"
+	}
+	raw, applicable, err := runEventsIn(workdir)
+	if !applicable {
+		return true, "不适用：这个 fixture 不在 harness 的运行目录里（父目录没有 work.seed.json），无从判断加载了什么"
+	}
+	if err != nil {
+		return false, err.Error()
+	}
+	total, _ := countToolCalls(raw)
+	if total == 0 {
+		return false, "事件流里一条 tool_call 都没有 —— 这次运行没跑起来，或者事件格式变了，无法核实"
+	}
+	names := skillsLoaded(raw)
+	next := 0
+	for _, got := range names {
+		if next < len(chain) && got == chain[next] {
+			next++
+		}
+	}
+	if next == len(chain) {
+		return true, "接力链完整：" + strings.Join(names, " → ")
+	}
+	missing := strings.Join(chain[next:], "、")
+	return false, fmt.Sprintf("接力断了：期望按顺序出现 %s，缺 %s（实际链：%s）",
+		strings.Join(chain, " → "), missing, joinOrNone(names, nil, nil))
+}
+
 func assertEvidenceLayer(caseID, workdir string, spec AssertionSpec) (bool, string) {
 	found := findCheckpoints(workdir)
 	if len(found) == 0 {
@@ -211,11 +251,8 @@ func assertEvidenceLayer(caseID, workdir string, spec AssertionSpec) (bool, stri
 		Layer  string `json:"layer"`
 		Result string `json:"result"`
 	}
-	var checkpoint struct {
-		Issues map[string]struct {
-			Evidence []evidenceRecord `json:"evidence"`
-		} `json:"issues"`
-	}
+	// 每个检查点都要**重新解**：把这个结构放在循环外，第二个文件若不带 `issues`，
+	// `Unmarshal` 会保留上一个文件留下的 map——空检查点会被前一个的数据盖住。
 	valid := map[string]bool{"L1": true, "L2": true, "L3": true, "L4": true}
 	totalRecords := 0
 	var missing, lines []string
@@ -223,6 +260,11 @@ func assertEvidenceLayer(caseID, workdir string, spec AssertionSpec) (bool, stri
 		raw, err := os.ReadFile(path)
 		if err != nil {
 			return false, "读不了检查点 " + path + "：" + err.Error()
+		}
+		var checkpoint struct {
+			Issues map[string]struct {
+				Evidence []evidenceRecord `json:"evidence"`
+			} `json:"issues"`
 		}
 		if err := json.Unmarshal(raw, &checkpoint); err != nil {
 			return false, "检查点不是合法 JSON：" + path

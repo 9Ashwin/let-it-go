@@ -1,6 +1,6 @@
 # t1-serial-batch / without_skill
 
-- dsh：`/tmp/bin/dsh`
+- dsh：`（--regrade：没重跑 dsh，只重新打分）`
 - 耗时：29.1s
 - token：83803
 - 步数：7，工具调用：12

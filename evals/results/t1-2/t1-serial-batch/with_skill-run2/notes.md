@@ -1,6 +1,6 @@
 # t1-serial-batch / with_skill
 
-- dsh：`/tmp/bin/dsh`
+- dsh：`（--regrade：没重跑 dsh，只重新打分）`
 - 耗时：239.3s
 - token：1002383
 - 步数：29，工具调用：46
@@ -41,5 +41,3 @@ go test ./... -count=1 -v
 - **交付**：仓库 `gh` 不可用 → ship-it **本地模式**，未 push、未开 PR；逐项证据表与批级总结写在 `requirements/01_REQ-greeting/README.md`。
 
 **合入归人**：`/merge-it`（或人工把 `feat/greeting` 合入 `main`）。需要我继续的话，可以走 `/merge-it` 之外的其他收尾。
-
-- ⚠️ **这一轮污染了**：臂碰到了 evals/cases——分数不可信，别用它下结论。

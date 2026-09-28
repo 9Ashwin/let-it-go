@@ -1,6 +1,6 @@
 # t1-serial-batch / with_skill
 
-- dsh：`/tmp/bin/dsh`
+- dsh：`（--regrade：没重跑 dsh，只重新打分）`
 - 耗时：345.6s
 - token：1423875
 - 步数：26，工具调用：49
@@ -43,5 +43,3 @@ git checkout main && git merge --no-ff feat/01-req-greeting
 ```
 
 需要我把 `f1`（字符集加固）做成一张新 issue 的话，说一声。
-
-- ⚠️ **这一轮污染了**：臂碰到了 evals/cases——分数不可信，别用它下结论。

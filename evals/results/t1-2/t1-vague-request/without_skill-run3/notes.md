@@ -1,6 +1,6 @@
 # t1-vague-request / without_skill
 
-- dsh：`/tmp/bin/dsh`
+- dsh：`（--regrade：没重跑 dsh，只重新打分）`
 - 耗时：35.4s
 - token：66971
 - 步数：6，工具调用：10

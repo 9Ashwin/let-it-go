@@ -1,6 +1,6 @@
 # t1-single-unit / with_skill
 
-- dsh：`/tmp/bin/dsh`
+- dsh：`（--regrade：没重跑 dsh，只重新打分）`
 - 耗时：189.1s
 - token：491997
 - 步数：17，工具调用：22
@@ -40,5 +40,3 @@
 ```
 git checkout main && git merge --no-ff feat/issue-001-slug
 ```
-
-- ⚠️ **这一轮污染了**：臂碰到了 evals/cases——分数不可信，别用它下结论。

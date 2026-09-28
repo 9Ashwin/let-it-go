@@ -1,6 +1,6 @@
 # t1-single-unit / with_skill
 
-- dsh：`/tmp/bin/dsh`
+- dsh：`（--regrade：没重跑 dsh，只重新打分）`
 - 耗时：343.2s
 - token：937389
 - 步数：24，工具调用：33
@@ -43,5 +43,3 @@ func Slug(s string) string {
 ```
 
 未合入默认分支 `main`（按契约默认分支只经 PR 进入）。你要收尾的话：`git checkout main && git merge --no-ff feat/issue-001-slug`，或走 `/merge-it`。
-
-- ⚠️ **这一轮污染了**：臂碰到了 evals/cases——分数不可信，别用它下结论。

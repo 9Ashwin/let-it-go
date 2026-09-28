@@ -1,6 +1,6 @@
 # t1-vague-request / with_skill
 
-- dsh：`/tmp/bin/dsh`
+- dsh：`（--regrade：没重跑 dsh，只重新打分）`
 - 耗时：293.7s
 - token：897611
 - 步数：22，工具调用：36
@@ -51,5 +51,3 @@ func Slug(name string) string {
 - 工作树干净，未 push、未合入。
 
 **合入归你**（`/merge-it`，本地模式就是一句 `git merge --no-ff feat/slug`）。留一个未决项：标点 / 非 ASCII 字符的 slug 策略没做（需求只点名大小写、空白、首尾），需要时另开。
-
-- ⚠️ **这一轮污染了**：臂碰到了 evals/cases——分数不可信，别用它下结论。

@@ -1,13 +1,13 @@
 {
  "case_id": "t1-single-unit",
  "case_name": "t1-single-unit",
- "workdir": "/var/folders/04/xwb43jfd0952ljqlmp08skhr0000gn/T/cache-2184384055/work",
+ "workdir": "/Users/mervyn/workspaces/github/let-it-go/evals/results/t1-2/t1-single-unit/with_skill/work",
  "expectations": [
   {
    "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
    "kind": "gate",
    "passed": true,
-   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.005s"
+   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t(cached)"
   },
   {
    "text": "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
@@ -38,9 +38,21 @@
    "kind": "checkpoint_absent",
    "passed": true,
    "evidence": "没有产生 loop 检查点（单单元模式：零仪式）"
+  },
+  {
+   "text": "单单元不派 graph 波次：一次 `workflow` 调用都没有（CONTRACT §3 的硬契约）",
+   "kind": "tool_absent",
+   "passed": true,
+   "evidence": "事件流里 33 次工具调用，没有 "
+  },
+  {
+   "text": "单单元不建 worktree：没有 worktree 登记（零仪式）",
+   "kind": "path_absent",
+   "passed": true,
+   "evidence": "**/.git/worktrees/** → 不存在"
   }
  ],
- "passed": 6,
- "total": 6,
+ "passed": 8,
+ "total": 8,
  "pass_rate": 1
 }

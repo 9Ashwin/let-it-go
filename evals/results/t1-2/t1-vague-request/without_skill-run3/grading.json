@@ -1,13 +1,13 @@
 {
  "case_id": "t1-vague-request",
  "case_name": "t1-vague-request",
- "workdir": "/var/folders/04/xwb43jfd0952ljqlmp08skhr0000gn/T/cache-1617426785/work",
+ "workdir": "/Users/mervyn/workspaces/github/let-it-go/evals/results/t1-2/t1-vague-request/without_skill-run3/work",
  "expectations": [
   {
    "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
    "kind": "gate",
    "passed": true,
-   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.008s"
+   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t(cached)"
   },
   {
    "text": "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
@@ -28,6 +28,12 @@
    "evidence": "没有加载任何技能，期望先加载 prd"
   },
   {
+   "text": "接力没断：`prd` 落盘后接上了 `to-issues`（不是自己开写）——CONTRACT §3 的规划半边",
+   "kind": "skill_chain",
+   "passed": false,
+   "evidence": "接力断了：期望按顺序出现 prd → to-issues，缺 prd、to-issues（实际链：（不判））"
+  },
+  {
    "text": "规划半边真的走了：scope 下产出了 PRD",
    "kind": "path_glob",
    "passed": false,
@@ -41,6 +47,6 @@
   }
  ],
  "passed": 4,
- "total": 6,
- "pass_rate": 0.6666666666666666
+ "total": 7,
+ "pass_rate": 0.5714285714285714
 }

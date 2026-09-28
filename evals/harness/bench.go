@@ -188,6 +188,7 @@ func cmdBench(args []string) int {
 
 	var runs []Run
 	var missing []string
+	var skipped []string
 	maxRuns := 0
 	for _, entry := range caseEntries {
 		if !entry.IsDir() {
@@ -221,6 +222,20 @@ func cmdBench(args []string) int {
 				RunNumber       int     `json:"run_number"`
 			}
 			readJSONFile(filepath.Join(runDir, "timing.json"), &timing)
+			// 污染检查**在这里重算一遍**，不读 run 时留下的那个标记文件：标记是运行时那一刻
+			// 按当时的规则写的，规则改过之后它就是过期数据。判据是「这一轮的分数能不能用」，
+			// 那就得拿这一轮留下的 `events.jsonl` 现算。
+			//
+			// 被标污染的运行**不进汇总**——`run` 已经写明「分数不可信」，bench 还把它算进去，
+			// 就等于让一条假数据混进表里。它单独列出来，让人看见。
+			var rawEvents string
+			if raw, err := os.ReadFile(filepath.Join(runDir, "events.jsonl")); err == nil {
+				rawEvents = string(raw)
+			}
+			if marks := contaminationIn(rawEvents); len(marks) > 0 {
+				skipped = append(skipped, fmt.Sprintf("%s/%s（%s）", caseID, armEntry.Name(), strings.Join(marks, "、")))
+				continue
+			}
 			runNumber := timing.RunNumber
 			if runNumber == 0 {
 				runNumber = found[arm] + 1
@@ -277,11 +292,19 @@ func cmdBench(args []string) int {
 		benchmark.Notes = append(benchmark.Notes,
 			"缺少这些臂的结果："+strings.Join(missing, "、"))
 	}
+	if len(skipped) > 0 {
+		benchmark.Notes = append(benchmark.Notes,
+			"⚠️ 这些运行**没有计入**：它们的事件流碰到了评测目录，分数不可信——"+
+				strings.Join(skipped, "、"))
+	}
 
 	os.WriteFile(filepath.Join(abs, "benchmark.json"), mustJSON(benchmark), 0o644)
 	markdown := benchmarkMarkdown(benchmark)
 	os.WriteFile(filepath.Join(abs, "benchmark.md"), []byte(markdown), 0o644)
 	fmt.Print(markdown)
+	if len(skipped) > 0 {
+		fmt.Fprintf(os.Stderr, "  ⚠️ 这些运行没有计入（事件流碰到了评测目录）：%s\n", strings.Join(skipped, "、"))
+	}
 	if len(missing) > 0 {
 		fmt.Fprintf(os.Stderr, "  注意：缺少这些臂的 grading.json：%s\n", strings.Join(missing, "、"))
 	}

@@ -1,0 +1,58 @@
+{
+ "case_id": "t1-serial-batch",
+ "case_name": "t1-serial-batch",
+ "workdir": "/var/folders/04/xwb43jfd0952ljqlmp08skhr0000gn/T/cache-172636596/work",
+ "expectations": [
+  {
+   "text": "改动之后 fixture 自己的门禁 make check 仍然绿（在集成态上）",
+   "kind": "gate",
+   "passed": true,
+   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.005s"
+  },
+  {
+   "text": "两张卡的行为都真的实现了（Slug 与 JoinSlug）",
+   "kind": "probe",
+   "passed": true,
+   "evidence": "  ok   null → {\"join_skip_blank\":1,\"join_two\":1,\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+  },
+  {
+   "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+   "kind": "tamper_guard",
+   "passed": true,
+   "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+  },
+  {
+   "text": "先加载了实现入口 loop-it（这一层量的是技能契约本身，不是结果）",
+   "kind": "skill_loaded",
+   "passed": true,
+   "evidence": "先加载了 loop-it（链：loop-it → review-it → ship-it）"
+  },
+  {
+   "text": "开工先开了 goal（事件流里有 create_goal，CONTRACT §6）",
+   "kind": "goal_opened",
+   "passed": true,
+   "evidence": "事件流里 create_goal ×1"
+  },
+  {
+   "text": "串行批次必须产生检查点，且落在 requirements/<scope>/issues/ 下",
+   "kind": "checkpoint_location",
+   "passed": true,
+   "evidence": "检查点落点正确：requirements/01_REQ-greeting/issues/.loop-state.json"
+  },
+  {
+   "text": "检查点里的证据带了层（每条 evidence 都标了 L1–L4，CONTRACT §4）",
+   "kind": "evidence_layer",
+   "passed": true,
+   "evidence": "证据带了层：issue 1: 2 条（L1×2）；issue 2: 4 条（L1×4）；  检查点：requirements/01_REQ-greeting/issues/.loop-state.json"
+  },
+  {
+   "text": "没有以「等你回复」结束回合（CONTRACT §5）",
+   "kind": "no_human_wait",
+   "passed": true,
+   "evidence": "结尾没有等待人类的信号（最后一句：做完了。按 `let-it-go` 技能集里的 **`/loop-it`**（串行批次路径）走完整条流程。）"
+  }
+ ],
+ "passed": 8,
+ "total": 8,
+ "pass_rate": 1
+}

@@ -16,22 +16,32 @@ func TestTriggerPass(t *testing.T) {
 		name   string
 		expect []string
 		forbid []string
+		chain  []string
 		loaded []string
 		want   bool
 	}{
-		{"forbid：链上没有它就算过", nil, []string{"merge-it"}, []string{"ship-it"}, true},
-		{"forbid：链上有它就判红", nil, []string{"merge-it"}, []string{"merge-it"}, false},
-		{"forbid：排在第二也判红", nil, []string{"merge-it"}, []string{"ship-it", "merge-it"}, false},
-		{"expect 缺省：不判加载了什么", nil, nil, []string{"ship-it"}, true},
-		{"expect []：要求什么都没加载", []string{}, nil, []string{"ship-it"}, false},
-		{"expect []：真没加载就过", []string{}, nil, nil, true},
-		{"expect 非空：只看第一个", []string{"loop-it"}, nil, []string{"graph", "loop-it"}, false},
-		{"expect 非空：第一个对上就过", []string{"loop-it"}, nil, []string{"loop-it", "review-it"}, true},
+		{name: "forbid：链上没有它就算过", expect: nil, forbid: []string{"merge-it"}, loaded: []string{"ship-it"}, want: true},
+		{name: "forbid：链上有它就判红", forbid: []string{"merge-it"}, loaded: []string{"merge-it"}, want: false},
+		{name: "forbid：排在第二也判红", forbid: []string{"merge-it"}, loaded: []string{"ship-it", "merge-it"}, want: false},
+		{name: "expect 缺省：不判加载了什么", loaded: []string{"ship-it"}, want: true},
+		{name: "expect []：要求什么都没加载", expect: []string{}, loaded: []string{"ship-it"}, want: false},
+		{name: "expect []：真没加载就过", expect: []string{}, loaded: nil, want: true},
+		{name: "expect 非空：只看第一个", expect: []string{"loop-it"}, loaded: []string{"graph", "loop-it"}, want: false},
+		{name: "expect 非空：第一个对上就过", expect: []string{"loop-it"}, loaded: []string{"loop-it", "review-it"}, want: true},
+		// chain 守的是「第一个对、第二个没接力」——实测踩过的真事故：
+		// 「写个 go 后台管理系统」第一个加载 prd（对），然后直接开写代码，从没加载 to-issues。
+		{name: "chain：第一段对但没接力——判红", expect: []string{"prd"}, chain: []string{"prd", "to-issues"}, loaded: []string{"prd"}, want: false},
+		{name: "chain：接力了就过", expect: []string{"prd"}, chain: []string{"prd", "to-issues"}, loaded: []string{"prd", "to-issues", "loop-it"}, want: true},
+		{name: "chain：不要求相邻", chain: []string{"prd", "to-issues"}, loaded: []string{"prd", "review-it", "to-issues"}, want: true},
+		{name: "chain：顺序反了不算", chain: []string{"prd", "to-issues"}, loaded: []string{"to-issues", "prd"}, want: false},
+		{name: "chain：只加载了第二个不算", chain: []string{"prd", "to-issues"}, loaded: []string{"to-issues"}, want: false},
+		{name: "chain 缺省：不判接力", expect: []string{"prd"}, loaded: []string{"prd"}, want: true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := triggerPass(tc.expect, tc.forbid, tc.loaded); got != tc.want {
-				t.Fatalf("triggerPass(%v, %v, %v) = %v，期望 %v", tc.expect, tc.forbid, tc.loaded, got, tc.want)
+			if got := triggerPass(tc.expect, tc.forbid, tc.chain, tc.loaded); got != tc.want {
+				t.Fatalf("triggerPass(expect=%v, forbid=%v, chain=%v, loaded=%v) = %v，期望 %v",
+					tc.expect, tc.forbid, tc.chain, tc.loaded, got, tc.want)
 			}
 		})
 	}

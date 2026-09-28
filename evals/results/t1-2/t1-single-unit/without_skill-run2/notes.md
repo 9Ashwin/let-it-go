@@ -1,6 +1,6 @@
 # t1-single-unit / without_skill
 
-- dsh：`/tmp/bin/dsh`
+- dsh：`（--regrade：没重跑 dsh，只重新打分）`
 - 耗时：26.7s
 - token：64542
 - 步数：6，工具调用：10

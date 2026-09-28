@@ -1,6 +1,6 @@
 # t1-vague-request / with_skill
 
-- dsh：`/tmp/bin/dsh`
+- dsh：`（--regrade：没重跑 dsh，只重新打分）`
 - 耗时：336.0s
 - token：1338683
 - 步数：29，工具调用：54
@@ -50,5 +50,3 @@ git checkout main && git merge --no-ff feat/slug
 - 非空白标点（逗号、感叹号等）**不剔除**——题面只点名空白折叠与大小写；要更严格的 URL 安全另开
 - 连续空白折成**单个**连字符；空 / 纯空白输入返回 `""`（不兜底 `"world"`，那是 `Greet` 的职责）
 - 输入自带的首尾连字符也一并去掉（我用了 `Trim`）；若你希望「输入连字符原样保留」，说一声我按修订改
-
-- ⚠️ **这一轮污染了**：臂碰到了 evals/cases、evals/results——分数不可信，别用它下结论。

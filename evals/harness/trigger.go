@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -34,7 +35,20 @@ type triggerCase struct {
 	//
 	// `expect` 缺省（而不是 `[]`）= 不判「加载了什么」，只判 `forbid`。
 	Forbid []string `json:"forbid"`
-	Why    string   `json:"why"`
+
+	// Chain 要求这些技能**按顺序**出现在加载链里（不要求相邻）。
+	//
+	// `expect` 只管第一段，所以「第一个对、第二个没接力」从它下面溜过去——实测踩过一次真事故：
+	// 「写个 go 后台管理系统」第一个加载 `prd`（对），然后直接开写代码，从头到尾没加载
+	// `to-issues` / `loop-it`；用户当面追问「为什么不建 issue 不开 loop」它才回头。
+	Chain []string `json:"chain,omitempty"`
+
+	// TimeoutSeconds 覆盖这一次运行的上限。
+	//
+	// 接力用例要看**两跳**，而第一跳之前的环境探测就可能吃掉几分钟。用默认窗口会得到
+	// 「0/3」这种结果，而它测的是超时不是接力——踩过一次，见 runTriggerCase 里的 `Undecided`。
+	TimeoutSeconds int    `json:"timeout_seconds,omitempty"`
+	Why            string `json:"why"`
 }
 
 type triggerSet struct {
@@ -47,6 +61,9 @@ type triggerResult struct {
 	Prompt string   `json:"prompt"`
 	Expect []string `json:"expect"`
 	Forbid []string `json:"forbid,omitempty"`
+	Chain  []string `json:"chain,omitempty"`
+	// Undecided 是被窗口砍断、链还没走完的次数。它们**不算失败**：那一步根本没跑到。
+	Undecided int `json:"undecided,omitempty"`
 	// Runs 是每一次实际加载的技能，**按加载顺序**（第一个就是路由决策）。
 	// 保留全部几次而不是只留最后一次：实测同一个 prompt 三次跑出来的链不一样，
 	// 所以「通过率」才有意义，「一次通过」没有。
@@ -121,13 +138,16 @@ func skillsLoaded(raw string) []string {
 //  1. `forbid` 里的技能一次都不许出现在链里（调用轴的闸门：user-invoked 的技能模型加载不了）；
 //  2. `expect` **缺省** = 不判「加载了什么」；`expect: []` = 不该加载任何技能；非空 = **第一个**
 //     加载的要在期望里（只看路由决策，不看之后的串联）。
-func triggerPass(expect, forbid, loaded []string) bool {
+func triggerPass(expect, forbid, chain, loaded []string) bool {
 	for _, name := range forbid {
 		for _, got := range loaded {
 			if got == name {
 				return false
 			}
 		}
+	}
+	if !chainSatisfied(chain, loaded) {
+		return false
 	}
 	if expect == nil {
 		return true
@@ -144,6 +164,17 @@ func triggerPass(expect, forbid, loaded []string) bool {
 		}
 	}
 	return false
+}
+
+// chainSatisfied 判 chain 是不是 loaded 的**有序子序列**。空 chain 恒真。
+func chainSatisfied(chain, loaded []string) bool {
+	next := 0
+	for _, got := range loaded {
+		if next < len(chain) && got == chain[next] {
+			next++
+		}
+	}
+	return next == len(chain)
 }
 
 func cmdTrigger(args []string) int {
@@ -184,6 +215,10 @@ func cmdTrigger(args []string) int {
 	if repeat < 1 {
 		repeat = 1
 	}
+	// 在这里就把 `--out` 解析成绝对路径：worker 是**并发**跑的，而下面写 triggers.json 的那段
+	// 在 `wg.Wait()` 之后——失败运行的事件流如果拿到的是相对路径，会按进程 cwd（`go -C evals/harness
+	// run .` 时是 evals/harness）落错地方。踩过一次：事件流全写进了 `evals/harness/results/`。
+	out = repoPath(out)
 
 	raw, err := os.ReadFile(filepath.Join(evalsDir, "triggers.json"))
 	if err != nil {
@@ -221,7 +256,7 @@ func cmdTrigger(args []string) int {
 		go func() {
 			defer wg.Done()
 			for index := range work {
-				results[index] = runTriggerCase(dsh, set.Suffix, cases[index], repeat)
+				results[index] = runTriggerCase(dsh, set.Suffix, out, cases[index], repeat)
 			}
 		}()
 	}
@@ -238,14 +273,19 @@ func cmdTrigger(args []string) int {
 			passed++
 		}
 		mark := "✓"
-		if !r.Pass {
+		switch {
+		case r.Pass:
+		case r.Undecided > 0 && r.Passed+r.Undecided == r.Repeat:
+			// 没跑到的那些不算失败：窗口砍断了，链根本没机会走完。
+			mark = fmt.Sprintf("—（%d 次被窗口砍断，不可判）", r.Undecided)
+		default:
 			mark = "✗"
 		}
 		chain := "（没加载）"
 		if len(r.Runs) > 0 && len(r.Runs[0]) > 0 {
 			chain = strings.Join(r.Runs[0], " → ")
 		}
-		fmt.Printf("%-32s %-18s %-6s %-26s %s\n", r.ID, joinOrNone(r.Expect, r.Forbid),
+		fmt.Printf("%-32s %-22s %-6s %-26s %s\n", r.ID, joinOrNone(r.Expect, r.Forbid, r.Chain),
 			fmt.Sprintf("%d/%d", r.Passed, r.Repeat), chain, mark)
 		if r.Err != "" {
 			fmt.Printf("%-32s   %s\n", "", r.Err)
@@ -281,8 +321,8 @@ func cmdTrigger(args []string) int {
 
 // runTriggerCase 在一个**私有临时目录**里跑一次。cwd 不留在仓库里，所以模型即使动手也
 // 碰不到任何真东西；这跟臂的隔离是同一条理由。
-func runTriggerCase(dsh, suffix string, c triggerCase, repeat int) triggerResult {
-	result := triggerResult{ID: c.ID, Prompt: c.Prompt, Expect: c.Expect, Forbid: c.Forbid, Why: c.Why, Repeat: repeat}
+func runTriggerCase(dsh, suffix, outDir string, c triggerCase, repeat int) triggerResult {
+	result := triggerResult{ID: c.ID, Prompt: c.Prompt, Expect: c.Expect, Forbid: c.Forbid, Chain: c.Chain, Why: c.Why, Repeat: repeat}
 	started := time.Now()
 	for i := 0; i < repeat; i++ {
 		dir, err := os.MkdirTemp("", "trigger-")
@@ -290,14 +330,31 @@ func runTriggerCase(dsh, suffix string, c triggerCase, repeat int) triggerResult
 			result.Err = err.Error()
 			break
 		}
-		_, _, raw, runErr := runHeadlessFor(dsh, dir, c.Prompt+"\n\n"+suffix, triggerTimeout)
+		limit := triggerTimeout
+		if c.TimeoutSeconds > 0 {
+			limit = time.Duration(c.TimeoutSeconds) * time.Second
+		}
+		_, _, raw, runErr := runHeadlessFor(dsh, dir, c.Prompt+"\n\n"+suffix, limit)
 		os.RemoveAll(dir)
 
 		loaded := skillsLoaded(raw)
 		// **不排序**：顺序就是路由决策本身，排掉之后报告读不出「先加载谁」。
 		result.Runs = append(result.Runs, loaded)
-		if triggerPass(c.Expect, c.Forbid, loaded) {
+		passed := triggerPass(c.Expect, c.Forbid, c.Chain, loaded)
+		if passed {
 			result.Passed++
+		} else if errors.Is(runErr, errTimedOut) {
+			// 被窗口砍断、链还没走完：这一次**不可判**。把「没跑到」记成「没接力」，
+			// 就会照着假数据改技能——这条判据本身就是被那次事故逼出来的。
+			result.Undecided++
+		}
+		if !passed {
+			// 失败的运行**留下事件流**。不留的话，报告只说「0/3」，而为什么失败——它到底有没有
+			// 跑那条命令、是不是写完 PRD 就结束了回合——只能靠手工复现一次才知道。我为此手工跑过
+			// 一次，代价是七分钟和一个错误的结论。
+			dir := filepath.Join(outDir, c.ID)
+			os.MkdirAll(dir, 0o755)
+			os.WriteFile(filepath.Join(dir, fmt.Sprintf("run%d.events.jsonl", i+1)), []byte(raw), 0o644)
 		}
 		if runErr != nil && len(loaded) == 0 && result.Err == "" {
 			result.Err = runErr.Error()
@@ -308,12 +365,15 @@ func runTriggerCase(dsh, suffix string, c triggerCase, repeat int) triggerResult
 	return result
 }
 
-func joinOrNone(expect, forbid []string) string {
+func joinOrNone(expect, forbid, chain []string) string {
 	label := "（无）"
 	if len(expect) > 0 {
 		label = strings.Join(expect, "+")
 	} else if expect == nil {
 		label = "（不判）"
+	}
+	if len(chain) > 0 {
+		label += " 链:" + strings.Join(chain, "→")
 	}
 	if len(forbid) > 0 {
 		label += " 禁" + strings.Join(forbid, "+")

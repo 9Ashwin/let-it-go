@@ -19,12 +19,15 @@
 | `workspace_clean` | 有没有写到 fixture 之外（臂的 cwd 就是 fixture，越界仍然是这条路的典型失败） |
 | `tool_absent` | 不该走的编排有没有发生（读 `events.jsonl`：例如单单元模式里出现 `workflow` 调用） |
 | `skill_loaded` | 该加载的技能**真的**加载了吗（只看第一个，串联不算——技能本来就互相点名下游） |
+| `skill_chain` | **接力没断**吗：这些技能按顺序都出现了（第一个对、第二个没接上，从 `skill_loaded` 下面溜过去） |
 | `goal_opened` | 开工先开 goal 了吗（`events.jsonl` 里有没有 `create_goal`，CONTRACT §6） |
 | `no_human_wait` | 有没有停在「等你回复」上（CONTRACT §5：headless 里那是唯一一定错的做法） |
 | `evidence_layer` | 检查点里的证据**带层**了吗（每条都标了 L1–L4，CONTRACT §4） |
 
-后四条是 **T1 的只读过程断言**：它们不看东西做出来没有，只看技能契约本身有没有被执行。判定全部在
-agent 之外，读的是 `dsh --json` 的事件流与工作树——**读不到事件流判红，不判「不适用」**。
+后五条是 **T1 的只读过程断言**：它们不看东西做出来没有，只看技能契约本身有没有被执行。判定全部在
+agent 之外，读的是 `dsh --json` 的事件流与工作树。两种「读不到」要分开：**事件流存在但里面没有
+`tool_call`** → 判红（运行没跑起来，或事件格式变了）；**父目录没有 `work.seed.json`**（手工对着一份
+fixture 跑 `assert`，不是 harness 的运行目录）→ 判「不适用」并说明理由，不冒充通过。
 
 ## 分层：按「要花多少钱」分
 
@@ -127,6 +130,19 @@ go -C harness run . bench results/t1-N
 
 ### 结果（3 用例 × 2 臂 × 3 次 × 2 轮，6 路并发，2026-09-28）
 
+| 轮次 | with_skill | without_skill | 说明 |
+|---|---|---|---|
+| [t1-1](results/t1-1/benchmark.md) / [t1-2](results/t1-2/benchmark.md) | 1.00 | 0.71 | 拷贝安装 / 软链安装两轮，逐用例一致 |
+| [t1-3](results/t1-3/benchmark.md) | **1.00** | **0.65** | 干净契约 + `route` 接线 + 装回两条断言 + `skill_chain` |
+
+**t1-1 / t1-2 的 with_skill 数字不能再用**：它们的事件流里含旧 `CONTRACT.md` 的字面量
+`evals/cases/01-single-unit`，按现行污染规则整批排除（那批运行本身没问题，是文档里的字面量
+让检测器失效）。第三轮是干净契约下的重跑。
+
+**第三轮抓到一次真越界**：`t1-vague-request/with_skill-run3` 走出 fixture，`ls -R` 了评测仓库并
+读了 `evals/harness/events.go`（评分代码），标记 `evals/cases`、`evals/harness`、`arms.json`。
+它的 8/8 **不可信**，已从汇总里排除——这条臂的隔离挡不住绝对路径，所以污染检查不是形式。
+
 原始表在 [`results/t1-1/benchmark.md`](results/t1-1/benchmark.md) 与
 [`results/t1-2/benchmark.md`](results/t1-2/benchmark.md)。两轮是**独立采样**：第一轮装在拷贝式安装上，
 第二轮在换成软链安装、且技能正文含 `/merge-it` 之后——**逐用例结果完全一致**。
@@ -188,9 +204,9 @@ go -C harness run . bench results/t1-N
 
 | 用例 | 测什么 | 过程断言 |
 |---|---|---|
-| [t1-single-unit](cases/t1-single-unit/case.json) | **单单元**：一条卡片、一个纯函数，`loop-it` 该判成单单元内联做完 | `skill_loaded`、`checkpoint_absent`、`no_human_wait`、`tool_absent`、`path_absent` |
+| [t1-single-unit](cases/t1-single-unit/case.json) | **单单元**：一条卡片、一个纯函数，`loop-it` 该判成单单元内联做完 | `skill_loaded`、`checkpoint_absent`、`tool_absent[workflow]`、`path_absent[worktrees]`、`no_human_wait` |
 | [t1-serial-batch](cases/t1-serial-batch/case.json) | **串行批次**：两张有依赖边的小卡片，该开 goal、建检查点、把证据带上层 | `skill_loaded`、`goal_opened`、`checkpoint_location`、`evidence_layer`、`no_human_wait` |
-| [t1-vague-request](cases/t1-vague-request/case.json) | **规划半边**：一句诉求 + 「怎么落地你定」，该先走 `prd` 而不是直接开写 | `skill_loaded`、`path_glob`（PRD 落点）、`no_human_wait` |
+| [t1-vague-request](cases/t1-vague-request/case.json) | **规划半边**：一句诉求 + 「怎么落地你定」，该先走 `prd` 而不是直接开写 | `skill_loaded`、**`skill_chain`（`prd` → `to-issues`）**、`path_glob`（PRD 落点）、`no_human_wait` |
 
 三条用例都有完整的 `gate` / `probe` / `tamper_guard`，起点都是红的（探针在 seed commit 上编译不过）。
 
@@ -302,6 +318,31 @@ go -C evals/harness run . trigger --dsh /tmp/bin/dsh --parallel 6 --repeat 3 --o
 
 - `near-trivial-function`：`triggers-7` 是 2/3、`triggers-8` 是 3/3，两个样本合起来 5/6。
   「用 Go 写个快速排序」这类平凡请求偶尔会被 `modern-go` 抢走。它**不是稳定通过**。
+
+### 这条层测不了「接力」——试过一次，结论是错的
+
+真事故逼出来的：一个会话里模型加载 `prd`、写完 PRD 就直接开写代码，整条链一步没走，直到用户
+当面追问「为什么不建 issue 不开 loop」才回头。看着像是 T0 该抓的东西，于是加了一条
+`chain-prd-to-issues`（`写个 go 后台管理系统`，期望 `prd` 后面接上 `to-issues`）。三轮下来
+0/3、1/3、0/3，我差点照着它去改技能正文。
+
+**它是假数据，因为放错了层。** T0 的 prompt 只有「用户话 + 先加载对应技能」，模型会把它当
+**路由题**答：三次里两次只调了 1–2 次工具，交一段「已加载 prd…本轮不加载 loop-it，等 route
+指到再加载」的说明就**结束回合**——PRD 没写，第二跳根本没机会出现。判 0/3 的是这个设置，
+不是接力。
+
+同一批技能放到 T1（有 fixture、有真任务）里，with_skill **六次全部**走出完整链
+（`prd → to-issues → loop-it → review-it → ship-it`）。所以：**接力在 T1 测**，用 `skill_chain`
+断言；T0 只守第一跳。那条用例已退掉。
+
+顺带三处测量工具自身的缺陷，都是这轮踩出来的：
+
+- **窗口比被测量的行为还短**：默认 180 秒，而那条 prompt 光 PRD 前的环境探测就要 20 多次调用。
+  现在用例可以带 `timeout_seconds`，且**被窗口砍断的运行记为「不可判」**（`errTimedOut`），
+  不算失败——把「没跑到」记成「没做到」，就会照着假数据改技能。
+- **失败的运行不留事件流**：报告只说 0/3，为什么失败得靠手工复现（我为此花了七分钟、得出一个
+  错误结论）。现在失败的运行会把 `runN.events.jsonl` 留在结果目录里。
+- **`--out` 的相对路径在 worker 之后才解析**：事件流按进程 cwd 落进了 `evals/harness/results/`。
 
 
 ## 已知限制

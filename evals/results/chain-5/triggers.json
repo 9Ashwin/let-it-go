@@ -1,0 +1,36 @@
+{
+ "passed": 0,
+ "results": [
+  {
+   "id": "chain-prd-to-issues",
+   "prompt": "写个 go 后台管理系统",
+   "expect": [
+    "prd"
+   ],
+   "chain": [
+    "prd",
+    "to-issues"
+   ],
+   "runs": [
+    [
+     "prd"
+    ],
+    [
+     "prd",
+     "to-issues",
+     "loop-it"
+    ],
+    [
+     "prd"
+    ]
+   ],
+   "passed": 1,
+   "repeat": 3,
+   "pass": false,
+   "seconds": 97.8,
+   "why": "接力：这句第一个加载的确实是 prd（对），然后它**直接开写代码**，从头到尾没加载 to-issues/loop-it，用户在会话里当面追问「为什么不建 issue 不开 loop」它才回头。`expect` 只看第一段，所以这条专门守第二段。真事故原文，来自 sessions/--…-zzx--/session-eca996d9。（窗口 600 秒：这条要看**两跳**，第一跳之前的环境探测就可能吃掉几分钟；180 秒会把「还没跑到」误判成「没接力」——第一版就是这么错的。）"
+  }
+ ],
+ "suffix": "先加载你打算用的技能；如果不需要技能就直接说明。然后只说明接下来会做什么，不要真的动手。",
+ "total": 1
+}

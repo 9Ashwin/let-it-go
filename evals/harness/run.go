@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -258,6 +259,13 @@ func runHeadless(dsh, workdir, prompt string) (runEvents, string, string, error)
 
 // runHeadlessFor 是带自定义上限的那一份。触发评估只要几十秒，用 armTimeout 的话一个卡住的
 // 会话会占住半小时。
+// errTimedOut 让调用方能分清「跑完了但结果不对」和「被窗口砍断、根本还没跑到那一步」。
+//
+// 这条是被一次测量事故逼出来的：新加的接力用例判定窗口 180 秒，而那条 prompt 光 PRD 前的
+// 环境探测就要 20 多次调用——放开时间手工跑，交接**紧跟在 PRD 落盘之后**。窗口比被测量的
+// 行为还短，于是 0/3 测的是超时，不是接力。分不清这两件事，就会照着假数据改技能。
+var errTimedOut = errors.New("超时")
+
 func runHeadlessFor(dsh, workdir, prompt string, limit time.Duration) (runEvents, string, string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), limit)
 	defer cancel()
@@ -291,8 +299,8 @@ func runHeadlessFor(dsh, workdir, prompt string, limit time.Duration) (runEvents
 	out, finalText := parseEvents(raw)
 	if ctx.Err() != nil {
 		// 超时被砍：已采到的事件照样带回去，它们说明了卡在哪一步。
-		return out, finalText, raw, fmt.Errorf("超过 %s 还没跑完（最后一步是 step %d，已调用 %d 次工具）",
-			limit, out.steps, out.toolCalls)
+		return out, finalText, raw, fmt.Errorf("%w：超过 %s 还没跑完（最后一步是 step %d，已调用 %d 次工具）",
+			errTimedOut, limit, out.steps, out.toolCalls)
 	}
 	if err != nil {
 		// 任务失败也要把已经跑出来的东西带回去，否则没法判断失败在哪一步。
@@ -606,12 +614,78 @@ func parkWorkTree(work, out string) error {
 // **会话记录本身仍然共享且可读**（DSH 没有可配置的存储根），所以读到就要报出来。
 var contaminationMarkers = []string{"evals/cases", "evals/results", "evals/harness", "arms.json", ".dsh/sessions"}
 
+// skillSetRoot 是**合法**的读取渠道：技能集本身。读它不算污染。
+//
+// 这一条是被一次假阳性逼出来的：`CONTRACT.md` 第 111 行引用了一个路径字面量
+// `evals/cases/01-single-unit`，而 with_skill 臂**照技能要求**读了这份契约——于是
+// 「事件流里出现 `evals/cases`」对每一条 with_skill 运行都成立，12 条臂全被标成污染，
+// 而 `bench` 照收。检测器量的是「臂访问了评测目录」，不是「这个字符串在它眼前路过」。
+const skillSetRoot = ".agents/skills"
+
+// contaminationIn 在事件流里找污染标记，判据是**臂伸手去够了吗**。
+//
+// 只扫两样东西：`tool_call` 的入参（它要求读/写/跑哪里）与 `tool_result` 的内容（工具真的
+// 返回了什么）。**不看 `thinking` / `text` / `final`**——模型在推理里复述一个路径，不等于它
+// 访问了那里。
+//
+// 这条判据出过一次假阳性，值得记下来：臂照技能要求读了 `CONTRACT.md`，而契约正文里带着
+// 路径字面量 `evals/cases/01-single-unit`，于是**每一条 with_skill 运行**都被标成污染，
+// `bench` 却照收。根因不是检测器太严，是**我们自己的技能正文里写了评测目录的字面量**——
+// 所以修法是两处一起：契约改掉那句字面量，`selfcheck` 加一条守卫不许技能正文再写进去。
+// 检测器本身保持简单：任何一处出现过这些标记，就是臂够到了不该够的地方。
 func contaminationIn(rawEvents string) []string {
+	var scan strings.Builder
+	for _, line := range strings.Split(rawEvents, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		var event struct {
+			Type   string         `json:"type"`
+			Tool   string         `json:"tool"`
+			Input  map[string]any `json:"input"`
+			Result string         `json:"result"`
+		}
+		if json.Unmarshal([]byte(line), &event) != nil {
+			continue
+		}
+		switch event.Type {
+		case "tool_call":
+			scan.WriteString(strings.Join(flattenInput(event.Input), " "))
+			scan.WriteString("\n")
+		case "tool_result":
+			scan.WriteString(event.Result)
+			scan.WriteString("\n")
+		}
+	}
 	var found []string
+	text := scan.String()
 	for _, marker := range contaminationMarkers {
-		if strings.Contains(rawEvents, marker) {
+		if strings.Contains(text, marker) {
 			found = append(found, marker)
 		}
 	}
 	return found
+}
+
+// flattenInput 把一个工具入参摊成字符串列表，用来判断这次调用伸向了哪里。
+func flattenInput(input map[string]any) []string {
+	var out []string
+	var walk func(value any)
+	walk = func(value any) {
+		switch typed := value.(type) {
+		case string:
+			out = append(out, typed)
+		case []any:
+			for _, item := range typed {
+				walk(item)
+			}
+		case map[string]any:
+			for _, item := range typed {
+				walk(item)
+			}
+		}
+	}
+	walk(input)
+	return out
 }

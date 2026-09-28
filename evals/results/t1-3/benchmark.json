@@ -1,0 +1,1359 @@
+{
+ "metadata": {
+  "skill_name": "flow",
+  "skill_path": "/Users/mervyn/workspaces/github/let-it-go/evals",
+  "executor_model": "deepseek-v4-flash",
+  "analyzer_model": "inline",
+  "timestamp": "2026-09-28T17:05:23Z",
+  "evals_run": [
+   "t1-serial-batch",
+   "t1-single-unit",
+   "t1-vague-request"
+  ],
+  "runs_per_configuration": 3
+ },
+ "runs": [
+  {
+   "eval_id": "t1-serial-batch",
+   "eval_name": "t1-serial-batch",
+   "configuration": "with_skill",
+   "run_number": 1,
+   "result": {
+    "pass_rate": 1,
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "time_seconds": 440.32,
+    "tokens": 1682287,
+    "tool_calls": 54,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿（在集成态上）",
+     "kind": "gate",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.005s"
+    },
+    {
+     "text": "两张卡的行为都真的实现了（Slug 与 JoinSlug）",
+     "kind": "probe",
+     "passed": true,
+     "evidence": "  ok   null → {\"join_skip_blank\":1,\"join_two\":1,\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "kind": "tamper_guard",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+    },
+    {
+     "text": "先加载了实现入口 loop-it（这一层量的是技能契约本身，不是结果）",
+     "kind": "skill_loaded",
+     "passed": true,
+     "evidence": "先加载了 loop-it（链：loop-it → review-it → ship-it）"
+    },
+    {
+     "text": "开工先开了 goal（事件流里有 create_goal，CONTRACT §6）",
+     "kind": "goal_opened",
+     "passed": true,
+     "evidence": "事件流里 create_goal ×1"
+    },
+    {
+     "text": "串行批次必须产生检查点，且落在 requirements/<scope>/issues/ 下",
+     "kind": "checkpoint_location",
+     "passed": true,
+     "evidence": "检查点落点正确：requirements/01_REQ-greeting/issues/.loop-state.json"
+    },
+    {
+     "text": "检查点里的证据带了层（每条 evidence 都标了 L1–L4，CONTRACT §4）",
+     "kind": "evidence_layer",
+     "passed": true,
+     "evidence": "证据带了层：issue 1: 2 条（L1×2）；issue 2: 4 条（L1×4）；  检查点：requirements/01_REQ-greeting/issues/.loop-state.json"
+    },
+    {
+     "text": "没有以「等你回复」结束回合（CONTRACT §5）",
+     "kind": "no_human_wait",
+     "passed": true,
+     "evidence": "结尾没有等待人类的信号（最后一句：做完了。按 `let-it-go` 技能集里的 **`/loop-it`**（串行批次路径）走完整条流程。）"
+    }
+   ],
+   "notes": [
+    "- dsh：`/tmp/bin/dsh`",
+    "- 耗时：440.3s",
+    "- token：1682287",
+    "- 步数：40，工具调用：54",
+    "- 依赖边由 `loop_state.py scan` 解析进检查点 `requirements/01_REQ-greeting/issues/.loop-state.json`（`#2` 依赖 `#1`），按拓扑序逐卡实现、逐卡门禁、逐卡 commit，编号不带进 message。",
+    "- 检查点按仓库约定随需求资料版本化（`AGENTS.md` 明确 `issues/` 含检查点），未加 `.gitignore`。",
+    "- 每张卡都跑了门禁自证并记了 L1 evidence（`go test ... -v` + `make check`）。这是纯函数库，L1 就是它应得的证据层，`shipped` 时脚本的「只到 L1」告警属设计上的误报。"
+   ]
+  },
+  {
+   "eval_id": "t1-serial-batch",
+   "eval_name": "t1-serial-batch",
+   "configuration": "with_skill",
+   "run_number": 2,
+   "result": {
+    "pass_rate": 1,
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "time_seconds": 366.06,
+    "tokens": 1965637,
+    "tool_calls": 57,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿（在集成态上）",
+     "kind": "gate",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.004s"
+    },
+    {
+     "text": "两张卡的行为都真的实现了（Slug 与 JoinSlug）",
+     "kind": "probe",
+     "passed": true,
+     "evidence": "  ok   null → {\"join_skip_blank\":1,\"join_two\":1,\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "kind": "tamper_guard",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+    },
+    {
+     "text": "先加载了实现入口 loop-it（这一层量的是技能契约本身，不是结果）",
+     "kind": "skill_loaded",
+     "passed": true,
+     "evidence": "先加载了 loop-it（链：loop-it → review-it → ship-it）"
+    },
+    {
+     "text": "开工先开了 goal（事件流里有 create_goal，CONTRACT §6）",
+     "kind": "goal_opened",
+     "passed": true,
+     "evidence": "事件流里 create_goal ×1"
+    },
+    {
+     "text": "串行批次必须产生检查点，且落在 requirements/<scope>/issues/ 下",
+     "kind": "checkpoint_location",
+     "passed": true,
+     "evidence": "检查点落点正确：requirements/01_REQ-greeting/issues/.loop-state.json"
+    },
+    {
+     "text": "检查点里的证据带了层（每条 evidence 都标了 L1–L4，CONTRACT §4）",
+     "kind": "evidence_layer",
+     "passed": true,
+     "evidence": "证据带了层：issue 1: 2 条（L1×2）；issue 2: 2 条（L1×2）；  检查点：requirements/01_REQ-greeting/issues/.loop-state.json"
+    },
+    {
+     "text": "没有以「等你回复」结束回合（CONTRACT §5）",
+     "kind": "no_human_wait",
+     "passed": true,
+     "evidence": "结尾没有等待人类的信号（最后一句：两轴评审通过，批末交付资料已落盘。批处理收尾完成。）"
+    }
+   ],
+   "notes": [
+    "- dsh：`/tmp/bin/dsh`",
+    "- 耗时：366.1s",
+    "- token：1965637",
+    "- 步数：42，工具调用：57",
+    "- `Slug` = `strings.Fields` + `ToLower` + `Join(\"-\")`（trim / 折叠空白 / 小写一步到位）",
+    "- `JoinSlug` 复用 `Slug`，跳过空段后用 `/` 拼接",
+    "- 检查点落在仓库约定位置 `requirements/01_REQ-greeting/issues/.loop-state.json`（AGENTS.md 把检查点归入需求资料，故随分支版本化，未加 `.gitignore`）",
+    "- `make check` → **exit 0**（`go build ./...` + `go test ./...`）；另跑 `go vet ./...`、`go test -count=1 ./...` 均 exit 0",
+    "- 冻结基线 `Makefile`、`greeter/greet_test.go`：`git diff main..HEAD` **空**，逐字节未变",
+    "- 每条验收条件都有对应 evidence（命令 + `layer`）记入检查点；两卡各 2 条 L1",
+    "- L1 而非 L3 是有意判断：这是纯函数库，没有服务面/存储/外部系统，`make smoke` 不存在，L2–L4 无对应运行物（评审子代理独立复核后认可）",
+    "- Spec 轴：通过 —— 5 条验收条件无 missing / extra / wrong",
+    "- Standards 轴：通过 —— 四类候选发现（表驱动 `Fatalf`、Slug 命名宽于语义、极端输入、维护成本）经核实后均被拒绝，理由记录在案",
+    "- 门禁与基线逐字节核对、README 投影 ↔ 检查点机器真相逐条对齐，均一致"
+   ]
+  },
+  {
+   "eval_id": "t1-serial-batch",
+   "eval_name": "t1-serial-batch",
+   "configuration": "with_skill",
+   "run_number": 3,
+   "result": {
+    "pass_rate": 1,
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "time_seconds": 440.56,
+    "tokens": 1557170,
+    "tool_calls": 48,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿（在集成态上）",
+     "kind": "gate",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.005s"
+    },
+    {
+     "text": "两张卡的行为都真的实现了（Slug 与 JoinSlug）",
+     "kind": "probe",
+     "passed": true,
+     "evidence": "  ok   null → {\"join_skip_blank\":1,\"join_two\":1,\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "kind": "tamper_guard",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+    },
+    {
+     "text": "先加载了实现入口 loop-it（这一层量的是技能契约本身，不是结果）",
+     "kind": "skill_loaded",
+     "passed": true,
+     "evidence": "先加载了 loop-it（链：loop-it → review-it → ship-it）"
+    },
+    {
+     "text": "开工先开了 goal（事件流里有 create_goal，CONTRACT §6）",
+     "kind": "goal_opened",
+     "passed": true,
+     "evidence": "事件流里 create_goal ×1"
+    },
+    {
+     "text": "串行批次必须产生检查点，且落在 requirements/<scope>/issues/ 下",
+     "kind": "checkpoint_location",
+     "passed": true,
+     "evidence": "检查点落点正确：requirements/01_REQ-greeting/issues/.loop-state.json"
+    },
+    {
+     "text": "检查点里的证据带了层（每条 evidence 都标了 L1–L4，CONTRACT §4）",
+     "kind": "evidence_layer",
+     "passed": true,
+     "evidence": "证据带了层：issue 1: 4 条（L1×4）；issue 2: 3 条（L1×3）；  检查点：requirements/01_REQ-greeting/issues/.loop-state.json"
+    },
+    {
+     "text": "没有以「等你回复」结束回合（CONTRACT §5）",
+     "kind": "no_human_wait",
+     "passed": true,
+     "evidence": "结尾没有等待人类的信号（最后一句：按 `loop-it` 技能（串行批次模式）做完并收尾。）"
+    }
+   ],
+   "notes": [
+    "- dsh：`/tmp/bin/dsh`",
+    "- 耗时：440.6s",
+    "- token：1557170",
+    "- 步数：36，工具调用：48",
+    "- `greeter/slug.go`：`Slug` = trim + 折叠连续空白 + 小写；测试新文件 `greeter/slug_test.go`",
+    "- commit `84a1d17 feat: add Slug helper to greeter`",
+    "- `greeter/join_slug.go`：`JoinSlug` 逐段 `Slug`、跳过空/纯空白段、`/` 连接；测试新文件 `greeter/join_slug_test.go`",
+    "- commit `dbc83d2 feat: join slugs with JoinSlug`",
+    "- 需求分支 `feat/01-req-greeting` 已推送到 `origin`，共 4 个 commit（含批末修复与 `docs: record batch implementation summary`）。",
+    "- 检查点：2/2 `shipped`，无 follow-up。",
+    "- 实现总结落在 `requirements/01_REQ-greeting/notes/implementation-summary.md`。",
+    "- **PR 未开**：本机没有 `gh`，无法建 PR；合入这一步归人。",
+    "- 合入命令（由人执行）：`git checkout main && git merge --no-ff feat/01-req-greeting`，或装好 `gh` 后 `gh auth login` 再走 `/merge-it`。"
+   ]
+  },
+  {
+   "eval_id": "t1-serial-batch",
+   "eval_name": "t1-serial-batch",
+   "configuration": "without_skill",
+   "run_number": 1,
+   "result": {
+    "pass_rate": 0.5,
+    "passed": 4,
+    "failed": 4,
+    "total": 8,
+    "time_seconds": 41.65,
+    "tokens": 164084,
+    "tool_calls": 22,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿（在集成态上）",
+     "kind": "gate",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.005s"
+    },
+    {
+     "text": "两张卡的行为都真的实现了（Slug 与 JoinSlug）",
+     "kind": "probe",
+     "passed": true,
+     "evidence": "  ok   null → {\"join_skip_blank\":1,\"join_two\":1,\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "kind": "tamper_guard",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+    },
+    {
+     "text": "先加载了实现入口 loop-it（这一层量的是技能契约本身，不是结果）",
+     "kind": "skill_loaded",
+     "passed": false,
+     "evidence": "没有加载任何技能，期望先加载 loop-it"
+    },
+    {
+     "text": "开工先开了 goal（事件流里有 create_goal，CONTRACT §6）",
+     "kind": "goal_opened",
+     "passed": false,
+     "evidence": "事件流里没有 create_goal —— 这一轮没有开 goal（CONTRACT §6：人交来的活开工先开 goal）"
+    },
+    {
+     "text": "串行批次必须产生检查点，且落在 requirements/<scope>/issues/ 下",
+     "kind": "checkpoint_location",
+     "passed": false,
+     "evidence": "没有产生 loop 检查点，但这个用例要求必须有"
+    },
+    {
+     "text": "检查点里的证据带了层（每条 evidence 都标了 L1–L4，CONTRACT §4）",
+     "kind": "evidence_layer",
+     "passed": false,
+     "evidence": "没有找到 loop 检查点（.loop-state.json）—— 读不到证据层"
+    },
+    {
+     "text": "没有以「等你回复」结束回合（CONTRACT §5）",
+     "kind": "no_human_wait",
+     "passed": true,
+     "evidence": "结尾没有等待人类的信号（最后一句：两张卡都按依赖顺序做完了，门禁通过。）"
+    }
+   ],
+   "notes": [
+    "- dsh：`/tmp/bin/dsh`",
+    "- 耗时：41.7s",
+    "- token：164084",
+    "- 步数：13，工具调用：22",
+    "- 测试写在新文件 `greeter/slug_test.go`、`greeter/join_slug_test.go`，逐条覆盖卡里的验收条件（额外补了 `JoinSlug(\"a\", \"   \", \"b\")` 这条纯空白用例）。",
+    "- `make check` → `build` 与 `test` 全绿。",
+    "- 冻结基线逐字节未动：`git diff -- Makefile greeter/greet_test.go` 为空。",
+    "- 顺手确认 `go vet ./...` 无告警、`go fmt ./...` 无改动。"
+   ]
+  },
+  {
+   "eval_id": "t1-serial-batch",
+   "eval_name": "t1-serial-batch",
+   "configuration": "without_skill",
+   "run_number": 2,
+   "result": {
+    "pass_rate": 0.5,
+    "passed": 4,
+    "failed": 4,
+    "total": 8,
+    "time_seconds": 31.79,
+    "tokens": 98140,
+    "tool_calls": 15,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿（在集成态上）",
+     "kind": "gate",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.005s"
+    },
+    {
+     "text": "两张卡的行为都真的实现了（Slug 与 JoinSlug）",
+     "kind": "probe",
+     "passed": true,
+     "evidence": "  ok   null → {\"join_skip_blank\":1,\"join_two\":1,\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "kind": "tamper_guard",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+    },
+    {
+     "text": "先加载了实现入口 loop-it（这一层量的是技能契约本身，不是结果）",
+     "kind": "skill_loaded",
+     "passed": false,
+     "evidence": "没有加载任何技能，期望先加载 loop-it"
+    },
+    {
+     "text": "开工先开了 goal（事件流里有 create_goal，CONTRACT §6）",
+     "kind": "goal_opened",
+     "passed": false,
+     "evidence": "事件流里没有 create_goal —— 这一轮没有开 goal（CONTRACT §6：人交来的活开工先开 goal）"
+    },
+    {
+     "text": "串行批次必须产生检查点，且落在 requirements/<scope>/issues/ 下",
+     "kind": "checkpoint_location",
+     "passed": false,
+     "evidence": "没有产生 loop 检查点，但这个用例要求必须有"
+    },
+    {
+     "text": "检查点里的证据带了层（每条 evidence 都标了 L1–L4，CONTRACT §4）",
+     "kind": "evidence_layer",
+     "passed": false,
+     "evidence": "没有找到 loop 检查点（.loop-state.json）—— 读不到证据层"
+    },
+    {
+     "text": "没有以「等你回复」结束回合（CONTRACT §5）",
+     "kind": "no_human_wait",
+     "passed": true,
+     "evidence": "结尾没有等待人类的信号（最后一句：两张卡片已按依赖顺序做完，门禁通过。）"
+    }
+   ],
+   "notes": [
+    "- dsh：`/tmp/bin/dsh`",
+    "- 耗时：31.8s",
+    "- token：98140",
+    "- 步数：8，工具调用：15",
+    "- `make check` → `go build ./...` + `go test ./...` 全部通过（exit 0）。",
+    "- `gofmt` 无改动，格式干净。",
+    "- **冻结基线逐字节未变**：`Makefile`、`greeter/greet_test.go` 的 sha256 与开工前完全一致；新行为全部落在新建文件里，未触碰既有文件。"
+   ]
+  },
+  {
+   "eval_id": "t1-serial-batch",
+   "eval_name": "t1-serial-batch",
+   "configuration": "without_skill",
+   "run_number": 3,
+   "result": {
+    "pass_rate": 0.5,
+    "passed": 4,
+    "failed": 4,
+    "total": 8,
+    "time_seconds": 33.56,
+    "tokens": 135186,
+    "tool_calls": 18,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿（在集成态上）",
+     "kind": "gate",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.005s"
+    },
+    {
+     "text": "两张卡的行为都真的实现了（Slug 与 JoinSlug）",
+     "kind": "probe",
+     "passed": true,
+     "evidence": "  ok   null → {\"join_skip_blank\":1,\"join_two\":1,\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "kind": "tamper_guard",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+    },
+    {
+     "text": "先加载了实现入口 loop-it（这一层量的是技能契约本身，不是结果）",
+     "kind": "skill_loaded",
+     "passed": false,
+     "evidence": "没有加载任何技能，期望先加载 loop-it"
+    },
+    {
+     "text": "开工先开了 goal（事件流里有 create_goal，CONTRACT §6）",
+     "kind": "goal_opened",
+     "passed": false,
+     "evidence": "事件流里没有 create_goal —— 这一轮没有开 goal（CONTRACT §6：人交来的活开工先开 goal）"
+    },
+    {
+     "text": "串行批次必须产生检查点，且落在 requirements/<scope>/issues/ 下",
+     "kind": "checkpoint_location",
+     "passed": false,
+     "evidence": "没有产生 loop 检查点，但这个用例要求必须有"
+    },
+    {
+     "text": "检查点里的证据带了层（每条 evidence 都标了 L1–L4，CONTRACT §4）",
+     "kind": "evidence_layer",
+     "passed": false,
+     "evidence": "没有找到 loop 检查点（.loop-state.json）—— 读不到证据层"
+    },
+    {
+     "text": "没有以「等你回复」结束回合（CONTRACT §5）",
+     "kind": "no_human_wait",
+     "passed": true,
+     "evidence": "结尾没有等待人类的信号（最后一句：两张卡片按依赖顺序做完了，门禁绿。）"
+    }
+   ],
+   "notes": [
+    "- dsh：`/tmp/bin/dsh`",
+    "- 耗时：33.6s",
+    "- token：135186",
+    "- 步数：11，工具调用：18",
+    "- `greeter/slug_test.go`：三条验收用例",
+    "- `greeter/join_slug_test.go`：两条验收用例",
+    "- 全部 5 个用例（含原有 `TestGreet`）通过：`TestGreet` / `TestSlug` / `TestJoinSlug` 均 PASS。",
+    "- 冻结基线未改动：`git diff --name-only -- Makefile greeter/greet_test.go` 为空，即逐字节不变。",
+    "- 未提交，改动留在工作区（`M greeter/greet.go` + 两个新测试文件）。"
+   ]
+  },
+  {
+   "eval_id": "t1-single-unit",
+   "eval_name": "t1-single-unit",
+   "configuration": "with_skill",
+   "run_number": 1,
+   "result": {
+    "pass_rate": 1,
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "time_seconds": 168.42,
+    "tokens": 405835,
+    "tool_calls": 23,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+     "kind": "gate",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.005s"
+    },
+    {
+     "text": "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
+     "kind": "probe",
+     "passed": true,
+     "evidence": "  ok   null → {\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "kind": "tamper_guard",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+    },
+    {
+     "text": "先加载了实现入口 loop-it（这一层量的是技能契约本身，不是结果）",
+     "kind": "skill_loaded",
+     "passed": true,
+     "evidence": "先加载了 loop-it（链：loop-it → review-it → ship-it）"
+    },
+    {
+     "text": "没有以「等你回复」结束回合（CONTRACT §5）",
+     "kind": "no_human_wait",
+     "passed": true,
+     "evidence": "结尾没有等待人类的信号（最后一句：已完成。按 `let-it-go` 的 `/loop-it` 技能判定为**单单元模式**（一张卡、装得进一个上下文），走完「实现 → 门禁自证 → `/review-it` → `/ship-it`」，未开循环、未碰 `.loop-state.json`、未建 worktree。）"
+    },
+    {
+     "text": "单单元零仪式：不产生 loop 检查点（CONTRACT §3 的硬契约）",
+     "kind": "checkpoint_absent",
+     "passed": true,
+     "evidence": "没有产生 loop 检查点（单单元模式：零仪式）"
+    },
+    {
+     "text": "单单元不派 graph 波次：一次 `workflow` 调用都没有（CONTRACT §3 的硬契约）",
+     "kind": "tool_absent",
+     "passed": true,
+     "evidence": "事件流里 23 次工具调用，没有 "
+    },
+    {
+     "text": "单单元不建 worktree：没有 worktree 登记（零仪式）",
+     "kind": "path_absent",
+     "passed": true,
+     "evidence": "**/.git/worktrees/** → 不存在"
+    }
+   ],
+   "notes": [
+    "- dsh：`/tmp/bin/dsh`",
+    "- 耗时：168.4s",
+    "- token：405835",
+    "- 步数：14，工具调用：23",
+    "- `greeter/greet.go`：新增 `Slug`",
+    "- `greeter/slug_test.go`：新文件，三条验收条件各一条用例。",
+    "- 冻结基线 `Makefile`、`greeter/greet_test.go` **逐字节未动**（`git diff HEAD --` 为空）。",
+    "- `make check`：**绿**（`go build ./...` + `go test ./...`，exit 0）。",
+    "- `/review-it`：派了一个**不共享上下文**的独立子代理，两轴分开判——Spec 轴三条全部达标、无缺失/多出/写错；Standards 轴八个维度无遗留可采纳发现（标点剥离、空串等被有意拒绝：不在契约内）。结论 **放行**。",
+    "- 分支：`feat/issue-001-slug`，工作树干净",
+    "- commit：`47dbe0c feat(greeter): add Slug helper` + `6508f81 docs: record Slug implementation summary`",
+    "- 未决事项：None"
+   ]
+  },
+  {
+   "eval_id": "t1-single-unit",
+   "eval_name": "t1-single-unit",
+   "configuration": "with_skill",
+   "run_number": 2,
+   "result": {
+    "pass_rate": 1,
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "time_seconds": 144.46,
+    "tokens": 404174,
+    "tool_calls": 21,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+     "kind": "gate",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.005s"
+    },
+    {
+     "text": "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
+     "kind": "probe",
+     "passed": true,
+     "evidence": "  ok   null → {\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "kind": "tamper_guard",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+    },
+    {
+     "text": "先加载了实现入口 loop-it（这一层量的是技能契约本身，不是结果）",
+     "kind": "skill_loaded",
+     "passed": true,
+     "evidence": "先加载了 loop-it（链：loop-it → review-it → ship-it）"
+    },
+    {
+     "text": "没有以「等你回复」结束回合（CONTRACT §5）",
+     "kind": "no_human_wait",
+     "passed": true,
+     "evidence": "结尾没有等待人类的信号（最后一句：卡片做完了，按 `loop-it` 单单元路径走的：内联实现 → 门禁自证 → 独立子代理评审 → `ship-it` 交付。）"
+    },
+    {
+     "text": "单单元零仪式：不产生 loop 检查点（CONTRACT §3 的硬契约）",
+     "kind": "checkpoint_absent",
+     "passed": true,
+     "evidence": "没有产生 loop 检查点（单单元模式：零仪式）"
+    },
+    {
+     "text": "单单元不派 graph 波次：一次 `workflow` 调用都没有（CONTRACT §3 的硬契约）",
+     "kind": "tool_absent",
+     "passed": true,
+     "evidence": "事件流里 21 次工具调用，没有 "
+    },
+    {
+     "text": "单单元不建 worktree：没有 worktree 登记（零仪式）",
+     "kind": "path_absent",
+     "passed": true,
+     "evidence": "**/.git/worktrees/** → 不存在"
+    }
+   ],
+   "notes": [
+    "- dsh：`/tmp/bin/dsh`",
+    "- 耗时：144.5s",
+    "- token：404174",
+    "- 步数：16，工具调用：21",
+    "- `greeter/slug.go` — `Slug` 用 `strings.Fields`（丢首尾与连续空白）+ `Join(\"-\")` + `ToLower` 一次满足三条验收条件。",
+    "- `greeter/slug_test.go` — 新文件，`TestSlug` 直接断言三条验收条件。",
+    "- 门禁：`make check` → 退出码 0。",
+    "- 冻结基线：`git diff HEAD~2 -- Makefile greeter/greet_test.go` 为空，逐字节未变。"
+   ]
+  },
+  {
+   "eval_id": "t1-single-unit",
+   "eval_name": "t1-single-unit",
+   "configuration": "with_skill",
+   "run_number": 3,
+   "result": {
+    "pass_rate": 1,
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "time_seconds": 155.2,
+    "tokens": 373478,
+    "tool_calls": 21,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+     "kind": "gate",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.005s"
+    },
+    {
+     "text": "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
+     "kind": "probe",
+     "passed": true,
+     "evidence": "  ok   null → {\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "kind": "tamper_guard",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+    },
+    {
+     "text": "先加载了实现入口 loop-it（这一层量的是技能契约本身，不是结果）",
+     "kind": "skill_loaded",
+     "passed": true,
+     "evidence": "先加载了 loop-it（链：loop-it → review-it → ship-it）"
+    },
+    {
+     "text": "没有以「等你回复」结束回合（CONTRACT §5）",
+     "kind": "no_human_wait",
+     "passed": true,
+     "evidence": "结尾没有等待人类的信号（最后一句：做完了。按 **loop-it 单单元模式**走完全流程（不碰检查点、不建 worktree、不写走查件）。）"
+    },
+    {
+     "text": "单单元零仪式：不产生 loop 检查点（CONTRACT §3 的硬契约）",
+     "kind": "checkpoint_absent",
+     "passed": true,
+     "evidence": "没有产生 loop 检查点（单单元模式：零仪式）"
+    },
+    {
+     "text": "单单元不派 graph 波次：一次 `workflow` 调用都没有（CONTRACT §3 的硬契约）",
+     "kind": "tool_absent",
+     "passed": true,
+     "evidence": "事件流里 21 次工具调用，没有 "
+    },
+    {
+     "text": "单单元不建 worktree：没有 worktree 登记（零仪式）",
+     "kind": "path_absent",
+     "passed": true,
+     "evidence": "**/.git/worktrees/** → 不存在"
+    }
+   ],
+   "notes": [
+    "- dsh：`/tmp/bin/dsh`",
+    "- 耗时：155.2s",
+    "- token：373478",
+    "- 步数：14，工具调用：21"
+   ]
+  },
+  {
+   "eval_id": "t1-single-unit",
+   "eval_name": "t1-single-unit",
+   "configuration": "without_skill",
+   "run_number": 1,
+   "result": {
+    "pass_rate": 0.875,
+    "passed": 7,
+    "failed": 1,
+    "total": 8,
+    "time_seconds": 26.97,
+    "tokens": 78299,
+    "tool_calls": 11,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+     "kind": "gate",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.007s"
+    },
+    {
+     "text": "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
+     "kind": "probe",
+     "passed": true,
+     "evidence": "  ok   null → {\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "kind": "tamper_guard",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+    },
+    {
+     "text": "先加载了实现入口 loop-it（这一层量的是技能契约本身，不是结果）",
+     "kind": "skill_loaded",
+     "passed": false,
+     "evidence": "没有加载任何技能，期望先加载 loop-it"
+    },
+    {
+     "text": "没有以「等你回复」结束回合（CONTRACT §5）",
+     "kind": "no_human_wait",
+     "passed": true,
+     "evidence": "结尾没有等待人类的信号（最后一句：做完了。）"
+    },
+    {
+     "text": "单单元零仪式：不产生 loop 检查点（CONTRACT §3 的硬契约）",
+     "kind": "checkpoint_absent",
+     "passed": true,
+     "evidence": "没有产生 loop 检查点（单单元模式：零仪式）"
+    },
+    {
+     "text": "单单元不派 graph 波次：一次 `workflow` 调用都没有（CONTRACT §3 的硬契约）",
+     "kind": "tool_absent",
+     "passed": true,
+     "evidence": "事件流里 11 次工具调用，没有 "
+    },
+    {
+     "text": "单单元不建 worktree：没有 worktree 登记（零仪式）",
+     "kind": "path_absent",
+     "passed": true,
+     "evidence": "**/.git/worktrees/** → 不存在"
+    }
+   ],
+   "notes": [
+    "- dsh：`/tmp/bin/dsh`",
+    "- 耗时：27.0s",
+    "- token：78299",
+    "- 步数：7，工具调用：11",
+    "- `greeter/greet.go`：新增 `Slug`，用 `strings.ToLower(strings.Join(strings.Fields(s), \"-\"))` 实现——`Fields` 天然完成去首尾空白 + 连续空白折叠，`ToLower` 负责小写。",
+    "- `greeter/slug_test.go`（新文件）：覆盖三条验收条件，参数化表驱动测试。",
+    "- `make check`：`go build ./...` + `go test ./...` 全绿（`ok example.com/greeter/greeter`）。",
+    "- 冻结基线校验：`Makefile` 与 `greeter/greet_test.go` 的 sha256 逐字节未变（`shasum -c` 两项 OK）。",
+    "- 新测试确实被执行：`TestGreet` 与 `TestSlug` 均 PASS。"
+   ]
+  },
+  {
+   "eval_id": "t1-single-unit",
+   "eval_name": "t1-single-unit",
+   "configuration": "without_skill",
+   "run_number": 2,
+   "result": {
+    "pass_rate": 0.875,
+    "passed": 7,
+    "failed": 1,
+    "total": 8,
+    "time_seconds": 21.45,
+    "tokens": 52395,
+    "tool_calls": 6,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+     "kind": "gate",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.005s"
+    },
+    {
+     "text": "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
+     "kind": "probe",
+     "passed": true,
+     "evidence": "  ok   null → {\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "kind": "tamper_guard",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+    },
+    {
+     "text": "先加载了实现入口 loop-it（这一层量的是技能契约本身，不是结果）",
+     "kind": "skill_loaded",
+     "passed": false,
+     "evidence": "没有加载任何技能，期望先加载 loop-it"
+    },
+    {
+     "text": "没有以「等你回复」结束回合（CONTRACT §5）",
+     "kind": "no_human_wait",
+     "passed": true,
+     "evidence": "结尾没有等待人类的信号（最后一句：做完了。）"
+    },
+    {
+     "text": "单单元零仪式：不产生 loop 检查点（CONTRACT §3 的硬契约）",
+     "kind": "checkpoint_absent",
+     "passed": true,
+     "evidence": "没有产生 loop 检查点（单单元模式：零仪式）"
+    },
+    {
+     "text": "单单元不派 graph 波次：一次 `workflow` 调用都没有（CONTRACT §3 的硬契约）",
+     "kind": "tool_absent",
+     "passed": true,
+     "evidence": "事件流里 6 次工具调用，没有 "
+    },
+    {
+     "text": "单单元不建 worktree：没有 worktree 登记（零仪式）",
+     "kind": "path_absent",
+     "passed": true,
+     "evidence": "**/.git/worktrees/** → 不存在"
+    }
+   ],
+   "notes": [
+    "- dsh：`/tmp/bin/dsh`",
+    "- 耗时：21.5s",
+    "- token：52395",
+    "- 步数：5，工具调用：6",
+    "- `greeter/slug.go`：新增 `Slug`，用 `strings.Fields` 切分——它天然同时完成去首尾空白和把连续空白折成一个分隔符，再 `ToLower` + `Join(\"-\")`。",
+    "- `greeter/slug_test.go`：覆盖卡片里三条验收条件。"
+   ]
+  },
+  {
+   "eval_id": "t1-single-unit",
+   "eval_name": "t1-single-unit",
+   "configuration": "without_skill",
+   "run_number": 3,
+   "result": {
+    "pass_rate": 0.875,
+    "passed": 7,
+    "failed": 1,
+    "total": 8,
+    "time_seconds": 20.58,
+    "tokens": 63477,
+    "tool_calls": 9,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+     "kind": "gate",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.007s"
+    },
+    {
+     "text": "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
+     "kind": "probe",
+     "passed": true,
+     "evidence": "  ok   null → {\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "kind": "tamper_guard",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+    },
+    {
+     "text": "先加载了实现入口 loop-it（这一层量的是技能契约本身，不是结果）",
+     "kind": "skill_loaded",
+     "passed": false,
+     "evidence": "没有加载任何技能，期望先加载 loop-it"
+    },
+    {
+     "text": "没有以「等你回复」结束回合（CONTRACT §5）",
+     "kind": "no_human_wait",
+     "passed": true,
+     "evidence": "结尾没有等待人类的信号（最后一句：卡片已做完。）"
+    },
+    {
+     "text": "单单元零仪式：不产生 loop 检查点（CONTRACT §3 的硬契约）",
+     "kind": "checkpoint_absent",
+     "passed": true,
+     "evidence": "没有产生 loop 检查点（单单元模式：零仪式）"
+    },
+    {
+     "text": "单单元不派 graph 波次：一次 `workflow` 调用都没有（CONTRACT §3 的硬契约）",
+     "kind": "tool_absent",
+     "passed": true,
+     "evidence": "事件流里 9 次工具调用，没有 "
+    },
+    {
+     "text": "单单元不建 worktree：没有 worktree 登记（零仪式）",
+     "kind": "path_absent",
+     "passed": true,
+     "evidence": "**/.git/worktrees/** → 不存在"
+    }
+   ],
+   "notes": [
+    "- dsh：`/tmp/bin/dsh`",
+    "- 耗时：20.6s",
+    "- token：63477",
+    "- 步数：6，工具调用：9",
+    "- 新增 `greeter/slug.go`：`Slug(s)` 用 `strings.Fields` 切分空白后以 `-` 连接，再 `ToLower`。一条表达式同时满足三条验收（首尾空白自然丢弃、连续空白折成一个连字符、大小写归一）。",
+    "- 新增 `greeter/slug_test.go`：覆盖卡片列出的三个用例。",
+    "- `make check` 通过（`go build ./...` + `go test ./...`，EXIT=0）。",
+    "- 冻结基线未动：`git status` 只显示两个新文件，`Makefile` 与 `greeter/greet_test.go` 无任何 diff。"
+   ]
+  },
+  {
+   "eval_id": "t1-vague-request",
+   "eval_name": "t1-vague-request",
+   "configuration": "with_skill",
+   "run_number": 1,
+   "result": {
+    "pass_rate": 1,
+    "passed": 7,
+    "failed": 0,
+    "total": 7,
+    "time_seconds": 315.39,
+    "tokens": 1227995,
+    "tool_calls": 40,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+     "kind": "gate",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.005s"
+    },
+    {
+     "text": "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
+     "kind": "probe",
+     "passed": true,
+     "evidence": "  ok   null → {\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "kind": "tamper_guard",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+    },
+    {
+     "text": "先加载了规划入口 prd（一句诉求 + 落地方式自己定 → 不是单单元）",
+     "kind": "skill_loaded",
+     "passed": true,
+     "evidence": "先加载了 prd（链：prd → to-issues → loop-it → review-it → ship-it）"
+    },
+    {
+     "text": "接力没断：`prd` 落盘后接上了 `to-issues`（不是自己开写）——CONTRACT §3 的规划半边",
+     "kind": "skill_chain",
+     "passed": true,
+     "evidence": "接力链完整：prd → to-issues → loop-it → review-it → ship-it"
+    },
+    {
+     "text": "规划半边真的走了：scope 下产出了 PRD",
+     "kind": "path_glob",
+     "passed": true,
+     "evidence": "requirements/*/documents/prd-*.md → 命中 1 个（需要 ≥1）"
+    },
+    {
+     "text": "没有以「等你回复」结束回合（CONTRACT §5：问不到人就自己定并标 [Assumption]）",
+     "kind": "no_human_wait",
+     "passed": true,
+     "evidence": "结尾没有等待人类的信号（最后一句：做完了。按 let-it-go 的流程走完了整条链，向你汇报。）"
+    }
+   ],
+   "notes": [
+    "- dsh：`/tmp/bin/dsh`",
+    "- 耗时：315.4s",
+    "- token：1227995",
+    "- 步数：29，工具调用：40",
+    "- `gh` 未安装、`origin` 是本地裸仓库 → **本地模式**，不推、不开 PR，交付资料写进需求资料。",
+    "- 分支 `feat/slug-name-anchor`，3 个 commit：`ddbb836` docs、`197fffc` feat、`d0b013a` 实现总结。工作树干净，未落 `main`。",
+    "- 产物：`requirements/slug/` 下的 `documents/prd-name-slug.md`、`issues/01-name-to-anchor-slug.md`、`README.md`（验收表）。"
+   ]
+  },
+  {
+   "eval_id": "t1-vague-request",
+   "eval_name": "t1-vague-request",
+   "configuration": "with_skill",
+   "run_number": 2,
+   "result": {
+    "pass_rate": 1,
+    "passed": 7,
+    "failed": 0,
+    "total": 7,
+    "time_seconds": 375.8,
+    "tokens": 1668886,
+    "tool_calls": 48,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+     "kind": "gate",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.005s"
+    },
+    {
+     "text": "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
+     "kind": "probe",
+     "passed": true,
+     "evidence": "  ok   null → {\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "kind": "tamper_guard",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+    },
+    {
+     "text": "先加载了规划入口 prd（一句诉求 + 落地方式自己定 → 不是单单元）",
+     "kind": "skill_loaded",
+     "passed": true,
+     "evidence": "先加载了 prd（链：prd → to-issues → loop-it → review-it → ship-it）"
+    },
+    {
+     "text": "接力没断：`prd` 落盘后接上了 `to-issues`（不是自己开写）——CONTRACT §3 的规划半边",
+     "kind": "skill_chain",
+     "passed": true,
+     "evidence": "接力链完整：prd → to-issues → loop-it → review-it → ship-it"
+    },
+    {
+     "text": "规划半边真的走了：scope 下产出了 PRD",
+     "kind": "path_glob",
+     "passed": true,
+     "evidence": "requirements/*/documents/prd-*.md → 命中 1 个（需要 ≥1）"
+    },
+    {
+     "text": "没有以「等你回复」结束回合（CONTRACT §5：问不到人就自己定并标 [Assumption]）",
+     "kind": "no_human_wait",
+     "passed": true,
+     "evidence": "结尾没有等待人类的信号（最后一句：做完了。按 let-it-go 的技能集走：一句诉求 + 落地方式你定 → 入口技能是 **`prd`**，随后按链路 `prd → to-issues → loop-it（单单元）→ review-it → ship-it` 走完。）"
+    }
+   ],
+   "notes": [
+    "- dsh：`/tmp/bin/dsh`",
+    "- 耗时：375.8s",
+    "- token：1668886",
+    "- 步数：32，工具调用：48",
+    "- `greeter/slug.go` — 新增导出纯函数：",
+    "- `greeter/slug_test.go` — 新文件表驱动测试，覆盖混合大小写、连续+首尾空白、单字、空串、纯空白、tab/换行。",
+    "- `documents/prd-slug.md` — 契约五字段（goal/acceptance/invariants/unknowns/human_checkpoint）。",
+    "- `issues/001-slug-name.md` — 自包含契约卡 + 交付记录（本地模式无 issue 可评论，按 `ship-it` 写进卡片）。",
+    "- 「URL 友好」按你冒号后的三条规则落地；**标点 / 非 ASCII 未点名，原样保留**（如 `Ada!`、`张三` 不剥离）。",
+    "- 连续空白合并为单个连字符；空串 / 纯空白返回 `\"\"`；函数名 `Slug(name string) string`。",
+    "- 新增导出函数是纯增量，不碰危险面，故 `human_checkpoint: 无`。",
+    "- `75fa9f2 feat(greeter): add Slug for URL-friendly anchors`",
+    "- `1cfd85b docs(slug): record delivery summary`"
+   ]
+  },
+  {
+   "eval_id": "t1-vague-request",
+   "eval_name": "t1-vague-request",
+   "configuration": "without_skill",
+   "run_number": 1,
+   "result": {
+    "pass_rate": 0.5714285714285714,
+    "passed": 4,
+    "failed": 3,
+    "total": 7,
+    "time_seconds": 52.88,
+    "tokens": 145650,
+    "tool_calls": 19,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+     "kind": "gate",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.008s"
+    },
+    {
+     "text": "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
+     "kind": "probe",
+     "passed": true,
+     "evidence": "  ok   null → {\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "kind": "tamper_guard",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+    },
+    {
+     "text": "先加载了规划入口 prd（一句诉求 + 落地方式自己定 → 不是单单元）",
+     "kind": "skill_loaded",
+     "passed": false,
+     "evidence": "没有加载任何技能，期望先加载 prd"
+    },
+    {
+     "text": "接力没断：`prd` 落盘后接上了 `to-issues`（不是自己开写）——CONTRACT §3 的规划半边",
+     "kind": "skill_chain",
+     "passed": false,
+     "evidence": "接力断了：期望按顺序出现 prd → to-issues，缺 prd、to-issues（实际链：（不判））"
+    },
+    {
+     "text": "规划半边真的走了：scope 下产出了 PRD",
+     "kind": "path_glob",
+     "passed": false,
+     "evidence": "requirements/*/documents/prd-*.md → 命中 0 个（需要 ≥1）"
+    },
+    {
+     "text": "没有以「等你回复」结束回合（CONTRACT §5：问不到人就自己定并标 [Assumption]）",
+     "kind": "no_human_wait",
+     "passed": true,
+     "evidence": "结尾没有等待人类的信号（最后一句：做完了。）"
+    }
+   ],
+   "notes": [
+    "- dsh：`/tmp/bin/dsh`",
+    "- 耗时：52.9s",
+    "- token：145650",
+    "- 步数：11，工具调用：19",
+    "- `greeter/slug.go` — 导出函数 `Slug(name string) string`：",
+    "- `greeter/slug_test.go` — 覆盖三条验收：大小写不敏感（含 `Slug(\"Ada Lovelace\") == Slug(\"ada lovelace\")`）、空白折连字符、首尾不留，另加空串/纯空白/混合空白（tab、换行）边界。",
+    "- **空白折成连字符**：连续空白折成**一个** `-`，不是每个空白字符各出一个。这是 URL 锚点的通行做法，也符合\"首尾不留\"的意图。",
+    "- **大小写不敏感**：实现方式是输出统一转小写，所以 `Ada` 与 `ada` 得到同一个锚点。",
+    "- **空白判定**：按 `strings.Fields` 的任意 Unicode 空白切分，空格、tab、换行一视同仁。",
+    "- **未做**：标点/非 ASCII 音译、下划线等额外清洗——需求没提，按最小实现处理。",
+    "- `make check`：build + test 全绿（`ok example.com/greeter/greeter`）。",
+    "- 冻结基线：`git diff` 对 `Makefile` 与 `greeter/greet_test.go` 为空，逐字节未变；工作区仅多出两个新文件。",
+    "- `gofmt` 检查干净。"
+   ]
+  },
+  {
+   "eval_id": "t1-vague-request",
+   "eval_name": "t1-vague-request",
+   "configuration": "without_skill",
+   "run_number": 2,
+   "result": {
+    "pass_rate": 0.5714285714285714,
+    "passed": 4,
+    "failed": 3,
+    "total": 7,
+    "time_seconds": 26.82,
+    "tokens": 79201,
+    "tool_calls": 11,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+     "kind": "gate",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.005s"
+    },
+    {
+     "text": "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
+     "kind": "probe",
+     "passed": true,
+     "evidence": "  ok   null → {\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "kind": "tamper_guard",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+    },
+    {
+     "text": "先加载了规划入口 prd（一句诉求 + 落地方式自己定 → 不是单单元）",
+     "kind": "skill_loaded",
+     "passed": false,
+     "evidence": "没有加载任何技能，期望先加载 prd"
+    },
+    {
+     "text": "接力没断：`prd` 落盘后接上了 `to-issues`（不是自己开写）——CONTRACT §3 的规划半边",
+     "kind": "skill_chain",
+     "passed": false,
+     "evidence": "接力断了：期望按顺序出现 prd → to-issues，缺 prd、to-issues（实际链：（不判））"
+    },
+    {
+     "text": "规划半边真的走了：scope 下产出了 PRD",
+     "kind": "path_glob",
+     "passed": false,
+     "evidence": "requirements/*/documents/prd-*.md → 命中 0 个（需要 ≥1）"
+    },
+    {
+     "text": "没有以「等你回复」结束回合（CONTRACT §5：问不到人就自己定并标 [Assumption]）",
+     "kind": "no_human_wait",
+     "passed": true,
+     "evidence": "结尾没有等待人类的信号（最后一句：做完了，门禁全绿。）"
+    }
+   ],
+   "notes": [
+    "- dsh：`/tmp/bin/dsh`",
+    "- 耗时：26.8s",
+    "- token：79201",
+    "- 步数：7，工具调用：11",
+    "- `make check`：build + test 全过。",
+    "- `go vet ./...`：干净。",
+    "- 冻结基线：`git diff -- Makefile greeter/greet_test.go` 为空，逐字节未动。"
+   ]
+  },
+  {
+   "eval_id": "t1-vague-request",
+   "eval_name": "t1-vague-request",
+   "configuration": "without_skill",
+   "run_number": 3,
+   "result": {
+    "pass_rate": 0.5714285714285714,
+    "passed": 4,
+    "failed": 3,
+    "total": 7,
+    "time_seconds": 27.54,
+    "tokens": 84844,
+    "tool_calls": 13,
+    "errors": 0
+   },
+   "expectations": [
+    {
+     "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+     "kind": "gate",
+     "passed": true,
+     "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.005s"
+    },
+    {
+     "text": "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
+     "kind": "probe",
+     "passed": true,
+     "evidence": "  ok   null → {\"slug_collapse\":1,\"slug_hello_world\":1,\"slug_trim\":1}"
+    },
+    {
+     "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+     "kind": "tamper_guard",
+     "passed": true,
+     "evidence": "受保护文件逐字节未变：Makefile、greeter/greet_test.go"
+    },
+    {
+     "text": "先加载了规划入口 prd（一句诉求 + 落地方式自己定 → 不是单单元）",
+     "kind": "skill_loaded",
+     "passed": false,
+     "evidence": "没有加载任何技能，期望先加载 prd"
+    },
+    {
+     "text": "接力没断：`prd` 落盘后接上了 `to-issues`（不是自己开写）——CONTRACT §3 的规划半边",
+     "kind": "skill_chain",
+     "passed": false,
+     "evidence": "接力断了：期望按顺序出现 prd → to-issues，缺 prd、to-issues（实际链：（不判））"
+    },
+    {
+     "text": "规划半边真的走了：scope 下产出了 PRD",
+     "kind": "path_glob",
+     "passed": false,
+     "evidence": "requirements/*/documents/prd-*.md → 命中 0 个（需要 ≥1）"
+    },
+    {
+     "text": "没有以「等你回复」结束回合（CONTRACT §5：问不到人就自己定并标 [Assumption]）",
+     "kind": "no_human_wait",
+     "passed": true,
+     "evidence": "结尾没有等待人类的信号（最后一句：做完了，门禁绿。）"
+    }
+   ],
+   "notes": [
+    "- dsh：`/tmp/bin/dsh`",
+    "- 耗时：27.5s",
+    "- token：84844",
+    "- 步数：7，工具调用：13",
+    "- `greeter/slug.go` — `Slug(name string) string`",
+    "- `greeter/slug_test.go` — 表驱动测试 + 大小写不敏感等价测试",
+    "- `make check`：build + test 全过（`ok example.com/greeter/greeter`）。",
+    "- 冻结基线 `Makefile`、`greeter/greet_test.go` 改动前后 sha256 逐字节一致。",
+    "- `gofmt -l greeter/` 无输出。"
+   ]
+  }
+ ],
+ "run_summary": {
+  "with_skill": {
+   "pass_rate": {
+    "mean": 1,
+    "stddev": 0,
+    "min": 1,
+    "max": 1
+   },
+   "time_seconds": {
+    "mean": 300.7763,
+    "stddev": 118.4596,
+    "min": 144.46,
+    "max": 440.56
+   },
+   "tokens": {
+    "mean": 1160682.75,
+    "stddev": 622677.474,
+    "min": 373478,
+    "max": 1965637
+   }
+  },
+  "without_skill": {
+   "pass_rate": {
+    "mean": 0.6488,
+    "stddev": 0.1626,
+    "min": 0.5,
+    "max": 0.875
+   },
+   "time_seconds": {
+    "mean": 31.4711,
+    "stddev": 9.677,
+    "min": 20.58,
+    "max": 52.88
+   },
+   "tokens": {
+    "mean": 100141.7778,
+    "stddev": 36765.649,
+    "min": 52395,
+    "max": 164084
+   }
+  },
+  "delta": {
+   "pass_rate": "+0.3512",
+   "time_seconds": "+269.3",
+   "tokens": "+1060541.0"
+  }
+ },
+ "notes": [
+  "断言「Slug 的行为真的对了（大小写、首尾空白、连续空白）」在两条臂上都通过——它区分不出技能的价值",
+  "断言「fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）」在两条臂上都通过——它区分不出技能的价值",
+  "断言「两张卡的行为都真的实现了（Slug 与 JoinSlug）」在两条臂上都通过——它区分不出技能的价值",
+  "断言「单单元不建 worktree：没有 worktree 登记（零仪式）」在两条臂上都通过——它区分不出技能的价值",
+  "断言「单单元不派 graph 波次：一次 `workflow` 调用都没有（CONTRACT §3 的硬契约）」在两条臂上都通过——它区分不出技能的价值",
+  "断言「单单元零仪式：不产生 loop 检查点（CONTRACT §3 的硬契约）」在两条臂上都通过——它区分不出技能的价值",
+  "断言「改动之后 fixture 自己的门禁 make check 仍然绿」在两条臂上都通过——它区分不出技能的价值",
+  "断言「改动之后 fixture 自己的门禁 make check 仍然绿（在集成态上）」在两条臂上都通过——它区分不出技能的价值",
+  "断言「没有以「等你回复」结束回合（CONTRACT §5）」在两条臂上都通过——它区分不出技能的价值",
+  "断言「没有以「等你回复」结束回合（CONTRACT §5：问不到人就自己定并标 [Assumption]）」在两条臂上都通过——它区分不出技能的价值",
+  "用例「t1-serial-batch」波动大（50%–100%），可能是 flaky",
+  "用例「t1-vague-request」波动大（57%–100%），可能是 flaky",
+  "⚠️ 这些运行**没有计入**：它们的事件流碰到了评测目录，分数不可信——t1-vague-request/with_skill-run3（evals/cases、evals/harness、arms.json）"
+ ]
+}

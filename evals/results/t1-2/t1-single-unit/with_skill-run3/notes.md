@@ -1,6 +1,6 @@
 # t1-single-unit / with_skill
 
-- dsh：`/tmp/bin/dsh`
+- dsh：`（--regrade：没重跑 dsh，只重新打分）`
 - 耗时：208.1s
 - token：551654
 - 步数：19，工具调用：27
@@ -63,5 +63,3 @@ greet_test.go    c2f7e15… = c2f7e15…
 ```bash
 git checkout main && git merge --no-ff feat/issue-001-slug
 ```
-
-- ⚠️ **这一轮污染了**：臂碰到了 evals/cases——分数不可信，别用它下结论。

@@ -1,13 +1,13 @@
 {
  "case_id": "t1-vague-request",
  "case_name": "t1-vague-request",
- "workdir": "/var/folders/04/xwb43jfd0952ljqlmp08skhr0000gn/T/cache-2127522546/work",
+ "workdir": "/Users/mervyn/workspaces/github/let-it-go/evals/results/t1-2/t1-vague-request/with_skill-run3/work",
  "expectations": [
   {
    "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
    "kind": "gate",
    "passed": true,
-   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t0.004s"
+   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/greeter/greeter\t(cached)"
   },
   {
    "text": "Slug 的行为真的对了（大小写、首尾空白、连续空白）",
@@ -28,6 +28,12 @@
    "evidence": "先加载了 prd（链：prd → to-issues → loop-it → review-it → ship-it）"
   },
   {
+   "text": "接力没断：`prd` 落盘后接上了 `to-issues`（不是自己开写）——CONTRACT §3 的规划半边",
+   "kind": "skill_chain",
+   "passed": true,
+   "evidence": "接力链完整：prd → to-issues → loop-it → review-it → ship-it"
+  },
+  {
    "text": "规划半边真的走了：scope 下产出了 PRD",
    "kind": "path_glob",
    "passed": true,
@@ -40,7 +46,7 @@
    "evidence": "结尾没有等待人类的信号（最后一句：做完了。按 let-it-go 的 flow 走的：一句诉求 + 「怎么落地你定」→ 入口是 **`prd`**（CONTRACT §3：这还不是单单元，是需求没成形，先走规划半边），再按默认继续 `to-issues` → `loop-it`；`to-issues` 判定整个改动一个上下文装得下，**不产 issue 卡、不建检查点**，直接单单元内联实现，最后 `review-it` → `ship-it`。）"
   }
  ],
- "passed": 6,
- "total": 6,
+ "passed": 7,
+ "total": 7,
  "pass_rate": 1
 }
