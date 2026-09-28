@@ -1,6 +1,6 @@
 ---
 name: graph
-description: "并行实现：用脚本规划 DAG，每个波为每个节点在各自 git worktree 里派一个子代理，然后每波只评审与交付一次，在每个波边界更新检查点与 graph.html 进度看板。Triggers: graph, graph engineering, build a graph, task graph, dependency graph, DAG, parallel implement, 并发实现, 并行实现, 任务图, 把任务变成图, 建图, 依赖图, fan-out, fan-out fan-in, superstep, dynamic workflow, 动态工作流."
+description: "并行实现：**只在节点互不共享文件、彼此也没有依赖边时用**——共享文件、或 schema→API→UI 这种链交给 /loop-it；用时以脚本规划 DAG，每个波为每个节点在各自 git worktree 里派一个子代理，每波只评审与交付一次，波边界更新检查点与 graph.html 看板。Triggers: graph, graph engineering, build a graph, task graph, dependency graph, DAG, parallel implement, 并发实现, 并行实现, 任务图, 把任务变成图, 建图, 依赖图, fan-out, fan-out fan-in, superstep, dynamic workflow, 动态工作流."
 
 ---
 

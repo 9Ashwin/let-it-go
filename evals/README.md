@@ -232,14 +232,32 @@ go -C harness run . bench results/t1-N
 go -C evals/harness run . trigger --dsh /tmp/bin/dsh --parallel 6 --repeat 3 --out results/triggers-N
 ```
 
-用例在 [`triggers.json`](triggers.json)：每条 prompt 的期望都能在对应技能自己的 description 或
-正文里找到依据；近邻是**共享关键词但该走别的技能**（或根本不该加载）的那种。自检会校验
-`expect` 里的名字确实是某个桶里的技能——写错名字跑出来是「路由错了」，那是假红。
+用例在 [`triggers.json`](triggers.json)：36 条，**自有技能（`flow` + `bonus`）每个至少两条，其中一条
+是近邻**——近邻是**共享关键词但该走别的技能**（或根本不该加载）的那种。自检会校验 `expect` /
+`forbid` 里的名字确实是某个桶里的技能，并检查自有技能都被覆盖到——写错名字跑出来是「路由错了」，
+那是假红。`vendor` 是上游逐字副本、description 不由我们控制，不参与这条计数。
+
+**期望有三种形状：**
+
+| 形状 | 判什么 |
+|---|---|
+| `expect` 非空 | **第一个**加载的要在里面 |
+| `expect: []` | 不该加载任何技能（平凡请求） |
+| `expect` 缺省 + `forbid` | 只判 `forbid` 里的技能**一次都不许出现在链里**——这是**调用轴的闸门** |
+
+`forbid` 这个形状是为 `user-invoked` 的技能加的：DSH 的 `skill` 工具对 `disable-model-invocation`
+的技能返回 `isError`（源码实测），模型猜名字也加载不了。所以那条断言不能写成「什么都不许加载」
+——实测说「PR 开好了，合入吧」时模型会先加载 `ship-it`，那不算违反调用轴。
 
 **判定只看第一个加载的技能**，不看之后的串联。第一版要求「加载的都在期望里」，跑出来 20/24，
 而四条失败里三条是**误判**：技能是串联的，模型会照着技能自己的话把下游一并加载——`loop-it`
 正文写着批末走 `/review-it` → `/ship-it`，它的单单元模式又写着「需要先把行为定下来时用
 `/test-first`」。那不是误路由，是照做。串联属于编排质量，由那八个用例量。
+
+**`skillsLoaded` 只认成功的加载。** 它按 `callId` 把 `tool_call` 与 `tool_result` 配对，`status: error`
+的不算——模型是会猜名字的（实测编过一个 `use-git-worktree`），而 `user-invoked` 的技能被拒恰恰是
+闸门在起作用。第一版没配对，把一次失败的 `merge-it` 调用记成了「加载了」，那条回归用例因此假红。
+自测在 [`harness/trigger_test.go`](harness/trigger_test.go)。
 
 **必须跑多次。** 同一个 prompt 三次跑出来的链不一样（实测 `graph-parallel` 三次分别是 `graph`、
 `graph+loop-it`、`graph+review-it+ship-it`），所以只有**触发率**有意义，「一次通过」没有。
@@ -254,8 +272,37 @@ go -C evals/harness run . trigger --dsh /tmp/bin/dsh --parallel 6 --repeat 3 --o
 
 顺带看到一件用例设计没打算测的事：一次 `near-conflict` 的链路是
 `conflict → conflict → use-git-worktree`，而**`use-git-worktree` 不是任何桶里的技能**——
-模型编了一个听起来合理的名字去调 `skill` 工具。只记录不处理：它不在首位，所以不影响判定，
-但它说明目录边界在「谁负责 worktree」这件事上不够显眼（那是 `graph` 的活）。
+模型编了一个听起来合理的名字去调 `skill` 工具。当时只记录不处理；现在 `skillsLoaded` 会把这种
+失败的调用排除掉，它不再进链条。
+
+### 扩到 36 条之后（三轮，每轮 36 × 3）
+
+| 轮次 | 通过 | 说明 |
+|---|---|---|
+| `triggers-6` | 31/36 | **`skillsLoaded` 修之前**——两条 `merge-it` 用例是假红（失败的调用被记成加载了） |
+| `triggers-7` | 32/36 | 修了 `skillsLoaded`、加了 `forbid` 形状；`merge-it` 两条转绿 |
+| `triggers-8` | **34/36** | 收紧 `graph` 的描述、去掉 triage 那条近邻 prompt 的歧义 |
+
+第二轮之后修的两处：
+
+- **`graph` 的描述对「并行」太贪。** 两条近邻（共享文件、依赖链）在 `triggers-6/7` 里 0/3：模型
+  先加载 `graph`、再自己转到 `loop-it`。描述开头加了边界（「只在节点互不共享文件、彼此也没有
+  依赖边时用」），共享文件那条 0/3 → 1/3，链那条仍然 0/3。
+- **`near-triage-vs-loop-it` 的 prompt 有歧义**（「我提了个 issue」没说它定义好没有），补上
+  「验收条件都写清楚了」，2/3 → 3/3。改的是用例的歧义，不是期望。
+
+**仍然红的（两条，都是真红，不修用例）：**
+
+- `near-loop-it-shared-file` 1/3、`near-graph-chain` 0/3：都是**先加载 `graph` 再转到 `loop-it`**。
+  按本层「只看第一个」的口径算不通过——它是两跳而不是走错，最终形态对，但**入口这一步是错的**，
+  和「合法串联」（`loop-it → review-it → ship-it`）不是一回事。`graph` 的描述第一句仍是「并行实现」，
+  触发词里仍有「并行实现 / 并发实现」，而这两条 prompt 里出现的正是「并行」。留红。
+
+**flaky（单列，不算通过）：**
+
+- `near-trivial-function`：`triggers-7` 是 2/3、`triggers-8` 是 3/3，两个样本合起来 5/6。
+  「用 Go 写个快速排序」这类平凡请求偶尔会被 `modern-go` 抢走。它**不是稳定通过**。
+
 
 ## 已知限制
 

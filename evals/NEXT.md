@@ -68,10 +68,18 @@ T1 顺带抓出两件事，都不是断言写错：
 - **`tamper_guard` 保护了臂本来就会改的测试文件**——卡片写着「补上对应的测试」，臂改 `greet_test.go`
   是照做。改成在 fixture 的 `AGENTS.md` 里声明**冻结基线**，测试写新文件。
 
+**T0 触发层**：24 条 → **36 条**，自有技能（flow + bonus）每个至少两条、其中一条是近邻；自检加了
+覆盖守卫与 `forbid` 校验。三轮跑下来（`triggers-6/7/8`）：31 → 32 → **34/36**。过程中修掉两个
+harness 缺陷（`skillsLoaded` 把失败的调用记成加载、调用轴缺一个「绝不许加载」的断言形状）和一处
+`graph` 描述对「并行」太贪；剩两条真红（`near-loop-it-shared-file`、`near-graph-chain`，都是先摸
+`graph` 再转 `loop-it`）与一条 flaky（`near-trivial-function` 5/6），明细见 [README](README.md#扩到-36-条之后三轮每轮-36--3)。
+
 **还没做**：
 
-- 第 4 条（触发用例扩到每个技能至少两条，含近邻）——那是 T0，量在秒级，还没动。
 - T2 那八条重跑一轮，确认这次 SKILL 重写（loop-it 416→211、graph 303→199）没弄坏结果层。
 - `06-exception-path` / `07-parallel-waves` 两条 flaky 用例的方差要单独量：它们不在 T1，也不该
   按「通过」记。
+- T0 剩下的两条真红：`graph` 描述还能不能更干净地把「只是问并行」挡在外面；`modern-go` 对
+  「Go」这个词的贪（5/6）值不值得收紧描述。
+
 

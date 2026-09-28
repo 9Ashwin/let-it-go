@@ -1057,6 +1057,7 @@ func selfcheckTriggers() []string {
 		problems = append(problems, "triggers.json 缺 suffix（附加在每条 prompt 后面的那句）")
 	}
 	known := map[string]bool{}
+	bucketOf := map[string]string{}
 	for _, bucket := range []string{"flow", "bonus", "vendor"} {
 		entries, err := os.ReadDir(filepath.Join(evalsDir, "..", "skills", bucket))
 		if err != nil {
@@ -1065,6 +1066,7 @@ func selfcheckTriggers() []string {
 		for _, entry := range entries {
 			if entry.IsDir() {
 				known[entry.Name()] = true
+				bucketOf[entry.Name()] = bucket
 			}
 		}
 	}
@@ -1086,8 +1088,52 @@ func selfcheckTriggers() []string {
 				problems = append(problems, fmt.Sprintf("%s: expect 里的 `%s` 不是任何一个桶里的技能", c.ID, name))
 			}
 		}
+		for _, name := range c.Forbid {
+			if !known[name] {
+				problems = append(problems, fmt.Sprintf("%s: forbid 里的 `%s` 不是任何一个桶里的技能", c.ID, name))
+			}
+		}
+	}
+	// 第一刀第 4 条：自有技能（flow + bonus）每个至少两条用例，其中一条是近邻。
+	// 「近邻」是语义判断（该走别的技能、或根本不该加载），机器只数**条数**——一条用例算覆盖某个
+	// 技能，当且仅当它在 `expect` 里点了名，或者 `why` 里把它当成对照写了进去（近邻用例正是后者：
+	// 期望走别的技能，理由里必须说清为什么不是它）。vendor 是上游逐字副本，description 不由我们
+	// 控制，不参与这条计数。
+	covered := map[string]int{}
+	for _, c := range set.Cases {
+		for name, bucket := range bucketOf {
+			if bucket == "vendor" {
+				continue
+			}
+			if containsString(c.Expect, name) || strings.Contains(c.Why, name) {
+				covered[name]++
+			}
+		}
+	}
+	var uncovered []string
+	for name, bucket := range bucketOf {
+		if bucket == "vendor" {
+			continue
+		}
+		if covered[name] < 2 {
+			uncovered = append(uncovered, fmt.Sprintf("`%s`（%d 条）", name, covered[name]))
+		}
+	}
+	if len(uncovered) > 0 {
+		sort.Strings(uncovered)
+		problems = append(problems, "triggers.json: 自有技能每个至少要两条用例，其中一条是近邻"+
+			"（该走别的技能，或根本不该加载）；不够的："+strings.Join(uncovered, "、"))
 	}
 	return problems
+}
+
+func containsString(names []string, want string) bool {
+	for _, name := range names {
+		if name == want {
+			return true
+		}
+	}
+	return false
 }
 
 func cmdSelfcheck(_ []string) int {

@@ -25,6 +25,15 @@ type triggerCase struct {
 	ID     string   `json:"id"`
 	Prompt string   `json:"prompt"`
 	Expect []string `json:"expect"`
+	// Forbid 是**一次都不许出现在加载链里**的技能名，无论它排第几。
+	//
+	// 调用轴需要这个形状：`user-invoked`（`disable-model-invocation: true`）的技能，DSH 的
+	// `skill` 工具直接返回 isError，模型**猜名字也加载不了**。所以这条断言不是「该加载谁」，
+	// 而是「谁绝不能被加载」——`expect` 表达不了它，因为那条链上同时可能有别的合法技能
+	//（实测：说「PR 开好了，合入吧」时模型有时会先加载 `ship-it`，那不算违反调用轴）。
+	//
+	// `expect` 缺省（而不是 `[]`）= 不判「加载了什么」，只判 `forbid`。
+	Forbid []string `json:"forbid"`
 	Why    string   `json:"why"`
 }
 
@@ -37,6 +46,7 @@ type triggerResult struct {
 	ID     string   `json:"id"`
 	Prompt string   `json:"prompt"`
 	Expect []string `json:"expect"`
+	Forbid []string `json:"forbid,omitempty"`
 	// Runs 是每一次实际加载的技能，**按加载顺序**（第一个就是路由决策）。
 	// 保留全部几次而不是只留最后一次：实测同一个 prompt 三次跑出来的链不一样，
 	// 所以「通过率」才有意义，「一次通过」没有。
@@ -53,43 +63,75 @@ type triggerResult struct {
 // 180s 只用来兜住卡死的会话。armTimeout（1800s）在这里太长了。
 const triggerTimeout = 180 * time.Second
 
-// skillsLoaded 从 `dsh --json` 的事件流里取出实际加载的技能名。
+// skillsLoaded 从 `dsh --json` 的事件流里取出**真的加载成功**的技能名。
+//
 // 只看 `skill` 工具调用——**不看模型的自述**：它说「我打算加载 X」和它真的加载 X 是两件事，
 // 实测过一条会话明确说「暂不加载、不动手」，于是自述有、工具调用没有。
+//
+// 但也不能只看调用本身。DSH 对**不存在的名字**与 **`disable-model-invocation` 的技能**都返回
+// `isError`，而模型是会猜名字的（实测过一次：它编了一个 `use-git-worktree` 去调）。把失败的
+// 调用记成「加载了」是假红——而且正好把 user-invoked 的闸门测反了：那条闸门的期望是「它加载
+// 不了」，一次失败的尝试恰恰是闸门在起作用。所以这里把 `tool_call` 与 `tool_result` 按 callId
+// 配对，只有**结果不是 error** 的调用才算加载。
 func skillsLoaded(raw string) []string {
-	var names []string
+	type skillCall struct{ callID, name string }
+	var calls []skillCall
+	status := map[string]string{}
 	for _, line := range strings.Split(raw, "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
 		}
 		var event struct {
-			Type  string         `json:"type"`
-			Tool  string         `json:"tool"`
-			Input map[string]any `json:"input"`
+			Type   string         `json:"type"`
+			Tool   string         `json:"tool"`
+			CallID string         `json:"callId"`
+			Status string         `json:"status"`
+			Input  map[string]any `json:"input"`
 		}
 		if json.Unmarshal([]byte(line), &event) != nil {
 			continue
 		}
-		if event.Type != "tool_call" || event.Tool != "skill" {
+		switch event.Type {
+		case "tool_call":
+			if event.Tool != "skill" {
+				continue
+			}
+			if name, ok := event.Input["name"].(string); ok && name != "" {
+				calls = append(calls, skillCall{event.CallID, name})
+			}
+		case "tool_result":
+			status[event.CallID] = event.Status
+		}
+	}
+	var names []string
+	for _, call := range calls {
+		if status[call.callID] == "error" {
 			continue
 		}
-		if name, ok := event.Input["name"].(string); ok && name != "" {
-			names = append(names, name)
-		}
+		names = append(names, call.name)
 	}
 	return names
 }
 
-// triggerPass 只看**路由决策**：第一个加载的技能要在期望里。
+// triggerPass 判这次加载链算不算对。
 //
-// 第一版要求「加载的都在期望里」，跑出来 20/24，而四条失败里三条是**误判**：技能是串联的，
-// 模型会照着技能自己的话把下游一并加载——`loop-it` 正文写着批末走 `/review-it` → `/ship-it`，
-// 它的单单元模式又写着「需要先把行为定下来时用 `/test-first`」。那不是误路由，是照做。
+// 两条规则，按顺序：
 //
-// 所以这条 eval 量的是**先加载谁**，不量之后的串联——串联属于编排质量，由那八个用例量。
-// 期望为空 = 这件事不该加载任何技能（平凡请求）。
-func triggerPass(expect, loaded []string) bool {
+//  1. `forbid` 里的技能一次都不许出现在链里（调用轴的闸门：user-invoked 的技能模型加载不了）；
+//  2. `expect` **缺省** = 不判「加载了什么」；`expect: []` = 不该加载任何技能；非空 = **第一个**
+//     加载的要在期望里（只看路由决策，不看之后的串联）。
+func triggerPass(expect, forbid, loaded []string) bool {
+	for _, name := range forbid {
+		for _, got := range loaded {
+			if got == name {
+				return false
+			}
+		}
+	}
+	if expect == nil {
+		return true
+	}
 	if len(expect) == 0 {
 		return len(loaded) == 0
 	}
@@ -203,7 +245,7 @@ func cmdTrigger(args []string) int {
 		if len(r.Runs) > 0 && len(r.Runs[0]) > 0 {
 			chain = strings.Join(r.Runs[0], " → ")
 		}
-		fmt.Printf("%-32s %-18s %-6s %-26s %s\n", r.ID, joinOrNone(r.Expect),
+		fmt.Printf("%-32s %-18s %-6s %-26s %s\n", r.ID, joinOrNone(r.Expect, r.Forbid),
 			fmt.Sprintf("%d/%d", r.Passed, r.Repeat), chain, mark)
 		if r.Err != "" {
 			fmt.Printf("%-32s   %s\n", "", r.Err)
@@ -240,7 +282,7 @@ func cmdTrigger(args []string) int {
 // runTriggerCase 在一个**私有临时目录**里跑一次。cwd 不留在仓库里，所以模型即使动手也
 // 碰不到任何真东西；这跟臂的隔离是同一条理由。
 func runTriggerCase(dsh, suffix string, c triggerCase, repeat int) triggerResult {
-	result := triggerResult{ID: c.ID, Prompt: c.Prompt, Expect: c.Expect, Why: c.Why, Repeat: repeat}
+	result := triggerResult{ID: c.ID, Prompt: c.Prompt, Expect: c.Expect, Forbid: c.Forbid, Why: c.Why, Repeat: repeat}
 	started := time.Now()
 	for i := 0; i < repeat; i++ {
 		dir, err := os.MkdirTemp("", "trigger-")
@@ -254,7 +296,7 @@ func runTriggerCase(dsh, suffix string, c triggerCase, repeat int) triggerResult
 		loaded := skillsLoaded(raw)
 		// **不排序**：顺序就是路由决策本身，排掉之后报告读不出「先加载谁」。
 		result.Runs = append(result.Runs, loaded)
-		if triggerPass(c.Expect, loaded) {
+		if triggerPass(c.Expect, c.Forbid, loaded) {
 			result.Passed++
 		}
 		if runErr != nil && len(loaded) == 0 && result.Err == "" {
@@ -266,9 +308,15 @@ func runTriggerCase(dsh, suffix string, c triggerCase, repeat int) triggerResult
 	return result
 }
 
-func joinOrNone(names []string) string {
-	if len(names) == 0 {
-		return "（无）"
+func joinOrNone(expect, forbid []string) string {
+	label := "（无）"
+	if len(expect) > 0 {
+		label = strings.Join(expect, "+")
+	} else if expect == nil {
+		label = "（不判）"
 	}
-	return strings.Join(names, "+")
+	if len(forbid) > 0 {
+		label += " 禁" + strings.Join(forbid, "+")
+	}
+	return label
 }
