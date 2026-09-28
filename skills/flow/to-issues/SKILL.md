@@ -59,7 +59,7 @@ E. 直接粘贴需求
 
 1. **定位输入 → 先找 prefactoring → 垂直拆解 → 摆清单 → 判定模式 → 创建 → 摘要 → 直接往下。**
 2. **把清单摆出来**（编号 + 每条一行真实阻塞边 + demo）。拆得太碎和无意中切成横向是最常见的两种失败——摆出来才接得住。示例见 [`references/examples.md`](references/examples.md)。
-3. **判定创建模式，自己判、不问：** 有 `origin` 且 `gh auth status` 通过 → **GitHub**（`gh` CLI，原生阻塞链接，v2.94+ 才有 `--blocked-by` / `--parent`）；否则 → **本地**（`<scope>/issues/` 下的 `NN-<slug>.md`，跟随 `AGENTS.md` 路由表）。判完在报告里说明选了哪个、依据是什么。
+3. **判定创建模式，自己判、不问：** 有 `origin` 且 `gh auth status` 通过 → **GitHub**（`gh` CLI，原生阻塞链接，v2.94+ 才有 `--blocked-by` / `--parent`）；否则 → **本地**（`<scope>/issues/` 下的 `NN-<slug>.md`，跟随 `AGENTS.md` 路由表）。判完在报告里说明选了哪个、依据是什么。**没有 `origin` 时按 CONTRACT §1 多做一次意图判断**：这批活是要给人看 / 协作的吗？是就**提醒一次**「要不要先建一个 GitHub 仓库」，然后照本地模式继续——只提醒一次、不阻塞、**绝不自己建远端**。
 4. **先建阻塞方**，好让它们的编号在依赖它们的 issue 之前就存在。GitHub：`gh issue create --title ... --body ... --label "priority: X" --blocked-by ...`；只有跟踪器拒绝该 flag 时，才退回在正文里写一行 `Blocked by #X`。本地：`mkdir -p` 后按依赖顺序写文件，`NN` 是真实卡片 ID。
 5. **摘要报告：** 来源 / 模式 / 条数 + 表格（`# | 标题（行为） | Blocked by | 标识`）+ **当前前沿**（没有未决阻塞、现在就能开始的那些）。模板见 [`references/examples.md`](references/examples.md)。
 6. **直接往下：** 报告完跑 `route`（`python3 <SKILL_DIR>/../loop-it/scripts/loop_state.py route --scope <scope>`，`<SKILL_DIR>` 是加载本技能时报告的 Base directory），照它打印的 `next:` 用 `skill` 工具加载 `loop-it` 或 `graph`——同一个回合里接着走，不要交回控制权，也不要自己开写。
