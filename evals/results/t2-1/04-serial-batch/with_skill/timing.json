@@ -1,0 +1,8 @@
+{
+ "total_tokens": 3158832,
+ "duration_ms": 895749,
+ "total_duration_seconds": 895.75,
+ "duration_seconds": 895.75,
+ "tool_calls": 75,
+ "run_number": 1
+}

@@ -1,0 +1,8 @@
+{
+ "total_tokens": 3250625,
+ "duration_ms": 602105,
+ "total_duration_seconds": 602.11,
+ "duration_seconds": 602.11,
+ "tool_calls": 63,
+ "run_number": 1
+}

@@ -1,0 +1,836 @@
+{
+ "passed": 33,
+ "results": [
+  {
+   "id": "prd-unshaped",
+   "prompt": "我们想让用户能给订单打标签，但具体怎么落我还没想好，你先帮我把需求理清楚。",
+   "expect": [
+    "prd"
+   ],
+   "runs": [
+    [
+     "prd"
+    ],
+    [
+     "prd"
+    ],
+    [
+     "prd"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 125.9,
+   "why": "prd 的触发说明：需求还没成形时走这里"
+  },
+  {
+   "id": "prd-you-decide",
+   "prompt": "做个能缓存的 KV，怎么落地你定。",
+   "expect": [
+    "prd"
+   ],
+   "runs": [
+    [
+     "prd"
+    ],
+    [
+     "prd"
+    ],
+    [
+     "prd"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 210.6,
+   "why": "prd 的触发词里逐字有「落地方式你定」"
+  },
+  {
+   "id": "to-design-cross-service",
+   "prompt": "这次要给计费服务加一个新的对外接口，订单服务也得跟着改，数据模型也要动。动手前先给我一份设计文档，讲清为什么不选另一个方案。",
+   "expect": [
+    "to-design"
+   ],
+   "runs": [
+    [
+     "to-design"
+    ],
+    [
+     "to-design"
+    ],
+    [
+     "to-design"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 236,
+   "why": "to-design 的触发条件：跨 2+ 服务、改数据模型"
+  },
+  {
+   "id": "to-design-spec",
+   "prompt": "帮我写一份这个模块的规格说明，重点是接口契约和向后兼容。",
+   "expect": [
+    "to-design"
+   ],
+   "runs": [
+    [
+     "to-design"
+    ],
+    [
+     "to-design"
+    ],
+    [
+     "to-design"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 225.7,
+   "why": "RFC 把 /prd-to-spec 并进了 to-design，规格说明归它（这正是原先与 prd 撞车的那一处）"
+  },
+  {
+   "id": "to-issues-from-prd",
+   "prompt": "PRD 已经写好了，帮我把它拆成一条条能独立做的 issue 卡片，标清依赖关系。",
+   "expect": [
+    "to-issues"
+   ],
+   "runs": [
+    [
+     "to-issues"
+    ],
+    [
+     "to-issues"
+    ],
+    [
+     "to-issues"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 90.3,
+   "why": "to-issues 的动词：拆解、生成卡片"
+  },
+  {
+   "id": "loop-it-batch",
+   "prompt": "这批 issue 互相有依赖，按顺序一条条做完，每条做完跑一遍门禁。",
+   "expect": [
+    "loop-it"
+   ],
+   "runs": [
+    [
+     "loop-it"
+    ],
+    [
+     "loop-it"
+    ],
+    [
+     "loop-it"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 197.5,
+   "why": "loop-it：一批有依赖的 issue 串行循环"
+  },
+  {
+   "id": "loop-it-single",
+   "prompt": "这条 issue 已经拆好了：给订单列表加按标签筛选。把它实现了。",
+   "expect": [
+    "loop-it"
+   ],
+   "runs": [
+    [
+     "loop-it"
+    ],
+    [
+     "loop-it"
+    ],
+    [
+     "loop-it"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 223,
+   "why": "loop-it：一个单元就内联做完"
+  },
+  {
+   "id": "graph-parallel",
+   "prompt": "这三块改动互不依赖，能不能并行做、最后一起合？",
+   "expect": [
+    "graph"
+   ],
+   "runs": [
+    [
+     "graph"
+    ],
+    [
+     "graph",
+     "loop-it"
+    ],
+    [
+     "graph"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 224.2,
+   "why": "graph 的触发词：并行实现、真并行"
+  },
+  {
+   "id": "graph-dag",
+   "prompt": "把这件事拆成一张依赖图，能并行的并行跑，每波做完再合。",
+   "expect": [
+    "graph"
+   ],
+   "runs": [
+    [
+     "graph"
+    ],
+    [
+     "graph",
+     "loop-it"
+    ],
+    [
+     "graph"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 213.5,
+   "why": "graph：任务图 / DAG / 波次"
+  },
+  {
+   "id": "review-it",
+   "prompt": "提交前帮我审一下这次改动。",
+   "expect": [
+    "review-it"
+   ],
+   "runs": [
+    [
+     "review-it",
+     "ship-it"
+    ],
+    [
+     "review-it"
+    ],
+    [
+     "review-it"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 61.5,
+   "why": "review-it：提交/交付之前的评审收尾"
+  },
+  {
+   "id": "review-it-branch",
+   "prompt": "review 一下我这个分支相对 main 的 diff。",
+   "expect": [
+    "review-it"
+   ],
+   "runs": [
+    [
+     "review-it"
+    ],
+    [
+     "review-it"
+    ],
+    [
+     "review-it"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 68.8,
+   "why": "review-it 的触发词：review、审查这次改动"
+  },
+  {
+   "id": "ship-it",
+   "prompt": "做完了，提交、推分支、开个 PR，再补一条实现总结。",
+   "expect": [
+    "ship-it"
+   ],
+   "runs": [
+    [
+     "ship-it"
+    ],
+    [
+     "ship-it"
+    ],
+    [
+     "ship-it"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 83.4,
+   "why": "ship-it 的触发词：提交代码、创建PR。合入不归它"
+  },
+  {
+   "id": "merge-it-stays-out-of-reach",
+   "prompt": "PR 已经开好了，checks 也绿了，合入吧。",
+   "expect": null,
+   "forbid": [
+    "merge-it"
+   ],
+   "runs": [
+    null,
+    null,
+    [
+     "ship-it"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 137.6,
+   "why": "调用轴的闸门：merge-it 是 user-invoked（disable-model-invocation），DSH 的 skill 工具对它返回 isError——模型猜名字也加载不了。判据是「一次都不许出现在链里」，不是「什么都不许加载」（链上出现别的合法技能不算违反调用轴）"
+  },
+  {
+   "id": "near-trivial-function",
+   "prompt": "帮我用 Go 写一个快速排序函数。",
+   "expect": [],
+   "runs": [
+    null,
+    [
+     "modern-go"
+    ],
+    [
+     "modern-go"
+    ]
+   ],
+   "passed": 1,
+   "repeat": 3,
+   "pass": false,
+   "seconds": 124.3,
+   "why": "平凡请求，不该加载任何技能"
+  },
+  {
+   "id": "near-to-design-vs-prd",
+   "prompt": "我想给这个功能写份文档，说清为什么选这个方案、放弃了哪些备选。",
+   "expect": [
+    "to-design"
+   ],
+   "runs": [
+    [
+     "to-design"
+    ],
+    [
+     "to-design"
+    ],
+    [
+     "to-design"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 118.1,
+   "why": "近邻：同样说「写文档」，但问的是「为什么」——to-design 的正文划的正是这条线"
+  },
+  {
+   "id": "near-to-issues-vs-prd",
+   "prompt": "把这个需求拆成几条能独立做的任务。",
+   "expect": [
+    "to-issues"
+   ],
+   "runs": [
+    [
+     "to-issues"
+    ],
+    [
+     "to-issues",
+     "prd"
+    ],
+    [
+     "to-issues"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 166,
+   "why": "近邻：prd 也谈需求，但「拆」是 to-issues 的动词"
+  },
+  {
+   "id": "near-diagnose-vs-review",
+   "prompt": "这个测试偶发失败，大概十次里挂一次，帮我查下原因。",
+   "expect": [
+    "diagnose"
+   ],
+   "runs": [
+    [
+     "diagnose"
+    ],
+    [
+     "diagnose"
+    ],
+    [
+     "diagnose"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 50.4,
+   "why": "近邻：都碰测试，但偶发 flake 是 diagnose 的射程"
+  },
+  {
+   "id": "near-conflict",
+   "prompt": "rebase 的时候一堆冲突，帮我按各方意图解开。",
+   "expect": [
+    "conflict"
+   ],
+   "runs": [
+    [
+     "conflict"
+    ],
+    [
+     "conflict"
+    ],
+    [
+     "conflict"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 62.6,
+   "why": "conflict 的触发词"
+  },
+  {
+   "id": "near-refactor",
+   "prompt": "这个模块越来越乱了，帮我找出里面的坏味道。",
+   "expect": [
+    "refactor"
+   ],
+   "runs": [
+    [
+     "refactor"
+    ],
+    [
+     "refactor"
+    ],
+    [
+     "refactor"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 107.6,
+   "why": "refactor：坏味道 / 反模式"
+  },
+  {
+   "id": "near-modern-go",
+   "prompt": "把仓库里的 Go 代码按新版本的习惯现代化一下。",
+   "expect": [
+    "modern-go"
+   ],
+   "runs": [
+    [
+     "modern-go"
+    ],
+    [
+     "modern-go"
+    ],
+    [
+     "modern-go"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 118.3,
+   "why": "modern-go 的触发词"
+  },
+  {
+   "id": "near-test-first",
+   "prompt": "这个行为还没有测试，我想先写测试再实现。",
+   "expect": [
+    "test-first"
+   ],
+   "runs": [
+    [
+     "test-first"
+    ],
+    [
+     "test-first"
+    ],
+    [
+     "test-first"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 100.9,
+   "why": "test-first 的触发词：先写测试、红绿"
+  },
+  {
+   "id": "near-understand",
+   "prompt": "把这次改动变成一页能审阅的网页，解释每段代码在干什么。",
+   "expect": [
+    "understand"
+   ],
+   "runs": [
+    [
+     "understand"
+    ],
+    [
+     "understand"
+    ],
+    [
+     "understand"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 52,
+   "why": "understand：把本次改动变成审阅页"
+  },
+  {
+   "id": "near-triage",
+   "prompt": "外面提了一堆 issue，帮我分诊一下哪些能直接做。",
+   "expect": [
+    "triage"
+   ],
+   "runs": [
+    [
+     "triage"
+    ],
+    [
+     "triage"
+    ],
+    [
+     "triage"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 80.4,
+   "why": "triage：外面进来的条目"
+  },
+  {
+   "id": "near-humanizer",
+   "prompt": "把这段中文润色一下，去掉 AI 味。",
+   "expect": [
+    "humanizer-zh"
+   ],
+   "runs": [
+    [
+     "humanizer-zh"
+    ],
+    [
+     "humanizer-zh"
+    ],
+    [
+     "humanizer-zh"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 59.2,
+   "why": "vendor 技能，flow 不该抢它"
+  },
+  {
+   "id": "near-ship-vs-review",
+   "prompt": "审完没问题就直接合入吧。",
+   "expect": [
+    "review-it",
+    "ship-it"
+   ],
+   "runs": [
+    [
+     "review-it",
+     "ship-it"
+    ],
+    [
+     "review-it",
+     "ship-it"
+    ],
+    [
+     "review-it",
+     "ship-it"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 213.5,
+   "why": "允许串联：两个都在期望里，先加载谁不强制"
+  },
+  {
+   "id": "near-loop-it-shared-file",
+   "prompt": "有三个小任务要一起做，但它们都要改同一个路由表，帮我并行做完。",
+   "expect": [
+    "loop-it"
+   ],
+   "runs": [
+    [
+     "loop-it"
+    ],
+    [
+     "loop-it"
+    ],
+    [
+     "graph",
+     "loop-it"
+    ]
+   ],
+   "passed": 2,
+   "repeat": 3,
+   "pass": false,
+   "seconds": 135.1,
+   "why": "近邻：听着像并行，但共享文件的单元不是真并行——graph 的判据要求节点互不共享文件，共享接线要串行"
+  },
+  {
+   "id": "near-graph-chain",
+   "prompt": "先把数据库 schema 改了，再基于它改 API，最后改前端页面——这三步能不能并行跑？",
+   "expect": [
+    "loop-it"
+   ],
+   "runs": [
+    [
+     "graph",
+     "loop-it"
+    ],
+    [
+     "loop-it"
+    ],
+    [
+     "graph",
+     "loop-it"
+    ]
+   ],
+   "passed": 1,
+   "repeat": 3,
+   "pass": false,
+   "seconds": 88.6,
+   "why": "近邻：有依赖边的链不是图；graph 的「何时用」明写分层链（schema → API → UI）交给 loop-it"
+  },
+  {
+   "id": "near-ship-vs-review-gate",
+   "prompt": "改动做完了，帮我看看能不能放行。",
+   "expect": [
+    "review-it"
+   ],
+   "runs": [
+    [
+     "review-it"
+    ],
+    [
+     "review-it"
+    ],
+    [
+     "review-it"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 65.3,
+   "why": "近邻：都发生在「做完之后」，但放行判断归 review-it，ship-it 只管交付到 PR 就绪"
+  },
+  {
+   "id": "merge-it-near-miss",
+   "prompt": "这个 PR 已经评审通过了，帮我把它合进 main。",
+   "expect": [],
+   "forbid": [
+    "merge-it"
+   ],
+   "runs": [
+    null,
+    null,
+    null
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 124.5,
+   "why": "近邻：最容易诱模型去合入的一句。严格版——这句不该加载任何技能；merge-it 另由 forbid 兜住"
+  },
+  {
+   "id": "near-conflict-vs-diagnose",
+   "prompt": "合并完了，但有一个测试用例开始偶发失败。",
+   "expect": [
+    "diagnose"
+   ],
+   "runs": [
+    [
+     "diagnose"
+    ],
+    [
+     "diagnose"
+    ],
+    [
+     "diagnose"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 66.4,
+   "why": "近邻：都发生在 merge 前后，但偶发失败是 diagnose 的射程，conflict 只管 git 冲突本身"
+  },
+  {
+   "id": "near-review-it-vs-diagnose",
+   "prompt": "改完之后想让别人独立看一遍这次 diff。",
+   "expect": [
+    "review-it"
+   ],
+   "runs": [
+    [
+     "review-it"
+    ],
+    [
+     "review-it"
+    ],
+    [
+     "review-it"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 71.2,
+   "why": "近邻：都碰「这次改动」；独立评审是 review-it，diagnose 要的是先拿到一条已经变红的命令"
+  },
+  {
+   "id": "near-modern-go-vs-refactor",
+   "prompt": "这段 Go 代码帮我拆一下函数、把变量名改清楚。",
+   "expect": [
+    "refactor"
+   ],
+   "runs": [
+    [
+     "refactor"
+    ],
+    [
+     "refactor"
+    ],
+    [
+     "refactor"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 89.5,
+   "why": "近邻：都是改 Go 代码质量；按版本惯用法现代化才是 modern-go，结构性坏味道归 refactor"
+  },
+  {
+   "id": "near-refactor-vs-modern-go",
+   "prompt": "这个 Go 模块还在用 1.13 的老写法，帮我更新到 1.22 的惯用法。",
+   "expect": [
+    "modern-go"
+   ],
+   "runs": [
+    [
+     "modern-go"
+    ],
+    [
+     "modern-go"
+    ],
+    [
+     "modern-go"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 104.4,
+   "why": "近邻：都是「把代码改好」，但判据是读 go.mod 的版本、用那个版本的惯用法——那是 modern-go"
+  },
+  {
+   "id": "near-test-first-vs-diagnose",
+   "prompt": "这个 bug 偶尔才复现，帮我定位根因。",
+   "expect": [
+    "diagnose"
+   ],
+   "runs": [
+    [
+     "diagnose"
+    ],
+    [
+     "diagnose"
+    ],
+    [
+     "diagnose"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 68.8,
+   "why": "近邻：都要写测试；「先拿到一条已经变红的命令」是 diagnose 的射程，test-first 是红绿循环的写法参考"
+  },
+  {
+   "id": "near-triage-vs-loop-it",
+   "prompt": "我提的那个 issue 验收条件都写清楚了，帮我把它做掉。",
+   "expect": [
+    "loop-it"
+   ],
+   "runs": [
+    [
+     "loop-it",
+     "obelisk"
+    ],
+    [
+     "loop-it",
+     "obelisk"
+    ],
+    [
+     "loop-it"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 393.9,
+   "why": "近邻：都从 issue 开始；triage 处理「别人提来的原始条目」（要先复现、补成可执行的卡片），验收条件已经写好的实现归 loop-it"
+  },
+  {
+   "id": "near-understand-vs-review",
+   "prompt": "这次改动帮我出一页能看的说明，讲讲每段在干什么。",
+   "expect": [
+    "understand"
+   ],
+   "runs": [
+    [
+     "understand"
+    ],
+    [
+     "understand"
+    ],
+    [
+     "understand"
+    ]
+   ],
+   "passed": 3,
+   "repeat": 3,
+   "pass": true,
+   "seconds": 107.1,
+   "why": "近邻：都在看这次改动；understand 产审阅页、不判放行，review-it 给的是结论"
+  }
+ ],
+ "suffix": "先加载你打算用的技能；如果不需要技能就直接说明。然后只说明接下来会做什么，不要真的动手。",
+ "total": 36
+}

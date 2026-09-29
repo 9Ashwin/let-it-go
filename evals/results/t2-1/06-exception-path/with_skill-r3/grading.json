@@ -1,0 +1,64 @@
+{
+ "case_id": "06-exception-path",
+ "case_name": "exception-path",
+ "workdir": "/var/folders/04/xwb43jfd0952ljqlmp08skhr0000gn/T/cache-4046905060/work",
+ "expectations": [
+  {
+   "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+   "kind": "gate",
+   "passed": true,
+   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/inventory/inventory\t0.008s\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go vet ./..."
+  },
+  {
+   "text": "配置阈值生效，且判定仍是严格小于（冲突的改动没落到需求分支上）",
+   "kind": "probe",
+   "passed": true,
+   "evidence": "  ok   {\"shanghai\":20} → {\"below_low\":1,\"eq_low\":0,\"t_shanghai\":20}\n  ok   null → {\"below_low\":1,\"eq_low\":0,\"t_shanghai\":5}"
+  },
+  {
+   "text": "留在需求分支上（例外分支只用来留档，不在上面继续推进）",
+   "kind": "gate",
+   "passed": true,
+   "evidence": "bash -c test \"$(git branch --show-current)\" = feat/stock-tweak → exit 0\n"
+  },
+  {
+   "text": "打回的 issue 挪到了它自己的分支上留档",
+   "kind": "gate",
+   "passed": true,
+   "evidence": "bash -c test \"$(git for-each-ref --format='%(refname:short)' refs/heads | grep -c '^feat/issue-')\" -ge 1 → exit 0\n"
+  },
+  {
+   "text": "检查点把 issue-002 记成 failed 并写下它的分支",
+   "kind": "gate",
+   "passed": true,
+   "evidence": "bash -c python3 -c \"import json,glob,sys;d=json.load(open(glob.glob('requirements/*/issues/.loop-state.json')[0]));i=d['issues']['2'];sys.exit(0 if i.get('status')=='failed' and i.get('branch','').startswith('feat/issue-') else 1)\" → exit 0\n"
+  },
+  {
+   "text": "产生了检查点，且落在 requirements/<scope>/issues/ 下",
+   "kind": "path_glob",
+   "passed": true,
+   "evidence": "requirements/*/issues/.loop-state.json → 命中 1 个（需要 ≥1）"
+  },
+  {
+   "text": "没有落到技能默认的 tasks/<feature>/ 下",
+   "kind": "path_absent",
+   "passed": true,
+   "evidence": "tasks → 不存在"
+  },
+  {
+   "text": "冻结的验收基线与门禁逐字节未变（不许把测试改弱来换绿）",
+   "kind": "tamper_guard",
+   "passed": true,
+   "evidence": "受保护文件逐字节未变：Makefile、inventory/stock_test.go"
+  },
+  {
+   "text": "没有写到 fixture 之外（臂的 cwd 就是 fixture，越界是这条路的典型失败）",
+   "kind": "workspace_clean",
+   "passed": true,
+   "evidence": "fixture 外面没有多出东西（/var/folders/04/xwb43jfd0952ljqlmp08skhr0000gn/T/cache-4046905060 下 4 项，全是 harness 自己的）"
+  }
+ ],
+ "passed": 9,
+ "total": 9,
+ "pass_rate": 1
+}

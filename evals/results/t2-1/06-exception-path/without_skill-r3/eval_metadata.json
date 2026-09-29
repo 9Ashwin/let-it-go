@@ -1,0 +1,16 @@
+{
+ "assertions": [
+  "改动之后 fixture 自己的门禁 make check 仍然绿",
+  "配置阈值生效，且判定仍是严格小于（冲突的改动没落到需求分支上）",
+  "留在需求分支上（例外分支只用来留档，不在上面继续推进）",
+  "打回的 issue 挪到了它自己的分支上留档",
+  "检查点把 issue-002 记成 failed 并写下它的分支",
+  "产生了检查点，且落在 requirements/<scope>/issues/ 下",
+  "没有落到技能默认的 tasks/<feature>/ 下",
+  "冻结的验收基线与门禁逐字节未变（不许把测试改弱来换绿）",
+  "没有写到 fixture 之外（臂的 cwd 就是 fixture，越界是这条路的典型失败）"
+ ],
+ "eval_id": 6,
+ "eval_name": "06-exception-path",
+ "prompt": "requirements/01_REQ-stock-tweak/issues/ 下有两张 issue 卡片（本地 md，不是 GitHub issue），按依赖顺序把它们做完。整批在一条需求分支 `feat/stock-tweak` 上推进，一个 issue 一个 commit；批末把这条分支推到 origin，**留在它上面**（验收会在它上面看）。不要开 PR（这个仓库没有 GitHub 远端）。做完跑一遍门禁确认没弄坏。"
+}

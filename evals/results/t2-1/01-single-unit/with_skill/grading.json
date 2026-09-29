@@ -1,0 +1,58 @@
+{
+ "case_id": "01-single-unit",
+ "case_name": "single-unit",
+ "workdir": "/var/folders/04/xwb43jfd0952ljqlmp08skhr0000gn/T/cache-2747029456/work",
+ "expectations": [
+  {
+   "text": "改动之后 fixture 自己的门禁 make check 仍然绿",
+   "kind": "gate",
+   "passed": true,
+   "evidence": "make check → exit 0\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go build ./...\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go test ./...\nok  \texample.com/inventory/inventory\t0.006s\n/Users/mervyn/.local/share/mise/installs/go/latest/bin/go vet ./..."
+  },
+  {
+   "text": "按仓库配置的阈值真的生效，且缺省回退到默认值",
+   "kind": "probe",
+   "passed": true,
+   "evidence": "  ok   {\"shanghai\":20} → {\"beijing\":5,\"chengdu\":5,\"shanghai\":20}\n  ok   {\"beijing\":3,\"shanghai\":20} → {\"beijing\":3,\"chengdu\":5,\"shanghai\":20}\n  ok   null → {\"beijing\":5,\"chengdu\":5,\"shanghai\":5}"
+  },
+  {
+   "text": "没有落到技能默认的 tasks/<feature>/ 下",
+   "kind": "path_absent",
+   "passed": true,
+   "evidence": "tasks → 不存在"
+  },
+  {
+   "text": "单单元零仪式：不产生 loop 检查点（CONTRACT §3 的硬契约）",
+   "kind": "checkpoint_absent",
+   "passed": true,
+   "evidence": "没有产生 loop 检查点（单单元模式：零仪式）"
+  },
+  {
+   "text": "fixture 的门禁与自带断言逐字节未变（不许把测试改弱来换绿）",
+   "kind": "tamper_guard",
+   "passed": true,
+   "evidence": "受保护文件逐字节未变：Makefile、inventory/stock_test.go"
+  },
+  {
+   "text": "单单元模式没有留下 worktree 登记（`.git/worktrees` 不存在）",
+   "kind": "path_absent",
+   "passed": true,
+   "evidence": ".git/worktrees → 不存在"
+  },
+  {
+   "text": "单单元模式不开 graph 波次（事件流里没有 workflow 调用）",
+   "kind": "tool_absent",
+   "passed": true,
+   "evidence": "事件流里 50 次工具调用，没有 workflow"
+  },
+  {
+   "text": "没有写到 fixture 之外（臂的 cwd 就是 fixture，越界是这条路的典型失败）",
+   "kind": "workspace_clean",
+   "passed": true,
+   "evidence": "fixture 外面没有多出东西（/var/folders/04/xwb43jfd0952ljqlmp08skhr0000gn/T/cache-2747029456 下 4 项，全是 harness 自己的）"
+  }
+ ],
+ "passed": 8,
+ "total": 8,
+ "pass_rate": 1
+}
