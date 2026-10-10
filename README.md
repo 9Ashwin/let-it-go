@@ -151,7 +151,7 @@ make link-check    # 只报告漂移（仓库与安装目录不一致时退出�
 
 | 目录 | 收录内容 |
 | --- | --- |
-| [`skills/bonus`](skills/bonus) | `/conflict`、`/diagnose`、`/modern-go`、`/refactor`、`/test-first`、`/triage`、`/understand`：冲突处理、排障、代码质量、测试、分诊与变更解释 |
+| [`skills/bonus`](skills/bonus) | `/conflict`、`/diagnose`、`/harness-engineering`、`/modern-go`、`/open-source-skill`、`/refactor`、`/test-first`、`/triage`、`/understand`：冲突处理、排障、harness 诊断与重建、代码质量、开源发布、测试、分诊与变更解释 |
 | [`skills/vendor`](skills/vendor) | `/find-skills`、`/frontend-design`、`/humanizer-zh`、`/pptx`、`/resume-optimizer`、`/skill-creator`、`/svg-diagram`、`/teach`、`/ui-ux-pro-max`、`/web-design-guidelines`：技能管理、设计、写作、演示文稿、简历与制图等工具 |
 
 仓库合计收录 27 个技能（核心 8 个，补充 19 个）。其中 25 个支持模型按 description 自动选择；`/teach` 与 `/merge-it` 保留 `disable-model-invocation`，需要手动调用。`vendor` 中的技能为上游逐字副本，来源、版本与许可见各目录的 `NOTICE.md`。

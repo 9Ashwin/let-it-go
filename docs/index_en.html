@@ -741,6 +741,30 @@
         </div>
         <div class="card">
           <div class="card-header">
+            <div class="card-dot blue"></div>
+            <h4>/harness-engineering</h4>
+          </div>
+          <p>Diagnose and rebuild the harness around an agent</p>
+          <ul>
+            <li>A 20-item triage checklist finds the smells → 14 failure modes with prescriptions</li>
+            <li>11 prescription groups (repository as spec / least intervention / knowledge solidification), each with before → after</li>
+            <li>Covers AGENTS.md, SKILL.md, a rule registry, state, feedback loops and environment lock-in</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-dot teal"></div>
+            <h4>/open-source-skill</h4>
+          </div>
+          <p>Turn an internal skill into a public open-source repo</p>
+          <ul>
+            <li>Borrow the skeleton from a mature peer repo: bilingual README / LICENSE / .claude-plugin / docs</li>
+            <li>Redact until a grep finds nothing, and diff against the source material for copied text</li>
+            <li>Switch to a personal commit identity, fill metadata with gh repo create, then read back and verify each item</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-header">
             <div class="card-dot amber"></div>
             <h4>/find-skills</h4>
           </div>
@@ -877,6 +901,8 @@
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">refactor</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">modern-go</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">understand</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">harness-engineering</span>
+<span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">open-source-skill</span>
 
 <span class="comment"># vendor — verbatim third-party copies (10)</span>
 <span class="cmd">npx skills add 9Ashwin/let-it-go</span> <span class="flag">--skill</span> <span class="value">svg-diagram</span>
@@ -910,7 +936,7 @@
       </div>
 
       <div class="note">
-        <strong>The model catalog:</strong> across the 27 skills the descriptions total 6,341 characters, of which the model actually sees <strong>6,178</strong> (DSH normalises whitespace and truncates each description at 500). The skills carrying <code class="inline-code">disable-model-invocation</code> are the vendored <code class="inline-code">/teach</code> (upstream's choice) and <code class="inline-code">/merge-it</code> (merging is irreversible, so only a human fires it); neither enters the model catalog, so you type their names.
+        <strong>The model catalog:</strong> across the 27 skills the descriptions total 6,335 characters, of which the model actually sees <strong>6,172</strong> (DSH normalises whitespace and truncates each description at 500). The skills carrying <code class="inline-code">disable-model-invocation</code> are the vendored <code class="inline-code">/teach</code> (upstream's choice) and <code class="inline-code">/merge-it</code> (merging is irreversible, so only a human fires it); neither enters the model catalog, so you type their names.
       </div>
 
       <h3>Set Up Your Repository</h3>

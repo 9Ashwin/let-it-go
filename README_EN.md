@@ -123,7 +123,7 @@ The project centers on [`skills/flow`](skills/flow). Names below use the `/` pre
 
 | Directory | Contents |
 | --- | --- |
-| [`skills/bonus`](skills/bonus) | `/conflict`, `/diagnose`, `/modern-go`, `/refactor`, `/test-first`, `/triage`, `/understand`: conflict resolution, diagnosis, code quality, testing, triage, and change explanations |
+| [`skills/bonus`](skills/bonus) | `/conflict`, `/diagnose`, `/harness-engineering`, `/modern-go`, `/open-source-skill`, `/refactor`, `/test-first`, `/triage`, `/understand`: conflict resolution, diagnosis, harness diagnosis and rebuild, code quality, open-source release, testing, triage, and change explanations |
 | [`skills/vendor`](skills/vendor) | `/find-skills`, `/frontend-design`, `/humanizer-zh`, `/pptx`, `/resume-optimizer`, `/skill-creator`, `/svg-diagram`, `/teach`, `/ui-ux-pro-max`, `/web-design-guidelines`: tools for skill management, design, writing, presentations, resumes, and diagrams |
 
 The repository contains 27 skills in total: 8 core and 19 supplementary. Of these, 25 support automatic selection by description; `/teach` and `/merge-it` retain `disable-model-invocation` and require manual invocation. Skills in `vendor` are verbatim upstream copies; see each directory's `NOTICE.md` for source, version, and license.
