@@ -126,7 +126,7 @@ The project centers on [`skills/flow`](skills/flow). Names below use the `/` pre
 | [`skills/bonus`](skills/bonus) | `/conflict`, `/diagnose`, `/modern-go`, `/refactor`, `/test-first`, `/triage`, `/understand`: conflict resolution, diagnosis, code quality, testing, triage, and change explanations |
 | [`skills/vendor`](skills/vendor) | `/find-skills`, `/frontend-design`, `/humanizer-zh`, `/pptx`, `/resume-optimizer`, `/skill-creator`, `/svg-diagram`, `/teach`, `/ui-ux-pro-max`, `/web-design-guidelines`: tools for skill management, design, writing, presentations, resumes, and diagrams |
 
-The repository contains 25 skills in total: 8 core and 17 supplementary. Of these, 23 support automatic selection by description; `/teach` and `/merge-it` retain `disable-model-invocation` and require manual invocation. Skills in `vendor` are verbatim upstream copies; see each directory's `NOTICE.md` for source, version, and license.
+The repository contains 27 skills in total: 8 core and 19 supplementary. Of these, 25 support automatic selection by description; `/teach` and `/merge-it` retain `disable-model-invocation` and require manual invocation. Skills in `vendor` are verbatim upstream copies; see each directory's `NOTICE.md` for source, version, and license.
 
 </details>
 
@@ -135,7 +135,7 @@ The repository contains 25 skills in total: 8 core and 17 supplementary. Of thes
 ```
 skills/
 ├── flow/          # the PRD → ship workflow, used as the task requires (8)
-├── bonus/         # supplementary engineering tools collected for personal use (7)
+├── bonus/         # supplementary engineering tools collected for personal use (9)
 └── vendor/        # personal collection of upstream copies, pinned by the manifest (10)
 scripts/           # check_skills.py (layout / frontmatter / cross-refs / patch)
                    # sync_vendor.py (vendor sync and additions)

@@ -1,6 +1,6 @@
 # let-it-go 协作入口
 
-这是一套研发工作流技能集（25 个技能，三桶）。本文件是维护这个仓库时的入口：
+这是一套研发工作流技能集（27 个技能，三桶）。本文件是维护这个仓库时的入口：
 **常驻的核心规则**。使用技能（而不是维护技能）时读 [README.md](README.md) 与
 [docs/index_cn.html](docs/index_cn.html)，不需要本文件。
 
@@ -52,7 +52,7 @@ make test    # 再跑各技能自带脚本的自测
   在合适的时刻敲），就在 frontmatter 写 `disable-model-invocation: true`，它就变成 `user-invoked`。
   描述跟着分两套写法：`model-invoked` 带触发词（那是路由信号），`user-invoked` 只写一行**给人看的
   摘要**——模型根本读不到它的目录，触发词写在那里等于给一个不存在的读者配路由。
-  `scripts/check_skills.py` 会拦 `user-invoked` 却带 `Triggers:` 的描述。现状：25 个技能里只有
+  `scripts/check_skills.py` 会拦 `user-invoked` 却带 `Triggers:` 的描述。现状：27 个技能里只有
   `vendor/teach`（上游的选择）与 `flow/merge-it`（合入不可逆）是 `user-invoked`。
 - **「决定不做」有地方记：`.out-of-scope/`。** 一条决定做过一次就该留档——什么不做、为什么不、
   逃生通道在哪、历史上谁提过（带 issue 号）。没有它，同一个请求下次还会被提一遍、再被补一遍。

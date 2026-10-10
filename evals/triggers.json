@@ -289,6 +289,38 @@
     "understand"
    ],
    "why": "近邻：都在看这次改动；understand 产审阅页、不判放行，review-it 给的是结论"
+  },
+  {
+   "id": "open-source-skill-publish",
+   "prompt": "我这套技能在内部用了一阵，现在想把它做成一个公开的 GitHub 仓库：照着同类的成熟仓库搭一份 README 和 LICENSE，把里面的内部名字、路径、token 都清干净，建仓库推上去，再确认远端的内容真的和本地一样。",
+   "expect": [
+    "open-source-skill"
+   ],
+   "why": "open-source-skill 的触发场景：把技能做成公开仓库——照参照仓库搭骨架、脱敏到 0 命中、建仓补元数据、发布后逐项读回验证，这几步是它独有的"
+  },
+  {
+   "id": "near-open-source-vs-ship-it",
+   "prompt": "这次的改动已经过了评审，帮我提交、推分支、开 PR、合入，然后把 issue 关掉。",
+   "expect": [
+    "ship-it"
+   ],
+   "why": "近邻：都带「提交、推送、GitHub」这些词；open-source-skill 管的是把一个技能做成公开仓库（骨架、脱敏、建仓、发布后验证），本仓库收尾归 ship-it"
+  },
+  {
+   "id": "harness-engineering-triage",
+   "prompt": "我们 agent 老是两分钟就说做完了，一抽查发现最难的三成根本没做；AGENTS.md 越写越长它反而越来越不听话。先帮我把问题定位到具体缺了哪一环，别急着改提示词的措辞。",
+   "expect": [
+    "harness-engineering"
+   ],
+   "why": "harness-engineering 的触发症状逐字覆盖：虚假胜利（说做完了其实没做完）、指令文件腐化（越写越长反而变笨），而且它给的正是「体检 → 诊断 → 处方」这条路"
+  },
+  {
+   "id": "near-harness-vs-diagnose",
+   "prompt": "这个 Go 服务偶发 panic，几百次里出一次，日志里只有一行栈。帮我查出来到底哪里写错了。",
+   "expect": [
+    "diagnose"
+   ],
+   "why": "近邻：共享「偶发、时好时坏」的措辞；但具体代码 bug 的定位与修复归 diagnose——harness-engineering 的 description 明确把这一类划出去了"
   }
  ]
 }

@@ -28,7 +28,9 @@
       "skills": [
         "./conflict",
         "./diagnose",
+        "./harness-engineering",
         "./modern-go",
+        "./open-source-skill",
         "./refactor",
         "./test-first",
         "./triage",
